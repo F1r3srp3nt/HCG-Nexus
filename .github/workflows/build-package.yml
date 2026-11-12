@@ -3,11 +3,14 @@
 # arm64e, iOS 16.5): the open-source Linux toolchains emit the pre-iOS-14
 # arm64e ABI, which inspect-package.py --require-new-arm64e-abi rejects.
 #
-# Manual trigger only. It produces a short-lived workflow artifact; it never
-# creates a release, installs anything or touches a device.
+# Runs on manual trigger, and on pushes to the development branch only (as
+# agreed with the owner). It produces a short-lived workflow artifact; it
+# never creates a release, installs anything or touches a device.
 name: Build package
 
 on:
+  push:
+    branches: [claude/hcg-nexus-tweak-yb1ii2]
   workflow_dispatch:
     inputs:
       hcg_env:
@@ -36,7 +39,7 @@ jobs:
     needs: checks
     env:
       THEOS: ${{ github.workspace }}/theos
-      HCG_ENV: ${{ inputs.hcg_env }}
+      HCG_ENV: ${{ inputs.hcg_env || 'rootless' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -62,7 +65,7 @@ jobs:
         run: gmake package FINALPACKAGE=1 HCG_ENV="$HCG_ENV"
       - uses: actions/upload-artifact@v4
         with:
-          name: hcg-nexus-${{ inputs.hcg_env }}-deb
+          name: hcg-nexus-${{ inputs.hcg_env || 'rootless' }}-deb
           path: |
             src/packages/*.deb
             src/PreviewHarness/packages/*.deb
