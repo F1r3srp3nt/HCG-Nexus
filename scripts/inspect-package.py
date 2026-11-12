@@ -42,6 +42,50 @@ def slices(data):
 
 
 REQUIRE_NEW_ABI = False
+EXPECTED_FILTER = {"Filter": {"Bundles": ["com.apple.springboard"]}}
+
+
+def parse_filter(raw):
+    """Parse a MobileSubstrate filter plist in any format Theos may emit.
+
+    Theos on macOS converts plists to binary (plutil); on Linux it leaves the
+    source format (here OpenStep text). Returns the parsed dict or None.
+    """
+    import plistlib
+    import re
+    try:
+        return plistlib.loads(raw)  # binary or XML
+    except Exception:
+        pass
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError:
+        return None
+    # Minimal OpenStep form: { Filter = { Bundles = ( "a", "b" ); }; }
+    match = re.fullmatch(r'\s*\{\s*Filter\s*=\s*\{\s*Bundles\s*=\s*\(([^)]*)\)\s*;\s*\}\s*;\s*\}\s*', text)
+    if not match:
+        return None
+    bundles = [b.strip().strip('"') for b in match.group(1).split(",") if b.strip()]
+    return {"Filter": {"Bundles": bundles}}
+
+
+def self_test():
+    import plistlib
+    ok = True
+    samples = {
+        "openstep": b'{ Filter = { Bundles = ( "com.apple.springboard" ); }; }\n',
+        "binary": plistlib.dumps(EXPECTED_FILTER, fmt=plistlib.FMT_BINARY),
+        "xml": plistlib.dumps(EXPECTED_FILTER, fmt=plistlib.FMT_XML),
+    }
+    for name, raw in samples.items():
+        good = parse_filter(raw) == EXPECTED_FILTER
+        print(f"{'OK' if good else 'FAIL':4}  filter parse ({name})")
+        ok &= good
+    wider = plistlib.dumps({"Filter": {"Bundles": ["com.apple.springboard", "com.apple.UIKit"]}}, fmt=plistlib.FMT_BINARY)
+    rejected = parse_filter(wider) != EXPECTED_FILTER
+    print(f"{'OK' if rejected else 'FAIL':4}  wider filter is not accepted")
+    ok &= rejected
+    return 0 if ok else 1
 
 
 def describe(path, data):
@@ -66,6 +110,8 @@ def describe(path, data):
 
 def main():
     global REQUIRE_NEW_ABI
+    if "--self-test" in sys.argv[1:]:
+        return self_test()
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     REQUIRE_NEW_ABI = "--require-new-arm64e-abi" in sys.argv[1:]
     if not args:
@@ -108,9 +154,9 @@ def main():
                 full = os.path.join(root, name)
                 rel = os.path.relpath(full, tmp)
                 if name == "HCGNexus.plist":
-                    text = open(full).read()
-                    ok = "com.apple.springboard" in text and text.count('"') == 2
-                    results.append(("OK" if ok else "FAIL", f"{rel}: filter = {text.strip()}"))
+                    parsed = parse_filter(open(full, "rb").read())
+                    ok = parsed == EXPECTED_FILTER
+                    results.append(("OK" if ok else "FAIL", f"{rel}: filter = {parsed}"))
                 if name in ("HCGNexus.dylib", "HCGNexusPrefs"):
                     results.extend(describe(rel, open(full, "rb").read()))
 

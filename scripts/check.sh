@@ -50,6 +50,8 @@ import plistlib,sys
 items=plistlib.load(open("Prefs/Resources/Root.plist","rb"))["items"]
 sys.exit(0 if any(i.get("key")=="enabled" and i.get("default") is False for i in items) else 1)'
 
+check "inspect-package.py self-test (filter plist formats)" python3 -I scripts/inspect-package.py --self-test
+
 echo "== Core host tests =="
 if Tests/Host/run.sh; then pass "Core host tests"; else fail "Core host tests"; fi
 
