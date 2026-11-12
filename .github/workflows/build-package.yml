@@ -11,6 +11,7 @@ name: Build package
 on:
   push:
     branches: [claude/hcg-nexus-tweak-yb1ii2]
+    paths-ignore: ['docs/**', '**/*.md']
   workflow_dispatch:
     inputs:
       hcg_env:

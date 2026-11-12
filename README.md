@@ -8,9 +8,8 @@ uses obsidian surfaces, brushed-chrome hairlines and restrained cyan light.
 > **Status: milestone 1, development build.** Target confirmed:
 > **iPhone 13 Pro · iOS 16.5 · Dopamine (rootless) · ElleKit · Sileo**
 > (see [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md)). The Core logic is tested and
-> the code compiles and packages, but the installable arm64e package must be built
-> with Xcode (GitHub Actions *Build package* workflow or a Mac), and nothing
-> has run on the device yet. HCG Nexus ships **disabled**.
+> the Xcode-built rootless package passes the strict arm64e ABI check (GitHub
+> Actions *Build package*), but nothing has run on the device yet. HCG Nexus ships **disabled**.
 
 ## Repository structure
 
@@ -128,8 +127,8 @@ uninstall **HCG Nexus** in the package manager.
 
 1. ~~Confirm the environment~~ — done: iPhone 13 Pro, iOS 16.5, Dopamine
    rootless, ElleKit, Sileo. Build defaults updated.
-2. **Run the *Build package* workflow** (or build on a Mac) to produce the
-   new-ABI arm64e rootless `.deb`, which must pass `--require-new-arm64e-abi`.
+2. ~~Produce the new-ABI arm64e rootless `.deb`~~ — done: *Build package* run #4
+   passes `--require-new-arm64e-abi` (artifact `hcg-nexus-rootless-deb`).
 3. **Run the device checklist** in [`docs/VALIDATION.md`](docs/VALIDATION.md).
    Adjust the window level, orientation mapping and text-input focus based on
    what is observed.

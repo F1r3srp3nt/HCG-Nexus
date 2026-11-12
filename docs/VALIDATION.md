@@ -83,7 +83,7 @@ environment. Even when it runs and passes, it is preview evidence only. It
 does not exercise SpringBoard, the real window level, real lock signals or real
 app launches, which are simulated.
 
-## 3. Package compilation — Linux: PASSED for compile checks; device package: NEEDS XCODE BUILD
+## 3. Package compilation — PASSED (Xcode build for the iPhone 13 Pro)
 
 | Package | Result |
 |---|---|
@@ -96,11 +96,29 @@ with both available Linux toolchains). With
 `HCG_REQUIRE_NEW_ABI=1 scripts/check.sh`, or
 `inspect-package.py --require-new-arm64e-abi`, this is a hard failure.
 The device package must come from the **Build package** workflow (macOS runner,
-Xcode) or a Mac. Its result is recorded below once it has run.
+Xcode) or a Mac.
 
-| Xcode-built rootless package | Result |
+**Xcode build — GitHub Actions *Build package* run #4**
+(https://github.com/F1r3srp3nt/HCG-Nexus/actions/runs/43163310346, commit
+`726f314`, `macos-latest`, iPhoneOS16.5 SDK, rootless):
+
+| Step | Result |
 |---|---|
-| Build package workflow | not run yet |
+| Lint, safety rules, host tests (ubuntu-24.04) | pass |
+| `gmake package FINALPACKAGE=1 HCG_ENV=rootless` | pass → `com.hakmicapitalgroup.hcgnexus_0.1.0_iphoneos-arm64.deb` |
+| `inspect-package.py --require-new-arm64e-abi` | pass: no maintainer scripts; every file under `/var/jb`; filter `{'Filter': {'Bundles': ['com.apple.springboard']}}`; `HCGNexus.dylib` and `HCGNexusPrefs` each have an arm64 slice and an **arm64e slice with the versioned ptrauth ABI (v0)** |
+| Preview harness package | pass (separate `.deb`) |
+| Artifact | `hcg-nexus-rootless-deb`, ID 13918394573, 555,614 bytes, sha256 `70a53c8c…cdcf2a` (zip), expires 2026-11-19 |
+
+Earlier runs, for the record: #1 failed to link the host tests on the
+runner (fixed by locating libobjc explicitly). #2's `macos-14` job was
+cancelled before a runner was assigned (switched to `macos-latest`). #3 built
+the package, but the inspector crashed on the binary filter plist that Theos
+emits on macOS (parser fixed).
+
+I could not download the artifact into this sandbox: its network policy blocks
+GitHub's artifact storage host. The ABI result above is the CI inspector's
+output.
 
 ## 4. Physical-device verification — NOT DONE
 
