@@ -8,8 +8,10 @@ Checks:
   * Mach-O slices and, for arm64e, whether the slice carries the versioned
     pointer-authentication ABI (required for arm64e processes on iOS 14+).
 
-Usage: scripts/inspect-package.py path/to/package.deb [rootless|rootful]
-Exit status is non-zero on hard failures; ABI concerns are reported as WARN.
+Usage: scripts/inspect-package.py path/to/package.deb [rootless|rootful] [--require-new-arm64e-abi]
+Exit status is non-zero on hard failures. An old-ABI arm64e slice is a WARN,
+or a FAIL with --require-new-arm64e-abi (required for A12+ devices on iOS 14+,
+including the confirmed iPhone 13 Pro).
 """
 import io
 import struct
@@ -39,6 +41,9 @@ def slices(data):
             yield cpu, sub, data
 
 
+REQUIRE_NEW_ABI = False
+
+
 def describe(path, data):
     findings = []
     for cpu, sub, _body in slices(data):
@@ -51,7 +56,7 @@ def describe(path, data):
                 version = (sub >> 24) & 0x3F
                 findings.append(("OK", f"{path}: arm64e slice, versioned ptrauth ABI (v{version})"))
             else:
-                findings.append(("WARN", f"{path}: arm64e slice uses the OLD (unversioned) ABI. "
+                findings.append(("FAIL" if REQUIRE_NEW_ABI else "WARN", f"{path}: arm64e slice uses the OLD (unversioned) ABI. "
                                          "Not expected to load into arm64e processes (A12+ SpringBoard) on iOS 14+. "
                                          "Rebuild with an Xcode 12+ toolchain, or build HCG_ARCHS=arm64 after confirming your device."))
         else:
@@ -60,11 +65,14 @@ def describe(path, data):
 
 
 def main():
-    if len(sys.argv) < 2:
+    global REQUIRE_NEW_ABI
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    REQUIRE_NEW_ABI = "--require-new-arm64e-abi" in sys.argv[1:]
+    if not args:
         print(__doc__)
         return 2
-    deb = sys.argv[1]
-    scheme = sys.argv[2] if len(sys.argv) > 2 else None
+    deb = args[0]
+    scheme = args[1] if len(args) > 1 else None
     prefix = {"rootless": "var/jb/", "rootful": ""}.get(scheme)
     results = []
 

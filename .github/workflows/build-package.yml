@@ -1,0 +1,70 @@
+# Builds the HCG Nexus jailbreak packages with Apple's toolchain (Xcode on a
+# macOS runner). This is required for the confirmed iPhone 13 Pro (A15,
+# arm64e, iOS 16.5): the open-source Linux toolchains emit the pre-iOS-14
+# arm64e ABI, which inspect-package.py --require-new-arm64e-abi rejects.
+#
+# Manual trigger only. It produces a short-lived workflow artifact; it never
+# creates a release, installs anything or touches a device.
+name: Build package
+
+on:
+  workflow_dispatch:
+    inputs:
+      hcg_env:
+        description: Package layout
+        type: choice
+        default: rootless
+        options: [rootless, rootful]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Lint and Core host tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install clang and GNUstep Base
+        run: sudo apt-get update && sudo apt-get install -y clang gobjc libgnustep-base-dev gnustep-make
+      - name: scripts/check.sh
+        run: scripts/check.sh
+
+  package:
+    name: Theos package (Xcode toolchain)
+    runs-on: macos-14
+    needs: checks
+    env:
+      THEOS: ${{ github.workspace }}/theos
+      HCG_ENV: ${{ inputs.hcg_env }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: src
+      - name: Install build tools
+        run: brew install ldid make dpkg xz
+      - name: Install Theos and the iPhoneOS 16.5 SDK
+        run: |
+          git clone --depth 1 --recursive https://github.com/theos/theos.git "$THEOS"
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$RUNNER_TEMP/sdks"
+          git -C "$RUNNER_TEMP/sdks" sparse-checkout set iPhoneOS16.5.sdk iPhoneOS14.5.sdk
+          cp -R "$RUNNER_TEMP/sdks/iPhoneOS16.5.sdk" "$RUNNER_TEMP/sdks/iPhoneOS14.5.sdk" "$THEOS/sdks/"
+      - name: Toolchain versions
+        run: xcodebuild -version && xcrun clang --version
+      - name: Build tweak package
+        working-directory: src
+        run: gmake package FINALPACKAGE=1 HCG_ENV="$HCG_ENV"
+      - name: Inspect package (new arm64e ABI required)
+        working-directory: src
+        run: python3 scripts/inspect-package.py packages/*.deb "$HCG_ENV" --require-new-arm64e-abi
+      - name: Build preview harness package
+        working-directory: src/PreviewHarness
+        run: gmake package FINALPACKAGE=1 HCG_ENV="$HCG_ENV"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hcg-nexus-${{ inputs.hcg_env }}-deb
+          path: |
+            src/packages/*.deb
+            src/PreviewHarness/packages/*.deb
+          if-no-files-found: error
+          retention-days: 7

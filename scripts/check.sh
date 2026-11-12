@@ -4,6 +4,7 @@
 #
 #   scripts/check.sh                 # lint + Core host tests
 #   HCG_ENV=rootless scripts/check.sh # + Theos package build & package inspection (needs $THEOS)
+#   HCG_REQUIRE_NEW_ABI=1 ...         # treat an old-ABI arm64e slice as a failure (A12+ devices)
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -61,7 +62,9 @@ if [ -n "${HCG_ENV:-}" ]; then
         if make clean >/dev/null 2>&1 && make package HCG_ENV="$HCG_ENV" FINALPACKAGE=1 >/tmp/hcg-nexus-build.log 2>&1; then
             pass "make package HCG_ENV=$HCG_ENV"
             DEB="$(ls packages/*.deb | head -n1)"
-            if python3 -I scripts/inspect-package.py "$DEB" "$HCG_ENV"; then pass "package inspection"; else fail "package inspection"; fi
+            ABI_FLAG=""
+            [ "${HCG_REQUIRE_NEW_ABI:-0}" = "1" ] && ABI_FLAG="--require-new-arm64e-abi"
+            if python3 -I scripts/inspect-package.py "$DEB" "$HCG_ENV" $ABI_FLAG; then pass "package inspection"; else fail "package inspection"; fi
         else
             fail "make package HCG_ENV=$HCG_ENV (see /tmp/hcg-nexus-build.log)"
             grep -E "error" /tmp/hcg-nexus-build.log | head -20

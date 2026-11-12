@@ -6,4 +6,4 @@ Description: HCG command panel behind a configurable cyan edge handle. Off after
 Maintainer: Hakmi Capital Group
 Author: Hakmi Capital Group
 Section: Tweaks
-Depends: mobilesubstrate, preferenceloader
+Depends: mobilesubstrate | ellekit, preferenceloader

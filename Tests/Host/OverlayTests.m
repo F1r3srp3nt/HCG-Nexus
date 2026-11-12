@@ -83,7 +83,42 @@ static void testPanelFrame(void) {
     HCG_CHECK(tiny.width >= 0 && tiny.height >= 0, "never negative");
 }
 
+// Confirmed device: iPhone 13 Pro — 390x844 pt; UIKit safe area 47/0/34/0 in
+// portrait and 0/47/21/47 in landscape.
+static void testIPhone13ProGeometry(void) {
+    HCGInsets portrait = Insets(47, 0, 34, 0);
+    HCGInsets land = HCGSafeAreaForOrientation(portrait, HCGInterfaceOrientationLandscapeLeft);
+    HCG_CHECK(land.top == 0 && land.left == 47 && land.right == 47 && land.bottom == 21, "13 Pro landscape safe area");
+
+    int orientation;
+    for (orientation = 0; orientation < 2; orientation++) {
+        BOOL landscape = orientation == 1;
+        double w = landscape ? 844 : 390, h = landscape ? 390 : 844;
+        HCGInsets insets = landscape ? land : portrait;
+        int side;
+        for (side = 0; side < 2; side++) {
+            HCGHandleLayoutInput in;
+            in.canvasWidth = w; in.canvasHeight = h; in.safeArea = insets;
+            in.side = side; in.keyboardSafeZone = YES; in.landscape = landscape;
+            double p;
+            for (p = 0.0; p <= 1.0001; p += 0.25) {
+                in.position = p;
+                HCGHandleFrames f = HCGComputeHandleFrames(in);
+                HCG_CHECK(RectInside(f.hit, w, h) && RectInside(f.visual, w, h), "13 Pro handle inside screen");
+                HCG_CHECK(f.visual.x >= insets.left - 1e-9 && f.visual.x + f.visual.width <= w - insets.right + 1e-9,
+                          "13 Pro handle sliver inside horizontal safe area");
+                HCG_CHECK(f.hit.y >= insets.top + 56 - 1e-9, "13 Pro handle below the status bar / pull zones");
+            }
+        }
+        HCGRect panel = HCGComputePanelFrame(w, h, insets, 0, 0);
+        HCG_CHECK(panel.width > 300 && panel.height > 300, "13 Pro panel has usable size (%.0fx%.0f)", panel.width, panel.height);
+        HCG_CHECK(panel.x >= insets.left && panel.y >= insets.top && panel.x + panel.width <= w - insets.right && panel.y + panel.height <= h - insets.bottom,
+                  "13 Pro panel inside safe area");
+    }
+}
+
 void HCGRunGeometryTests(void) {
+    HCG_RUN(testIPhone13ProGeometry);
     HCG_RUN(testHandleStaysInsideSafeBandPortrait);
     HCG_RUN(testHandleKeyboardZoneAndLeftSide);
     HCG_RUN(testOrientationHelpers);

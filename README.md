@@ -5,10 +5,12 @@ current app on a jailbroken iPhone. The panel holds searchable shortcuts,
 workspaces, recent actions, HCG integration status and settings. Visually it
 uses obsidian surfaces, brushed-chrome hairlines and restrained cyan light.
 
-> **Status: milestone 1, development build.** It compiles and packages, and the
-> Core logic is tested. It has **not** run on a device, and the target
-> environment is unconfirmed (see [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md)).
-> HCG Nexus ships **disabled**.
+> **Status: milestone 1, development build.** Target confirmed:
+> **iPhone 13 Pro · iOS 16.5 · Dopamine (rootless) · ElleKit · Sileo**
+> (see [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md)). The Core logic is tested and
+> the code compiles and packages, but the installable arm64e package must be built
+> with Xcode (GitHub Actions *Build package* workflow or a Mac), and nothing
+> has run on the device yet. HCG Nexus ships **disabled**.
 
 ## Repository structure
 
@@ -30,6 +32,7 @@ PreviewHarness/        standalone app hosting the real panel; separate package
 Tests/Host/            host test runner (clang + GNUstep) for Sources/Core
 scripts/check.sh       lint + safety rules + host tests (+ package build/inspection)
 scripts/inspect-package.py   .deb layout, maintainer-script and arm64e ABI inspection
+.github/workflows/build-package.yml   manual macOS/Xcode package build (new arm64e ABI)
 Assets/                supplied AppIcon.appiconset (+ how it is used)
 docs/                  ENVIRONMENT, INTEGRATIONS, INSTALL-AND-RECOVERY, VALIDATION
 ```
@@ -90,8 +93,8 @@ See [`docs/INSTALL-AND-RECOVERY.md`](docs/INSTALL-AND-RECOVERY.md). Short versio
 
 ```sh
 scripts/check.sh                                  # lint + host tests
-THEOS=~/theos HCG_ENV=rootless scripts/check.sh   # + build & inspect the .deb
-make package HCG_ENV=rootless FINALPACKAGE=1      # or rootful
+THEOS=~/theos HCG_ENV=rootless HCG_REQUIRE_NEW_ABI=1 scripts/check.sh   # + build & strict inspect (Mac)
+make package FINALPACKAGE=1                       # rootless by default (Xcode toolchain for the device)
 ```
 
 Install the `.deb` with your package manager, respring yourself, then enable it
@@ -100,10 +103,9 @@ uninstall **HCG Nexus** in the package manager.
 
 ## Known limitations
 
-* **Environment unconfirmed.** The rootless/rootful defaults are placeholders.
-* **arm64e ABI.** The arm64e slice built with the Linux clang 11 toolchain uses
-  the old ABI. It is not expected to load on A12 or newer devices running iOS 14+
-  until it is rebuilt with an Xcode 12+ toolchain. arm64 is unaffected.
+* **arm64e ABI.** Packages built on Linux have an old-ABI arm64e slice and must
+  not be installed on the iPhone 13 Pro. Use the Xcode-built package from the
+  *Build package* workflow or a Mac.
 * **Unverified SpringBoard assumptions:**
   * window level `999`
   * orientation source and rotation direction
@@ -124,10 +126,10 @@ uninstall **HCG Nexus** in the package manager.
 
 ## Prioritised TODO
 
-1. **Confirm the environment** (model, iOS, jailbreak, layout, injector) and fix
-   `HCG_ENV`, `HCG_ARCHS`, deployment target and `Depends:` to match.
-2. **Produce a new-ABI arm64e build** (Xcode 12+ toolchain) if the device is
-   A12 or newer, and confirm `scripts/inspect-package.py` shows no WARN.
+1. ~~Confirm the environment~~ — done: iPhone 13 Pro, iOS 16.5, Dopamine
+   rootless, ElleKit, Sileo. Build defaults updated.
+2. **Run the *Build package* workflow** (or build on a Mac) to produce the
+   new-ABI arm64e rootless `.deb`, which must pass `--require-new-arm64e-abi`.
 3. **Run the device checklist** in [`docs/VALIDATION.md`](docs/VALIDATION.md).
    Adjust the window level, orientation mapping and text-input focus based on
    what is observed.

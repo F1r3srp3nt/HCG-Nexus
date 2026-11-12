@@ -1,59 +1,44 @@
-# Target environment — needs confirmation
+# Target environment
 
-HCG Nexus has **not** been matched to a device yet. Nothing in this repository
-claims support for any particular iPhone, iOS version or jailbreak.
+## Confirmed (2026-11-12, by the device owner)
 
-## Questions for the device owner
+| Item | Value | Consequence for the build |
+|---|---|---|
+| Device | iPhone 13 Pro (A15) | SpringBoard runs as **arm64e**: the package needs an arm64e slice with the **new (iOS 14+) ABI** |
+| iOS | 16.5 | iPhoneOS16.5 SDK; deployment target 15.0 (covers 16.5) |
+| Jailbreak | Dopamine | rootless bootstrap under `/var/jb` → `HCG_ENV=rootless` (now the Makefile default), `Architecture: iphoneos-arm64` |
+| Injection | ElleKit | HCG Nexus installs no hooks; ElleKit only needs to load `/var/jb/Library/MobileSubstrate/DynamicLibraries/HCGNexus.dylib` per its SpringBoard filter. `Depends: mobilesubstrate \| ellekit` |
+| Package manager | Sileo | install / uninstall steps in `INSTALL-AND-RECOVERY.md` |
 
-| # | Question | Example answer | What it decides |
-|---|---|---|---|
-| 1 | iPhone model | iPhone 12 Pro (A14) | CPU family: A12 and newer run SpringBoard as **arm64e**; A11 and older are **arm64** only. Decides `HCG_ARCHS` and whether the arm64e ABI problem below matters. |
-| 2 | Exact iOS version (Settings › General › About) | 16.5.1 (20F75) | SDK/deployment target; which SpringBoard classes and selectors to verify (`activeInterfaceOrientation`, `SBLockScreenManager isUILocked`, `SBCoverSheetPresentationManager isVisible`, `LSApplicationWorkspace openApplicationWithBundleID:`). |
-| 3 | Jailbreak name and version | Dopamine 2.x / palera1n 2.x / checkra1n 0.12.x / unc0ver 8.x | Bootstrap layout and injection platform. |
-| 4 | Rootless, rootful or roothide? | rootless (`/var/jb`) | `HCG_ENV` (package prefix and `Architecture:` field). |
-| 5 | Injection framework | ElleKit / Substitute / Substrate / libhooker | Package `Depends:`. HCG Nexus installs **no hooks**, so it only needs a loader that honours `/Library/MobileSubstrate/DynamicLibraries/*.plist` filters. |
-| 6 | Package manager | Sileo / Zebra / Cydia / apt over SSH | Install and uninstall instructions. |
-| 7 | Is PreferenceLoader installed? | yes | Settings › HCG Nexus entry (`Depends: preferenceloader`). |
+Still worth confirming on the phone: that **PreferenceLoader** is installed
+(`Depends: preferenceloader`; Sileo will offer it if missing).
 
-To answer 3–6 on the device:
+## arm64e ABI — how the device package must be built
 
-```sh
-ls -d /var/jb 2>/dev/null && echo rootless || echo "no /var/jb (rootful or roothide)"
-ls /var/jb/usr/lib/ellekit 2>/dev/null; ls /var/jb/usr/lib/libsubstrate.dylib /usr/lib/libsubstrate.dylib 2>/dev/null
-dpkg -l | grep -Ei 'ellekit|substitute|mobilesubstrate|libhooker|preferenceloader'
-sw_vers 2>/dev/null || uname -a
-```
+Measured in this repository's build environment (Linux):
 
-## Current build defaults
+* L1ghtmann iOSToolchain (clang 11): arm64e objects have CPU subtype `0x2` —
+  the old, unversioned ABI. It has `-fptrauth-*` flags but no ABI-version flag.
+* kabiroberai swift-toolchain-linux 5.8 (Apple open-source clang 13): also `0x2`.
 
-These are placeholders until the answers above arrive.
+Neither can produce a package for the iPhone 13 Pro. Apple's clang in
+Xcode 12 or later emits the versioned ABI. Build the device package either:
 
-| `HCG_ENV` | Theos scheme | SDK : deployment | Package prefix | Status |
-|---|---|---|---|---|
-| `rootless` | `rootless` | iPhoneOS16.5 : 15.0 | `/var/jb` | compiles and packages; not run on a device |
-| `rootful` | default | iPhoneOS14.5 : 14.0 | `/` | compiles and packages; not run on a device |
-| `roothide` | — | — | — | refused by the Makefile (needs the roothide Theos fork) |
+* with the **Build package** GitHub Actions workflow (manual trigger, macOS
+  runner, Xcode toolchain). It fails unless
+  `scripts/inspect-package.py --require-new-arm64e-abi` passes and uploads the
+  `.deb` as a 7-day workflow artifact; or
+* on a Mac: `make package FINALPACKAGE=1` then
+  `python3 scripts/inspect-package.py packages/*.deb rootless --require-new-arm64e-abi`.
 
-## Known blocker: arm64e ABI with the Linux toolchain
+Do not install a package whose inspection reports an old-ABI arm64e slice.
 
-The packages in this session were built on Linux with L1ghtmann's
-clang 11 iOS toolchain. `scripts/inspect-package.py` reads the Mach-O
-headers and finds that the **arm64e slices use the old, unversioned
-pointer-authentication ABI**. arm64e processes on iOS 14+ (SpringBoard on A12
-and newer) expect the new ABI, so that slice is not expected to load there. The arm64
-slice is not affected.
+## Other layouts
 
-Resolution depends on question 1:
+`HCG_ENV=rootful` (iPhoneOS14.5 SDK, deployment 14.0) still builds for other
+devices; `roothide` is refused by the Makefile.
 
-* **A11 or older:** build with `HCG_ARCHS=arm64`. No arm64e slice is needed.
-* **A12 or newer:** rebuild on macOS with Xcode 12 or later, or another
-  toolchain that emits the new arm64e ABI. Then confirm with
-  `scripts/inspect-package.py` that the warning is gone.
-
-I could not reach the Theos documentation from this sandbox to confirm which
-Linux toolchains emit the new ABI, so treat this as an open item.
-
-## Assumptions to verify on the device
+## Assumptions to verify on the iPhone 13 Pro (iOS 16.5)
 
 1. The overlay window level `999`
    (`HCGOverlayWindowLevel`, `Sources/Platform/SpringBoard/HCGSpringBoardEnvironment.m`)

@@ -1,17 +1,20 @@
 # HCG Nexus — Theos build.
 #
-# The package layout depends on your jailbreak, so it must be chosen
-# explicitly once the environment is confirmed (see docs/ENVIRONMENT.md):
+# Confirmed target (docs/ENVIRONMENT.md): iPhone 13 Pro (A15, arm64e),
+# iOS 16.5, Dopamine rootless (/var/jb), ElleKit, Sileo. HCG_ENV therefore
+# defaults to rootless; HCG_ENV=rootful remains for other devices.
 #
-#   make package HCG_ENV=rootless   # e.g. Dopamine / palera1n rootless (/var/jb)
-#   make package HCG_ENV=rootful    # e.g. checkra1n / unc0ver / palera1n rootful (/)
+#   make package FINALPACKAGE=1                 # rootless, for the confirmed device
 #
-# Neither choice has been verified on a physical device yet.
+# The arm64e slice MUST be built with Apple's clang (Xcode 12 or later): the
+# open-source Linux toolchains emit the pre-iOS-14 arm64e ABI, which
+# scripts/inspect-package.py --require-new-arm64e-abi rejects. Use the
+# "Build package" GitHub Actions workflow (macOS runner) or a Mac.
 #
 # Deliberately NOT set: INSTALL_TARGET_PROCESSES. `make install` therefore
 # never resprings or kills anything; respring yourself when you choose to.
 
-HCG_ENV ?=
+HCG_ENV ?= rootless
 
 _HCG_ONLY_CLEAN := $(if $(filter-out clean clean-packages distclean,$(MAKECMDGOALS)),,$(if $(MAKECMDGOALS),1,))
 

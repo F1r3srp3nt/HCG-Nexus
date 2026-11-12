@@ -19,7 +19,7 @@ Reproduce sections 1 and 3 with
 | No embedded credentials, HCG Server endpoints or tokens, or invented HCG URL schemes | pass |
 | Tweak filter is SpringBoard only | pass |
 | Version consistent (`control` matches `HCG_NEXUS_VERSION`); plists parse; `enabled` defaults to false | pass |
-| **Core host tests: 26,855 checks, 0 failures** | pass |
+| **Core host tests: 26,920 checks, 0 failures** (includes iPhone 13 Pro geometry: 390×844 pt, safe area 47/34 portrait, 47/47/21 landscape) | pass |
 
 The host tests run the real `Sources/Core` code, compiled with clang against
 GNUstep Base using manual reference counting. They cover:
@@ -83,21 +83,29 @@ environment. Even when it runs and passes, it is preview evidence only. It
 does not exercise SpringBoard, the real window level, real lock signals or real
 app launches, which are simulated.
 
-## 3. Package compilation — PASSED, with one open warning
+## 3. Package compilation — Linux: PASSED for compile checks; device package: NEEDS XCODE BUILD
 
 | Package | Result |
 |---|---|
 | `com.hakmicapitalgroup.hcgnexus_0.1.0_iphoneos-arm64.deb` (rootless, iPhoneOS16.5 SDK, deployment 15.0) | builds with `-Wall -Werror`; files under `/var/jb`; no maintainer scripts; filter is SpringBoard only; Settings icons present; no CydiaSubstrate linkage |
 | `com.hakmicapitalgroup.hcgnexus_0.1.0_iphoneos-arm.deb` (rootful, iPhoneOS14.5 SDK, deployment 14.0) | same checks pass |
 
-**WARN:** the arm64e slices use the old pointer-authentication ABI, because of
-the Linux clang 11 toolchain. See `docs/ENVIRONMENT.md`. This must be resolved
-before testing on an A12 or newer device.
+**Not installable on the confirmed iPhone 13 Pro:** the Linux-built arm64e
+slices use the old pointer-authentication ABI (measured: CPU subtype `0x2`
+with both available Linux toolchains). With
+`HCG_REQUIRE_NEW_ABI=1 scripts/check.sh`, or
+`inspect-package.py --require-new-arm64e-abi`, this is a hard failure.
+The device package must come from the **Build package** workflow (macOS runner,
+Xcode) or a Mac. Its result is recorded below once it has run.
+
+| Xcode-built rootless package | Result |
+|---|---|
+| Build package workflow | not run yet |
 
 ## 4. Physical-device verification — NOT DONE
 
-No device was available, and none of the following has been observed. Checklist
-for the first device session (record iOS version, jailbreak and model):
+Target: iPhone 13 Pro, iOS 16.5, Dopamine rootless, ElleKit, Sileo. Nothing
+has been observed on it yet. Checklist for the first session:
 
 - [ ] Settings › HCG Nexus appears with the icon. Diagnostics shows SpringBoard
       build / Activated: No.
