@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>title</key>
+	<string>HCG Nexus</string>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>HCG Nexus</string>
+			<key>footerText</key>
+			<string>Off after installation until you turn it on. When off, the panel closes, the edge handle disappears and Nexus stops intercepting its gesture. Workspaces are kept; nothing is uninstalled and other HCG services are not affected.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Enable HCG Nexus</string>
+			<key>key</key>
+			<string>enabled</string>
+			<key>default</key>
+			<false/>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Handle side</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSegmentCell</string>
+			<key>key</key>
+			<string>handleSide</string>
+			<key>default</key>
+			<integer>0</integer>
+			<key>validValues</key>
+			<array>
+				<integer>0</integer>
+				<integer>1</integer>
+			</array>
+			<key>validTitles</key>
+			<array>
+				<string>Right</string>
+				<string>Left</string>
+			</array>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Handle vertical position</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>key</key>
+			<string>handlePosition</string>
+			<key>default</key>
+			<real>0.35</real>
+			<key>min</key>
+			<real>0.0</real>
+			<key>max</key>
+			<real>1.0</real>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Handle visibility</string>
+			<key>footerText</key>
+			<string>The handle stays clear of the status bar, the Notification and Control Centre pull zones and the home indicator.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>key</key>
+			<string>handleOpacity</string>
+			<key>default</key>
+			<real>0.7</real>
+			<key>min</key>
+			<real>0.25</real>
+			<key>max</key>
+			<real>1.0</real>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Keep above keyboard</string>
+			<key>key</key>
+			<string>keyboardSafeZone</string>
+			<key>default</key>
+			<true/>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Motion &amp; feedback</string>
+			<key>footerText</key>
+			<string>Reduce Motion in Accessibility settings always replaces sliding with a short fade.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Animations</string>
+			<key>key</key>
+			<string>animationsEnabled</string>
+			<key>default</key>
+			<true/>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Haptics</string>
+			<key>key</key>
+			<string>hapticsEnabled</string>
+			<key>default</key>
+			<true/>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>HCG Terminal</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSegmentCell</string>
+			<key>key</key>
+			<string>terminalVariant</string>
+			<key>default</key>
+			<integer>0</integer>
+			<key>validValues</key>
+			<array>
+				<integer>0</integer>
+				<integer>1</integer>
+				<integer>2</integer>
+			</array>
+			<key>validTitles</key>
+			<array>
+				<string>Off</string>
+				<string>Standard</string>
+				<string>Unleashed</string>
+			</array>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Other HCG integrations</string>
+			<key>footerText</key>
+			<string>HCG Server and Executable Maker show "Not connected": neither offers an interface a phone can reach yet. HCG Connect and ERP remain the authority for signed-in ecosystem access; Nexus stores no HCG credentials.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>HCG News</string>
+			<key>key</key>
+			<string>newsConnected</string>
+			<key>default</key>
+			<false/>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Workspaces</string>
+			<key>footerText</key>
+			<string>Workspaces and shortcuts are stored locally and work without signing in.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Manage Workspaces</string>
+			<key>action</key>
+			<string>openWorkspaces</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Clear Recent Actions</string>
+			<key>action</key>
+			<string>clearRecents</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Maintenance</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Reset Settings</string>
+			<key>action</key>
+			<string>resetSettings</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>If something goes wrong</string>
+			<key>footerText</key>
+			<string>1. Turn off Enable HCG Nexus above. 2. If Settings can't be opened, create /var/mobile/Library/Preferences/com.hakmicapitalgroup.hcgnexus.killswitch (Filza or SSH) and respring yourself. 3. To remove it completely, uninstall "HCG Nexus" in your package manager. Your jailbreak's safe mode also skips tweaks after a SpringBoard crash.</string>
+		</dict>
+	</array>
+</dict>
+</plist>

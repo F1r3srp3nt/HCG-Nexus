@@ -1,0 +1,6 @@
+.theos/
+.build/
+packages/
+PreviewHarness/.theos/
+PreviewHarness/packages/
+.DS_Store
