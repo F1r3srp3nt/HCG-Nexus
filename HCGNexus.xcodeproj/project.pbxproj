@@ -1,0 +1,1176 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		063342ED52C8803B928695BE /* HCGWorkspaceManagerViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = A52C126137DBC4173B8DC9A1;
+		};
+		067CE4BEEFC11A261324CC0E /* HCGPanelTableViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 81D56076A1B1A36DA6650C8C;
+		};
+		134E79769D43BD65D02E6EBA /* HCGTheme.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = B2FAD72EF4B4935CDED78F59;
+		};
+		195064D9F80D74D3692B6974 /* HCGOverlayPolicy.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 2050E8CA5D2C92592CC242B9;
+		};
+		35DA9693C7136B95DBA5E276 /* HCGPanelHomeViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = F5CFB14C421E20511E716D01;
+		};
+		4264A2B8F7C5F1F160B56169 /* HCGSearch.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 7E54E52E89E1165AF0EF238A;
+		};
+		4F50DC1A55407EFDE68D702E /* HCGNexusAppTests.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 9FDCAB71903DC4D63E2F81B3;
+		};
+		589F4CA7CC9898ED7304C8E4 /* HCGAppRootViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 9141D5B791C2D60021D9070C;
+		};
+		5AD2BC50E7D54D6585F8FC95 /* HCGPanelStateMachine.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = CA02812DB72F15E131452B8A;
+		};
+		5C803444F8AB813ACD73B0E4 /* HCGWorkspacePresets.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 7FC87A8F7443B65C52C7A580;
+		};
+		6009AD07C4618CEE7C023B4D /* HCGPanelContext.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 3B2B813C1265303959118322;
+		};
+		643D29E9302DE61D0808CCC0 /* Foundation.framework in Frameworks */ = {
+			isa = PBXBuildFile;
+			fileRef = 2A19486AFB2E73CA688DF378;
+		};
+		6680936370656B23F3581EE5 /* HCGAction.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 8A20893A8B66B6FA9C6D9E8E;
+		};
+		6EAE21116EFFC4F9AF2E3DD2 /* HCGNexusModel.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 086B95508381EB53B6ACA976;
+		};
+		6FB811E50C5164543FAB9D80 /* HCGConstants.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = A4D581A24430C94CFD83FA2E;
+		};
+		7D11C78EAE5B4C69D10839CA /* Assets.xcassets in Resources */ = {
+			isa = PBXBuildFile;
+			fileRef = C5563B2D91BAF29557D8468C;
+		};
+		8F3A0B6580A55AD425BF84C9 /* UIKit.framework in Frameworks */ = {
+			isa = PBXBuildFile;
+			fileRef = 5F7B283559C888C36B65801B;
+		};
+		8F5A852019BDB6237D2D4C10 /* CoreGraphics.framework in Frameworks */ = {
+			isa = PBXBuildFile;
+			fileRef = 76F9D685866F3288582BB70B;
+		};
+		94C35AC56B68442714774FDF /* HCGOverlayCoordinator.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 8AF6734E2433E7E67718413A;
+		};
+		AB9E6DC7C31FED85F6932247 /* HCGIntegrations.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 9042FE5571141CAA0349E2F9;
+		};
+		ADB48BCB471BAFC9B8A1766B /* QuartzCore.framework in Frameworks */ = {
+			isa = PBXBuildFile;
+			fileRef = 0D4158BFF29972DC1A9B79C6;
+		};
+		AE9DDB88207B0EFE856DE12B /* HCGAppDelegate.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 5EB962FBEE34DC85BCBFA4CC;
+		};
+		B0F2008134CB47D792B1D6F2 /* HCGShortcutEditorViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = EAAFE77D1C832D4112DE5862;
+		};
+		B42A7AF819B521C15C7A2334 /* HCGWorkspace.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 1DFF45AE3D3B9B02A39F2A74;
+		};
+		BEC19CB72860A18682631E42 /* main.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = AE2C2263398739856E9BFC7D;
+		};
+		C3885B071F2BFD14A8E504E0 /* HCGWorkspaceDetailViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 0FEDB9CBA813A865934D7647;
+		};
+		C6E9C37FB51D92106C6BEB67 /* HCGAppPlatform.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = DF9C83BBE76AF761A4BFCBA0;
+		};
+		C9382163EAAE1B7DF654F3F1 /* HCGGeometry.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 38F01A3CAEADC3AA86D51E53;
+		};
+		CF37F9723E4697D1402DEF09 /* HCGPanelSettingsViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 549DD0C3BE1F2717DF5D0CB7;
+		};
+		D267E31B775E4DAB97984534 /* HCGKeyValueStore.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 5C8FF1673D757AE3C870386A;
+		};
+		D4808BAF38595B9A96A0D334 /* HCGActionRunner.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 15F9BB34D7ACA39D3BC8E99D;
+		};
+		DA0D996AFCA3DAA4CD864D09 /* HCGWorkspaceStore.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 1E711720A28482846A34FA39;
+		};
+		DDFC0EECC4214499EC764E61 /* HCGRecents.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 0A3E55034877A24B87DA9271;
+		};
+		DEEAFD716FB7DB4E434394C5 /* HCGSettings.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 9F42A85466F7E2D5F20DCEE9;
+		};
+		F3C5FD26A46ADBAF5E0D7672 /* HCGSceneDelegate.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 42126D0B6A5000433B8BE9D2;
+		};
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		F522CB7D2481BF22613B418E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EF6EC78549424C6E1163F9D8;
+			proxyType = 1;
+			remoteGlobalIDString = 517EC94E733F4B0137B0B203;
+			remoteInfo = HCGNexus;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		01FA27804A2F3E6C92EB9034 /* HCGPanelStateMachine.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGPanelStateMachine.h;
+			path = Sources/Core/HCGPanelStateMachine.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		086B95508381EB53B6ACA976 /* HCGNexusModel.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGNexusModel.m;
+			path = Sources/Panel/HCGNexusModel.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		088154D2A3C393C637201AE0 /* HCGPanelHomeViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGPanelHomeViewController.h;
+			path = Sources/Panel/HCGPanelHomeViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		0A3E55034877A24B87DA9271 /* HCGRecents.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGRecents.m;
+			path = Sources/Core/HCGRecents.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		0B14876436DADBE728748170 /* HCGWorkspaceManagerViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGWorkspaceManagerViewController.h;
+			path = Sources/Panel/HCGWorkspaceManagerViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		0D4158BFF29972DC1A9B79C6 /* QuartzCore.framework */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = QuartzCore.framework;
+			path = System/Library/Frameworks/QuartzCore.framework;
+			sourceTree = SDKROOT;
+		};
+		0FEDB9CBA813A865934D7647 /* HCGWorkspaceDetailViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGWorkspaceDetailViewController.m;
+			path = Sources/Panel/HCGWorkspaceDetailViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		1208C343690391BA0405793B /* HCGPanelSettingsViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGPanelSettingsViewController.h;
+			path = Sources/Panel/HCGPanelSettingsViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		1287150D96DF34ED5A3827B5 /* HCGSceneDelegate.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGSceneDelegate.h;
+			path = App/HCGSceneDelegate.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		15F9BB34D7ACA39D3BC8E99D /* HCGActionRunner.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGActionRunner.m;
+			path = Sources/Panel/HCGActionRunner.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		187646796C26C5BC3A00852D /* HCGRecents.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGRecents.h;
+			path = Sources/Core/HCGRecents.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		1DFF45AE3D3B9B02A39F2A74 /* HCGWorkspace.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGWorkspace.m;
+			path = Sources/Core/HCGWorkspace.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		1E711720A28482846A34FA39 /* HCGWorkspaceStore.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGWorkspaceStore.m;
+			path = Sources/Core/HCGWorkspaceStore.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		2050E8CA5D2C92592CC242B9 /* HCGOverlayPolicy.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGOverlayPolicy.m;
+			path = Sources/Core/HCGOverlayPolicy.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		23007D7C72B8DFE7A39EC6CE /* HCGConstants.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGConstants.h;
+			path = Sources/Core/HCGConstants.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		2A19486AFB2E73CA688DF378 /* Foundation.framework */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = Foundation.framework;
+			path = System/Library/Frameworks/Foundation.framework;
+			sourceTree = SDKROOT;
+		};
+		2AF4C3737581B00EBD0A6AD1 /* HCGPanelContext.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGPanelContext.h;
+			path = Sources/Panel/HCGPanelContext.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		38F01A3CAEADC3AA86D51E53 /* HCGGeometry.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGGeometry.m;
+			path = Sources/Core/HCGGeometry.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		3B2B813C1265303959118322 /* HCGPanelContext.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGPanelContext.m;
+			path = Sources/Panel/HCGPanelContext.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		3CDF01D2A25E4EE40B827538 /* HCGWorkspace.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGWorkspace.h;
+			path = Sources/Core/HCGWorkspace.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		40149B2A094766AB4FC6E549 /* HCGWorkspacePresets.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGWorkspacePresets.h;
+			path = Sources/Core/HCGWorkspacePresets.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		42126D0B6A5000433B8BE9D2 /* HCGSceneDelegate.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGSceneDelegate.m;
+			path = App/HCGSceneDelegate.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		4411099AB04FF54D223BE11F /* HCGNexusModel.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGNexusModel.h;
+			path = Sources/Panel/HCGNexusModel.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		4520B8904987E431A902E5EF /* HCGLauncher.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGLauncher.h;
+			path = Sources/Panel/HCGLauncher.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		549DD0C3BE1F2717DF5D0CB7 /* HCGPanelSettingsViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGPanelSettingsViewController.m;
+			path = Sources/Panel/HCGPanelSettingsViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		5C8FF1673D757AE3C870386A /* HCGKeyValueStore.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGKeyValueStore.m;
+			path = Sources/Core/HCGKeyValueStore.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		5EB962FBEE34DC85BCBFA4CC /* HCGAppDelegate.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGAppDelegate.m;
+			path = App/HCGAppDelegate.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		5F7B283559C888C36B65801B /* UIKit.framework */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = UIKit.framework;
+			path = System/Library/Frameworks/UIKit.framework;
+			sourceTree = SDKROOT;
+		};
+		6052C318C84108030BA0827D /* HCGKeyValueStore.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGKeyValueStore.h;
+			path = Sources/Core/HCGKeyValueStore.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		63344EE2FA96F4DC54A9E0C8 /* HCGSearch.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGSearch.h;
+			path = Sources/Core/HCGSearch.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		63E87C23DC9A4CF3E50BEEB1 /* HCGWorkspaceStore.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGWorkspaceStore.h;
+			path = Sources/Core/HCGWorkspaceStore.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		6D6F4DE6DEBDCBCE27304086 /* HCGCore.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGCore.h;
+			path = Sources/Core/HCGCore.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		76F9D685866F3288582BB70B /* CoreGraphics.framework */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = CoreGraphics.framework;
+			path = System/Library/Frameworks/CoreGraphics.framework;
+			sourceTree = SDKROOT;
+		};
+		7842903A1820C82A3F56D334 /* HCGShortcutEditorViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGShortcutEditorViewController.h;
+			path = Sources/Panel/HCGShortcutEditorViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		7E54E52E89E1165AF0EF238A /* HCGSearch.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGSearch.m;
+			path = Sources/Core/HCGSearch.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		7FC87A8F7443B65C52C7A580 /* HCGWorkspacePresets.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGWorkspacePresets.m;
+			path = Sources/Core/HCGWorkspacePresets.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		81D56076A1B1A36DA6650C8C /* HCGPanelTableViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGPanelTableViewController.m;
+			path = Sources/Panel/HCGPanelTableViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		83C5CBAE4AEEAF8586F9BF0B /* HCGNexus.app */ = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.application;
+			includeInIndex = 0;
+			path = HCGNexus.app;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		8A20893A8B66B6FA9C6D9E8E /* HCGAction.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGAction.m;
+			path = Sources/Core/HCGAction.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		8AF6734E2433E7E67718413A /* HCGOverlayCoordinator.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGOverlayCoordinator.m;
+			path = Sources/Core/HCGOverlayCoordinator.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		9042FE5571141CAA0349E2F9 /* HCGIntegrations.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGIntegrations.m;
+			path = Sources/Core/HCGIntegrations.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		9141D5B791C2D60021D9070C /* HCGAppRootViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGAppRootViewController.m;
+			path = App/HCGAppRootViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		9F42A85466F7E2D5F20DCEE9 /* HCGSettings.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGSettings.m;
+			path = Sources/Core/HCGSettings.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		9FDCAB71903DC4D63E2F81B3 /* HCGNexusAppTests.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGNexusAppTests.m;
+			path = Tests/App/HCGNexusAppTests.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		A1811C38D20847BCBEE8F357 /* HCGIntegrations.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGIntegrations.h;
+			path = Sources/Core/HCGIntegrations.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		A4D581A24430C94CFD83FA2E /* HCGConstants.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGConstants.m;
+			path = Sources/Core/HCGConstants.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		A52C126137DBC4173B8DC9A1 /* HCGWorkspaceManagerViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGWorkspaceManagerViewController.m;
+			path = Sources/Panel/HCGWorkspaceManagerViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		AE2C2263398739856E9BFC7D /* main.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = main.m;
+			path = App/main.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		B2FAD72EF4B4935CDED78F59 /* HCGTheme.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGTheme.m;
+			path = Sources/Panel/HCGTheme.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		B6172EBE4D10152B2219648A /* HCGAppDelegate.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGAppDelegate.h;
+			path = App/HCGAppDelegate.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		BA8C479F3A5600CAC03BEF7C /* HCGAction.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGAction.h;
+			path = Sources/Core/HCGAction.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		C5563B2D91BAF29557D8468C /* Assets.xcassets */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = folder.assetcatalog;
+			name = Assets.xcassets;
+			path = App/Assets.xcassets;
+			sourceTree = SOURCE_ROOT;
+		};
+		C8100ECE80083FA872EF6617 /* HCGOverlayCoordinator.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGOverlayCoordinator.h;
+			path = Sources/Core/HCGOverlayCoordinator.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		C99BB2D86F718FBBF6D2AEFD /* HCGAppRootViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGAppRootViewController.h;
+			path = App/HCGAppRootViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		CA02812DB72F15E131452B8A /* HCGPanelStateMachine.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGPanelStateMachine.m;
+			path = Sources/Core/HCGPanelStateMachine.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		CC04B3A72DFF9B7A7886F0AE /* HCGPanelTableViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGPanelTableViewController.h;
+			path = Sources/Panel/HCGPanelTableViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		D241D27FABB933E4A7AC907A /* Info.plist */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.xml;
+			name = Info.plist;
+			path = App/Info.plist;
+			sourceTree = SOURCE_ROOT;
+		};
+		D2FE9A58D4472EF54133B9C7 /* HCGWorkspaceDetailViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGWorkspaceDetailViewController.h;
+			path = Sources/Panel/HCGWorkspaceDetailViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		DF9C83BBE76AF761A4BFCBA0 /* HCGAppPlatform.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGAppPlatform.m;
+			path = Sources/Platform/App/HCGAppPlatform.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		EAAFE77D1C832D4112DE5862 /* HCGShortcutEditorViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGShortcutEditorViewController.m;
+			path = Sources/Panel/HCGShortcutEditorViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		EC30A80E33DAEB37DB6EF7D0 /* HCGNexusTests.xctest */ = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.cfbundle;
+			includeInIndex = 0;
+			path = HCGNexusTests.xctest;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		F1BF1695CD967DF00C11FB92 /* HCGOverlayPolicy.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGOverlayPolicy.h;
+			path = Sources/Core/HCGOverlayPolicy.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		F4F9FEF82035A0CA4F5F20E5 /* HCGTheme.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGTheme.h;
+			path = Sources/Panel/HCGTheme.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		F5CFB14C421E20511E716D01 /* HCGPanelHomeViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGPanelHomeViewController.m;
+			path = Sources/Panel/HCGPanelHomeViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		F71BFE7FD4E97510EBC34197 /* HCGAppPlatform.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGAppPlatform.h;
+			path = Sources/Platform/App/HCGAppPlatform.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		F7B74B6F2F87FCAA8E3FC2EF /* HCGActionRunner.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGActionRunner.h;
+			path = Sources/Panel/HCGActionRunner.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		F90D1722EE8140719805CF13 /* HCGGeometry.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGGeometry.h;
+			path = Sources/Core/HCGGeometry.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		FEEF4F3A1BAA702DCD372EF9 /* HCGSettings.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGSettings.h;
+			path = Sources/Core/HCGSettings.h;
+			sourceTree = SOURCE_ROOT;
+		};
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0A1B83D43B51E875FBEBE3D1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				643D29E9302DE61D0808CCC0,
+				8F3A0B6580A55AD425BF84C9,
+				ADB48BCB471BAFC9B8A1766B,
+				8F5A852019BDB6237D2D4C10,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		552E0D5CD92EC55441D527DD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0E7AE7303CC403E3B8BFAA2E /* Shared Sources */ = {
+			isa = PBXGroup;
+			children = (
+				3AAEF99ECE03226CE4BC84EF,
+				1F5310C51605BDE7EEEB0130,
+				1E3442C42B1B922BEE9F2B45,
+			);
+			name = "Shared Sources";
+			sourceTree = "<group>";
+		};
+		1E3442C42B1B922BEE9F2B45 /* Platform (App) */ = {
+			isa = PBXGroup;
+			children = (
+				F71BFE7FD4E97510EBC34197,
+				DF9C83BBE76AF761A4BFCBA0,
+			);
+			name = "Platform (App)";
+			sourceTree = "<group>";
+		};
+		1F5310C51605BDE7EEEB0130 /* Panel */ = {
+			isa = PBXGroup;
+			children = (
+				F7B74B6F2F87FCAA8E3FC2EF,
+				15F9BB34D7ACA39D3BC8E99D,
+				4520B8904987E431A902E5EF,
+				4411099AB04FF54D223BE11F,
+				086B95508381EB53B6ACA976,
+				2AF4C3737581B00EBD0A6AD1,
+				3B2B813C1265303959118322,
+				088154D2A3C393C637201AE0,
+				F5CFB14C421E20511E716D01,
+				1208C343690391BA0405793B,
+				549DD0C3BE1F2717DF5D0CB7,
+				CC04B3A72DFF9B7A7886F0AE,
+				81D56076A1B1A36DA6650C8C,
+				7842903A1820C82A3F56D334,
+				EAAFE77D1C832D4112DE5862,
+				F4F9FEF82035A0CA4F5F20E5,
+				B2FAD72EF4B4935CDED78F59,
+				D2FE9A58D4472EF54133B9C7,
+				0FEDB9CBA813A865934D7647,
+				0B14876436DADBE728748170,
+				A52C126137DBC4173B8DC9A1,
+			);
+			name = Panel;
+			sourceTree = "<group>";
+		};
+		2C3204E248003A1138055E83 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				9FDCAB71903DC4D63E2F81B3,
+			);
+			name = Tests;
+			sourceTree = "<group>";
+		};
+		3AAEF99ECE03226CE4BC84EF /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				BA8C479F3A5600CAC03BEF7C,
+				8A20893A8B66B6FA9C6D9E8E,
+				23007D7C72B8DFE7A39EC6CE,
+				A4D581A24430C94CFD83FA2E,
+				6D6F4DE6DEBDCBCE27304086,
+				F90D1722EE8140719805CF13,
+				38F01A3CAEADC3AA86D51E53,
+				A1811C38D20847BCBEE8F357,
+				9042FE5571141CAA0349E2F9,
+				6052C318C84108030BA0827D,
+				5C8FF1673D757AE3C870386A,
+				C8100ECE80083FA872EF6617,
+				8AF6734E2433E7E67718413A,
+				F1BF1695CD967DF00C11FB92,
+				2050E8CA5D2C92592CC242B9,
+				01FA27804A2F3E6C92EB9034,
+				CA02812DB72F15E131452B8A,
+				187646796C26C5BC3A00852D,
+				0A3E55034877A24B87DA9271,
+				63344EE2FA96F4DC54A9E0C8,
+				7E54E52E89E1165AF0EF238A,
+				FEEF4F3A1BAA702DCD372EF9,
+				9F42A85466F7E2D5F20DCEE9,
+				3CDF01D2A25E4EE40B827538,
+				1DFF45AE3D3B9B02A39F2A74,
+				40149B2A094766AB4FC6E549,
+				7FC87A8F7443B65C52C7A580,
+				63E87C23DC9A4CF3E50BEEB1,
+				1E711720A28482846A34FA39,
+			);
+			name = Core;
+			sourceTree = "<group>";
+		};
+		51B93CCB1FB5ECF302C017B3 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				83C5CBAE4AEEAF8586F9BF0B,
+				EC30A80E33DAEB37DB6EF7D0,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5C26A49B47E5F07808F45C7E = {
+			isa = PBXGroup;
+			children = (
+				A33FEC12CE857A065B24788A,
+				0E7AE7303CC403E3B8BFAA2E,
+				2C3204E248003A1138055E83,
+				A83D7A1EDB0B3D32356D1EFA,
+				51B93CCB1FB5ECF302C017B3,
+			);
+			sourceTree = "<group>";
+		};
+		A33FEC12CE857A065B24788A /* App */ = {
+			isa = PBXGroup;
+			children = (
+				B6172EBE4D10152B2219648A,
+				5EB962FBEE34DC85BCBFA4CC,
+				C99BB2D86F718FBBF6D2AEFD,
+				9141D5B791C2D60021D9070C,
+				1287150D96DF34ED5A3827B5,
+				42126D0B6A5000433B8BE9D2,
+				AE2C2263398739856E9BFC7D,
+				D241D27FABB933E4A7AC907A,
+				C5563B2D91BAF29557D8468C,
+			);
+			name = App;
+			sourceTree = "<group>";
+		};
+		A83D7A1EDB0B3D32356D1EFA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				2A19486AFB2E73CA688DF378,
+				5F7B283559C888C36B65801B,
+				0D4158BFF29972DC1A9B79C6,
+				76F9D685866F3288582BB70B,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		517EC94E733F4B0137B0B203 /* HCGNexus */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 55E1E8E3374648CAA615D851;
+			buildPhases = (
+				079058F49EA1E850CEE10A03,
+				0A1B83D43B51E875FBEBE3D1,
+				E87F08BF0ED0E631DD5E5750,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HCGNexus;
+			productName = HCGNexus;
+			productReference = 83C5CBAE4AEEAF8586F9BF0B;
+			productType = "com.apple.product-type.application";
+		};
+		B8B34CE9B73CE07402156ADB /* HCGNexusTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C071FBC02B5A6CA612E5078B;
+			buildPhases = (
+				64BAEA2B5CF9FEDFDBC01686,
+				552E0D5CD92EC55441D527DD,
+				7C4F268DBEDE414B592BF382,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				43683592EDCE020FFA37BA7C,
+			);
+			name = HCGNexusTests;
+			productName = HCGNexusTests;
+			productReference = EC30A80E33DAEB37DB6EF7D0;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		EF6EC78549424C6E1163F9D8 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					517EC94E733F4B0137B0B203 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					B8B34CE9B73CE07402156ADB = {
+						CreatedOnToolsVersion = 15.0;
+						TestTargetID = 517EC94E733F4B0137B0B203;
+					};
+				};
+			};
+			buildConfigurationList = BD217B8183C2B127BD6EC483;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 5C26A49B47E5F07808F45C7E;
+			productRefGroup = 51B93CCB1FB5ECF302C017B3;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				517EC94E733F4B0137B0B203,
+				B8B34CE9B73CE07402156ADB,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7C4F268DBEDE414B592BF382 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E87F08BF0ED0E631DD5E5750 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7D11C78EAE5B4C69D10839CA,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		079058F49EA1E850CEE10A03 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AE9DDB88207B0EFE856DE12B,
+				589F4CA7CC9898ED7304C8E4,
+				F3C5FD26A46ADBAF5E0D7672,
+				BEC19CB72860A18682631E42,
+				6680936370656B23F3581EE5,
+				6FB811E50C5164543FAB9D80,
+				C9382163EAAE1B7DF654F3F1,
+				AB9E6DC7C31FED85F6932247,
+				D267E31B775E4DAB97984534,
+				94C35AC56B68442714774FDF,
+				195064D9F80D74D3692B6974,
+				5AD2BC50E7D54D6585F8FC95,
+				DDFC0EECC4214499EC764E61,
+				4264A2B8F7C5F1F160B56169,
+				DEEAFD716FB7DB4E434394C5,
+				B42A7AF819B521C15C7A2334,
+				5C803444F8AB813ACD73B0E4,
+				DA0D996AFCA3DAA4CD864D09,
+				D4808BAF38595B9A96A0D334,
+				6EAE21116EFFC4F9AF2E3DD2,
+				6009AD07C4618CEE7C023B4D,
+				35DA9693C7136B95DBA5E276,
+				CF37F9723E4697D1402DEF09,
+				067CE4BEEFC11A261324CC0E,
+				B0F2008134CB47D792B1D6F2,
+				134E79769D43BD65D02E6EBA,
+				C3885B071F2BFD14A8E504E0,
+				063342ED52C8803B928695BE,
+				C6E9C37FB51D92106C6BEB67,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		64BAEA2B5CF9FEDFDBC01686 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4F50DC1A55407EFDE68D702E,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		43683592EDCE020FFA37BA7C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 517EC94E733F4B0137B0B203;
+			targetProxy = F522CB7D2481BF22613B418E;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		137A81CE7D72B78A346B770C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"HCG_STANDALONE_APP=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/Sources/Core",
+					"$(SRCROOT)/Sources/Panel",
+					"$(SRCROOT)/Sources/Platform/App",
+					"$(SRCROOT)/App",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		387B316C640C63775B25492D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"HCG_STANDALONE_APP=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/Sources/Core",
+					"$(SRCROOT)/Sources/Panel",
+					"$(SRCROOT)/Sources/Platform/App",
+					"$(SRCROOT)/App",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		4EFCA5F7626D2C11A54D9B64 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		78EB35EFF3C8829F10E3A643 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BB4156E547F645EEAA145EA8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HCGNexus.app/HCGNexus";
+			};
+			name = Release;
+		};
+		F1F8DCD9EB511A1B053355D9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HCGNexus.app/HCGNexus";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		55E1E8E3374648CAA615D851 /* Build configuration list for PBXNativeTarget "HCGNexus" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4EFCA5F7626D2C11A54D9B64,
+				78EB35EFF3C8829F10E3A643,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BD217B8183C2B127BD6EC483 /* Build configuration list for PBXProject "HCGNexus" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				137A81CE7D72B78A346B770C,
+				387B316C640C63775B25492D,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C071FBC02B5A6CA612E5078B /* Build configuration list for PBXNativeTarget "HCGNexusTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F1F8DCD9EB511A1B053355D9,
+				BB4156E547F645EEAA145EA8,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = EF6EC78549424C6E1163F9D8 /* Project object */;
+}
