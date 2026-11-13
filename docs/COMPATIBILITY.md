@@ -11,13 +11,13 @@ device yet; see `VALIDATION.md`.
 | Device deployment target | iOS **14.0** (so iOS 14.7 is included), iPhone and iPad, arm64 |
 | Simulator | any iOS simulator runtime your Xcode has installed; independent of the device target |
 | Jailbreak needed | no — ordinary sandboxed app |
-| Toolchain | Xcode 14+ project format. For an iOS 14.x **device** build, use an Xcode whose iPhoneOS SDK still allows deployment target 14.0 (the CI log prints each SDK's minimum) |
+| Toolchain | Xcode 14+ project format. **Verified with Xcode 26.6 / iOS SDK 26.5** (CI run #7): SDK minimum deployment target 12.0, binary `minos 14.0`. Any Xcode whose iPhoneOS SDK allows 14.0 can build the iOS 14.x device app |
 
 ## Jailbreak package (Theos)
 
 | `HCG_ENV` | Package layout | SDK : deployment target | Typical jailbreaks with this layout | Status |
 |---|---|---|---|---|
-| `rootless` (default) | `/var/jb`, `Architecture: iphoneos-arm64` | iPhoneOS16.5 : **15.0** | rootless jailbreaks for iOS 15 and later, e.g. Dopamine, palera1n (rootless) | builds; Xcode-built arm64e verified for main @ `c7cd62c` (CI run #6) |
+| `rootless` (default) | `/var/jb`, `Architecture: iphoneos-arm64` | iPhoneOS16.5 : **15.0** | rootless jailbreaks for iOS 15 and later, e.g. Dopamine, palera1n (rootless) | builds; Xcode-built arm64e verified for this branch (CI run #7) and main @ `c7cd62c` (run #6) |
 | `rootful` | `/`, `Architecture: iphoneos-arm` | iPhoneOS14.5 : **14.0** | rootful jailbreaks, e.g. on iOS 14.x (iOS 14.7 needs this layout) | builds; Xcode-built package not yet produced in CI |
 | `roothide` | — | — | — | refused by the Makefile |
 

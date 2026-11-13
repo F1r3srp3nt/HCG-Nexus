@@ -6,7 +6,11 @@ substituted for one another. Only section 4 can show that the tweak works.
 Reproduce sections 1 and 3 with
 `THEOS=… HCG_ENV=rootless scripts/check.sh` (and again with `HCG_ENV=rootful`).
 
-## Standalone app + build routes (branch `claude/hcg-nexus-tweak-yb1ii2`, 2026-11-13)
+## Standalone app + build routes (PR #1, branch `claude/hcg-nexus-tweak-yb1ii2` @ `5671146`, 2026-11-13)
+
+Xcode results come from the manually started **Build package run #7**:
+https://github.com/F1r3srp3nt/HCG-Nexus/actions/runs/43524574351
+(artifacts: `hcg-nexus-app`, `hcg-nexus-rootless-deb`, `hcg-nexus-preview-SIMULATION-rootless-deb`; kept 7 days).
 
 Evidence is kept separate: **compile/inspection results are not device verification.**
 
@@ -19,9 +23,15 @@ Evidence is kept separate: **compile/inspection results are not device verificat
 | `inspect-app.py` on that binary in a mock bundle; negative test against the preview harness binary (flags `HCGPreview*`/overlay classes) | Linux | **pass** / correctly **fails** |
 | Jailbreak `.deb`, rootless and rootful: layout, filter, deps, no maintainer scripts, **initializer (`%ctor`) present in every slice**, bootstrap class present | Linux Theos build + `inspect-package.py` | **pass**; arm64e old-ABI **WARN** expected on Linux. The inspector self-test covers the initializer check |
 | `build-jailbreak-deb.sh --check-only` | Linux | reads the right SDK/deployment target per layout (16.5/15.0, 14.5/14.0) and correctly refuses to build off macOS |
-| **Xcode:** simulator build, unit tests (`HCGNexusTests`), launch + screenshot, unsigned device build, unsigned archive | GitHub Actions `macos-latest` (manual) | **not run yet** — no Xcode in this environment; see the PR for the run, if one was requested |
-| **Xcode-built jailbreak `.deb`** from this branch with `--require-new-arm64e-abi` | GitHub Actions / Mac | **not run yet** for this branch (main @ `c7cd62c` passed in run #6) |
-| Standalone app on a physical iPhone/iPad | — | **not done** (needs your signing team) |
+| **Xcode project** listed by `xcodebuild -list`: targets HCGNexus + HCGNexusTests, scheme HCGNexus | Actions run #7, Xcode 26.6 (17F113), macOS 26 runner | **pass** |
+| **Simulator build** (Debug, `generic/platform=iOS Simulator`) + `inspect-app.py` (bundle ID, MinimumOSVersion 14.0, iPhone+iPad, scene delegate, AppIcon/Assets.car, no private-API code) | run #7 | **pass**, no compiler warnings |
+| **Unit tests** `HCGNexusTests` on iPhone 17 Pro simulator | run #7 | **pass — 8 tests, 0 failures** |
+| **Launch on simulator**: installed, launched, still running after 8 s, screenshot captured | run #7 | **pass** (screenshot in artifact `hcg-nexus-app`) |
+| **Unsigned device build** (Release, iphoneos SDK 26.5) + `inspect-app.py` | run #7 | **pass** — arm64, `minos 14.0`, no compiler warnings |
+| **Unsigned archive** (what Executable Maker runs before IPA export) | run #7 | **pass** — ApplicationPath `Applications/HCGNexus.app`, arm64, no team/identity (as expected unsigned) |
+| SDK deployment range | run #7 | iphoneos/iphonesimulator SDK 26.5 minimum deployment target **12.0**, so the project's 14.0 is supported by this Xcode |
+| **Xcode-built jailbreak `.deb`** from this branch via `build-jailbreak-deb.sh` (`--require-new-arm64e-abi`) | run #7 | **pass** — arm64e versioned ptrauth ABI (v0) for tweak and Prefs, initializer in every slice, layout/filter/deps OK; SHA-256 `25afcda65c16b5304b4f6e08a72b83036931c94c6d6c5e24d1af7ce336d80c07` |
+| Standalone app on a physical iPhone/iPad | — | **not done** (needs your signing team); the unsigned device build cannot be installed |
 | Jailbreak package on the iPhone 13 Pro | — | **not done** — checklist in section 4 |
 
 ## 1. Source and automated checks — PASSED (Linux, 2026-11-12)

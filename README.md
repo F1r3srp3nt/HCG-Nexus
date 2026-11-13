@@ -18,9 +18,9 @@ and the preview harness.
 > * **Jailbreak package:** confirmed target **iPhone 13 Pro · iOS 16.5 ·
 >   Dopamine (rootless) · ElleKit · Sileo**. Its Xcode-built rootless package
 >   passes the strict arm64e ABI check.
-> * **Standalone app:** compiles and links on Linux against the iPhoneOS 14.5 and
->   16.5 SDKs. Xcode results for this branch are listed in
->   [`docs/VALIDATION.md`](docs/VALIDATION.md).
+> * **Standalone app:** Xcode 26.6 builds it for the simulator and as an
+>   unsigned device build (minimum iOS 14.0). Its 8 unit tests pass and it
+>   launches on the simulator ([`docs/VALIDATION.md`](docs/VALIDATION.md)).
 > * **Neither route has run on a physical device yet.** The jailbreak package
 >   ships **disabled**.
 

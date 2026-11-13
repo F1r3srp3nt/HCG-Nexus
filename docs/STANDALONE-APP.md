@@ -38,6 +38,10 @@ reads the jailbreak package's preference domain
   that, or raise the target.
 * **Simulator:** any iOS simulator runtime installed in your Xcode (14.0 or
   newer). It is independent of the device deployment target.
+* Verified so far: Xcode 26.6 (iOS SDK 26.5) builds the simulator and unsigned
+  device app with no warnings. All 8 unit tests pass on an iPhone 17 Pro
+  simulator, and the app launches and stays running (CI run #7). Not yet run
+  on a physical device.
 
 ## Build and run in Xcode
 
