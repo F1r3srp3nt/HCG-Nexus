@@ -14,6 +14,9 @@ FOUNDATION_EXPORT const UIWindowLevel HCGOverlayWindowLevel;
 @interface HCGSpringBoardEnvironment : NSObject <HCGOverlayEnvironment>
 @property (nonatomic, readonly, nullable) UIWindow *window;
 - (NSString *)orientationSourceSummary;
+// NO means the overlay window is not attached to a UIWindowScene and therefore
+// cannot be displayed (reported in Settings › HCG Nexus › Diagnostics).
+@property (nonatomic, readonly) BOOL windowHasScene;
 @end
 
 NS_ASSUME_NONNULL_END

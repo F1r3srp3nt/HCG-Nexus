@@ -3,25 +3,58 @@
 Nothing here runs automatically. Building never installs. Installing never
 resprings. Every device step is yours to run.
 
-## Build
+## Build the jailbreak package
 
 Confirmed target: iPhone 13 Pro, iOS 16.5, Dopamine (rootless), ElleKit, Sileo.
+This route builds a jailbreak `.deb`. It is separate from the standalone app's
+IPA route (`docs/STANDALONE-APP.md`) and does not need HCG Executable Maker or
+any particular Executable Maker release.
 
-The device package must come from Apple's toolchain (see `docs/ENVIRONMENT.md`):
+The device package must come from Apple's toolchain, because only Apple clang
+emits the iOS 14+ arm64e ABI (see `ENVIRONMENT.md`).
 
-* **GitHub Actions:** Actions → *Build package* → *Run workflow* (layout
-  `rootless`). Download the `hcg-nexus-rootless-deb` artifact (kept 7 days).
-  The run fails if the arm64e slice has the old ABI.
-* **Mac with Xcode 12+ and Theos:**
-  ```sh
-  export THEOS=~/theos
-  make package FINALPACKAGE=1            # HCG_ENV defaults to rootless
-  python3 scripts/inspect-package.py packages/*.deb rootless --require-new-arm64e-abi
-  ```
+**On a Mac (recommended):**
 
-Linux builds are fine for compile checks and the host tests, but not for this
-device. This is a jailbreak `.deb`, not an IPA or TestFlight build. The
-preview harness is a separate package and is not needed on the phone.
+```sh
+# one-time setup
+xcode-select -p                     # must point into Xcode.app, not CommandLineTools
+brew install ldid make dpkg         # gmake (GNU make 4+), ldid, dpkg-deb
+git clone --recursive https://github.com/theos/theos.git ~/theos
+export THEOS=~/theos
+# SDKs the Makefile asks for: 16.5 (rootless) and/or 14.5 (rootful)
+git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git /tmp/sdks
+git -C /tmp/sdks sparse-checkout set iPhoneOS16.5.sdk iPhoneOS14.5.sdk
+cp -R /tmp/sdks/iPhoneOS16.5.sdk /tmp/sdks/iPhoneOS14.5.sdk "$THEOS/sdks/"
+
+# build + verify (nothing is installed)
+scripts/build-jailbreak-deb.sh                  # rootless → packages/com.hakmicapitalgroup.hcgnexus_0.1.0_iphoneos-arm64.deb
+scripts/build-jailbreak-deb.sh --env rootful    # rootful  → packages/com.hakmicapitalgroup.hcgnexus_0.1.0_iphoneos-arm.deb
+scripts/build-jailbreak-deb.sh --check-only     # preflight only
+```
+
+The script first checks:
+* Theos and the SDK the Makefile names for the chosen layout;
+* Xcode is selected, and its clang is Apple clang 12 or newer;
+* GNU make 4+, ldid, perl, dpkg-deb, python3;
+* the `control` dependencies.
+
+It then builds with Theos and runs `scripts/inspect-package.py --require-new-arm64e-abi`. That checks:
+* the file layout, filter and dependencies;
+* the arm64/arm64e slices and the new arm64e ABI;
+* the tweak's initializer (its activation entry point);
+* that there are no maintainer scripts.
+
+It prints the package path and SHA-256.
+
+**GitHub Actions (manual):** Actions → *Build package* → *Run workflow*, with
+route `jailbreak` or `both` and the layout you need. Download the
+`hcg-nexus-<layout>-deb` artifact (kept 7 days). The
+`hcg-nexus-preview-SIMULATION-…` artifact is the preview harness, not the
+tweak.
+
+Linux builds are fine for compile checks and the host tests, but not for an
+A12+ device. The preview harness is a separate package and is not needed on
+the phone.
 
 ## Install on Dopamine with Sileo (manual)
 

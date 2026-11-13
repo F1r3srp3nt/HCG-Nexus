@@ -1,6 +1,10 @@
-.theos/
+*.xcarchive/
+.DS_Store
 .build/
-packages/
+.theos/
+DerivedData/
 PreviewHarness/.theos/
 PreviewHarness/packages/
-.DS_Store
+build/
+packages/
+xcuserdata/

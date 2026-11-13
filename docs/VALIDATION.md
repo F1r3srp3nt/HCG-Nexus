@@ -6,6 +6,24 @@ substituted for one another. Only section 4 can show that the tweak works.
 Reproduce sections 1 and 3 with
 `THEOS=… HCG_ENV=rootless scripts/check.sh` (and again with `HCG_ENV=rootful`).
 
+## Standalone app + build routes (branch `claude/hcg-nexus-tweak-yb1ii2`, 2026-11-13)
+
+Evidence is kept separate: **compile/inspection results are not device verification.**
+
+| Check | Where | Result |
+|---|---|---|
+| Core host tests (+ new: sandboxed app reports configured integrations as "Needs jailbreak package") | Linux, GNUstep | **pass** — 26,930 checks, 0 failures |
+| `generate_xcodeproj.py --check`; project parsed by an independent pbxproj parser (mod-pbxproj), every object reference resolves | Linux | **pass** |
+| App target boundaries: 29 sources, public APIs only, single `main.m`, no SpringBoard/preview/tweak/Prefs files; Executable Maker discovery rules (one `.xcodeproj`, one application target, shared scheme `HCGNexus` archives it) | Linux, `check_app_target.py` | **pass** (and fails on a planted `LSApplicationWorkspace` reference) |
+| App target compiles with `-Werror` and **links** an arm64 executable against iPhoneOS **14.5** and **16.5** SDKs (deployment target 14.0) | Linux, Theos clang 11, `compile-app-target.sh` | **pass**. Only `___isOSVersionAtLeast` (compiler-rt, supplied by Xcode) is left to the real Xcode link. Binary contains no private-API strings |
+| `inspect-app.py` on that binary in a mock bundle; negative test against the preview harness binary (flags `HCGPreview*`/overlay classes) | Linux | **pass** / correctly **fails** |
+| Jailbreak `.deb`, rootless and rootful: layout, filter, deps, no maintainer scripts, **initializer (`%ctor`) present in every slice**, bootstrap class present | Linux Theos build + `inspect-package.py` | **pass**; arm64e old-ABI **WARN** expected on Linux. The inspector self-test covers the initializer check |
+| `build-jailbreak-deb.sh --check-only` | Linux | reads the right SDK/deployment target per layout (16.5/15.0, 14.5/14.0) and correctly refuses to build off macOS |
+| **Xcode:** simulator build, unit tests (`HCGNexusTests`), launch + screenshot, unsigned device build, unsigned archive | GitHub Actions `macos-latest` (manual) | **not run yet** — no Xcode in this environment; see the PR for the run, if one was requested |
+| **Xcode-built jailbreak `.deb`** from this branch with `--require-new-arm64e-abi` | GitHub Actions / Mac | **not run yet** for this branch (main @ `c7cd62c` passed in run #6) |
+| Standalone app on a physical iPhone/iPad | — | **not done** (needs your signing team) |
+| Jailbreak package on the iPhone 13 Pro | — | **not done** — checklist in section 4 |
+
 ## 1. Source and automated checks — PASSED (Linux, 2026-11-12)
 
 `scripts/check.sh` results:

@@ -1,27 +1,38 @@
-# Builds the HCG Nexus jailbreak packages with Apple's toolchain (Xcode on a
-# macOS runner). This is required for the confirmed iPhone 13 Pro (A15,
-# arm64e, iOS 16.5): the open-source Linux toolchains emit the pre-iOS-14
-# arm64e ABI, which inspect-package.py --require-new-arm64e-abi rejects.
+# HCG Nexus builds on GitHub-hosted runners. MANUAL TRIGGER ONLY
+# (Actions › Build package › Run workflow) — nothing here runs on push or on
+# pull requests. It never creates a release, signs for distribution, installs
+# anything or touches a device; outputs are 7-day workflow artifacts.
 #
-# Runs on manual trigger, and on pushes to the development branch only (as
-# agreed with the owner). It produces a short-lived workflow artifact; it
-# never creates a release, installs anything or touches a device.
+# Two separate routes:
+#   app        — standalone iPhone/iPad app (HCGNexus.xcodeproj): simulator
+#                build + unit tests + launch screenshot, unsigned device build
+#                and unsigned archive (inspection only; not installable).
+#   jailbreak  — Theos .deb with Xcode's clang (the iOS 14+ arm64e ABI needs
+#                Apple clang; Linux toolchains emit the old ABI), verified with
+#                scripts/build-jailbreak-deb.sh. The preview harness .deb is a
+#                separate, clearly labelled simulation artifact.
 name: Build package
 
 on:
-  push:
-    branches: [claude/hcg-nexus-tweak-yb1ii2]
-    paths-ignore: ['docs/**', '**/*.md']
   workflow_dispatch:
     inputs:
+      route:
+        description: What to build
+        type: choice
+        default: both
+        options: [both, app, jailbreak]
       hcg_env:
-        description: Package layout
+        description: Jailbreak package layout
         type: choice
         default: rootless
         options: [rootless, rootful]
 
 permissions:
   contents: read
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
   checks:
@@ -34,41 +45,133 @@ jobs:
       - name: scripts/check.sh
         run: scripts/check.sh
 
-  package:
-    name: Theos package (Xcode toolchain)
-    runs-on: macos-latest   # pinned macos-14 job was cancelled before a runner was assigned
+  app:
+    name: Standalone app (Xcode)
+    if: inputs.route != 'jailbreak'
+    runs-on: macos-latest
+    needs: checks
+    steps:
+      - uses: actions/checkout@v4
+      - name: Xcode, SDKs and supported deployment range
+        run: |
+          xcodebuild -version
+          for sdk in iphoneos iphonesimulator; do
+            path="$(xcrun --sdk "$sdk" --show-sdk-path)"
+            min="$(plutil -extract "SupportedTargets.$sdk.MinimumDeploymentTarget" raw "$path/SDKSettings.plist" 2>/dev/null || echo '?')"
+            echo "$sdk SDK $(xcrun --sdk "$sdk" --show-sdk-version): minimum deployment target $min (project: 14.0)"
+          done
+      - name: Project matches its generator
+        run: python3 scripts/generate_xcodeproj.py --check
+      - name: Schemes
+        run: xcodebuild -list -project HCGNexus.xcodeproj
+      - name: Simulator build (Debug)
+        run: |
+          xcodebuild -project HCGNexus.xcodeproj -scheme HCGNexus -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/sim CODE_SIGNING_ALLOWED=NO build 2>&1 | tee build-sim.log | grep -E "warning:|error:|BUILD" || true
+          grep -q "BUILD SUCCEEDED" build-sim.log
+      - name: Inspect simulator app
+        run: python3 scripts/inspect-app.py build/sim/Build/Products/Debug-iphonesimulator/HCGNexus.app --platform iphonesimulator
+      - name: Pick a simulator
+        run: |
+          UDID="$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          for runtime in sorted(devices, reverse=True):
+              for d in devices[runtime]:
+                  if d["name"].startswith("iPhone"):
+                      print(d["udid"]); sys.exit(0)
+          sys.exit("no iPhone simulator available")')"
+          echo "SIM_UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl list devices available | grep "$UDID"
+      - name: Unit tests (simulator)
+        run: |
+          xcodebuild -project HCGNexus.xcodeproj -scheme HCGNexus -configuration Debug \
+            -destination "id=$SIM_UDID" -derivedDataPath build/test CODE_SIGNING_ALLOWED=NO test 2>&1 | tee test.log | grep -E "Test Case|Executed|error:|TEST" || true
+          grep -q "TEST SUCCEEDED" test.log
+      - name: Launch on simulator and take a screenshot
+        run: |
+          xcrun simctl boot "$SIM_UDID" || true
+          xcrun simctl bootstatus "$SIM_UDID" -b
+          xcrun simctl install "$SIM_UDID" build/sim/Build/Products/Debug-iphonesimulator/HCGNexus.app
+          xcrun simctl launch "$SIM_UDID" com.hakmicapitalgroup.hcgnexus.app
+          sleep 8
+          mkdir -p screenshots
+          xcrun simctl io "$SIM_UDID" screenshot screenshots/hcg-nexus-simulator.png
+          if xcrun simctl spawn "$SIM_UDID" launchctl list | grep -q "com.hakmicapitalgroup.hcgnexus.app"; then
+            echo "App is still running 8 s after launch."
+          else
+            echo "::error::HCG Nexus is not running 8 s after launch (crash?)"; exit 1
+          fi
+      - name: Unsigned device build (Release)
+        run: |
+          xcodebuild -project HCGNexus.xcodeproj -scheme HCGNexus -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build/device \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= build 2>&1 | tee build-device.log | grep -E "warning:|error:|BUILD" || true
+          grep -q "BUILD SUCCEEDED" build-device.log
+      - name: Inspect device app
+        run: |
+          APP=build/device/Build/Products/Release-iphoneos/HCGNexus.app
+          python3 scripts/inspect-app.py "$APP" --platform iphoneos
+          lipo -info "$APP/HCGNexus"
+          xcrun vtool -show-build "$APP/HCGNexus" | grep -E "platform|minos|sdk" || true
+      - name: Unsigned archive (what HCG Executable Maker runs before IPA export)
+        run: |
+          xcodebuild -project HCGNexus.xcodeproj -scheme HCGNexus -configuration Release \
+            -destination 'generic/platform=iOS' -derivedDataPath build/archive -archivePath build/HCGNexus.xcarchive \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= archive 2>&1 | tee archive.log | grep -E "error:|ARCHIVE" || true
+          grep -q "ARCHIVE SUCCEEDED" archive.log
+          /usr/libexec/PlistBuddy -c "Print :ApplicationProperties" build/HCGNexus.xcarchive/Info.plist
+      - name: Package outputs
+        if: always()
+        run: |
+          mkdir -p out
+          [ -d build/device/Build/Products/Release-iphoneos/HCGNexus.app ] && \
+            (cd build/device/Build/Products/Release-iphoneos && zip -qry "$GITHUB_WORKSPACE/out/HCGNexus-unsigned-device-NOT-INSTALLABLE.app.zip" HCGNexus.app)
+          cp -R screenshots out/ 2>/dev/null || true
+          cp build-sim.log build-device.log test.log archive.log out/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hcg-nexus-app
+          path: out/
+          retention-days: 7
+
+  jailbreak:
+    name: Jailbreak package (Theos, Xcode toolchain)
+    if: inputs.route != 'app'
+    runs-on: macos-latest
     needs: checks
     env:
       THEOS: ${{ github.workspace }}/theos
-      HCG_ENV: ${{ inputs.hcg_env || 'rootless' }}
+      HCG_ENV: ${{ inputs.hcg_env }}
     steps:
       - uses: actions/checkout@v4
         with:
           path: src
       - name: Install build tools
         run: brew install ldid make dpkg xz
-      - name: Install Theos and the iPhoneOS 16.5 SDK
+      - name: Install Theos and the iPhoneOS SDKs
         run: |
           git clone --depth 1 --recursive https://github.com/theos/theos.git "$THEOS"
           git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$RUNNER_TEMP/sdks"
           git -C "$RUNNER_TEMP/sdks" sparse-checkout set iPhoneOS16.5.sdk iPhoneOS14.5.sdk
           cp -R "$RUNNER_TEMP/sdks/iPhoneOS16.5.sdk" "$RUNNER_TEMP/sdks/iPhoneOS14.5.sdk" "$THEOS/sdks/"
-      - name: Toolchain versions
-        run: xcodebuild -version && xcrun clang --version
-      - name: Build tweak package
+      - name: Build and verify the .deb (scripts/build-jailbreak-deb.sh)
         working-directory: src
-        run: gmake package FINALPACKAGE=1 HCG_ENV="$HCG_ENV"
-      - name: Inspect package (new arm64e ABI required)
-        working-directory: src
-        run: python3 scripts/inspect-package.py packages/*.deb "$HCG_ENV" --require-new-arm64e-abi
-      - name: Build preview harness package
+        run: scripts/build-jailbreak-deb.sh --env "$HCG_ENV"
+      - name: Build preview harness package (simulation, not the tweak)
         working-directory: src/PreviewHarness
         run: gmake package FINALPACKAGE=1 HCG_ENV="$HCG_ENV"
       - uses: actions/upload-artifact@v4
         with:
-          name: hcg-nexus-${{ inputs.hcg_env || 'rootless' }}-deb
-          path: |
-            src/packages/*.deb
-            src/PreviewHarness/packages/*.deb
+          name: hcg-nexus-${{ inputs.hcg_env }}-deb
+          path: src/packages/*.deb
+          if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hcg-nexus-preview-SIMULATION-${{ inputs.hcg_env }}-deb
+          path: src/PreviewHarness/packages/*.deb
           if-no-files-found: error
           retention-days: 7

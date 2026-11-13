@@ -13,6 +13,9 @@ FOUNDATION_EXPORT NSString *const HCGKillSwitchPath;
 // user enables HCG Nexus does it build the model, window and lock monitor.
 @interface HCGSpringBoardBootstrap : NSObject
 + (void)startAfterLaunch;
+// Same, recording how activation was reached ("launch notification" or
+// "late-load fallback"); shown in Settings › HCG Nexus › Diagnostics.
++ (void)startAfterLaunchWithReason:(NSString *)reason;
 @end
 
 NS_ASSUME_NONNULL_END

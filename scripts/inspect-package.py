@@ -81,11 +81,68 @@ def self_test():
         good = parse_filter(raw) == EXPECTED_FILTER
         print(f"{'OK' if good else 'FAIL':4}  filter parse ({name})")
         ok &= good
+    def macho(section_flags, size):
+        # Minimal thin arm64 Mach-O: header + one LC_SEGMENT_64 with one section.
+        sect = b"__mod_init_func".ljust(16, b"\0") + b"__DATA".ljust(16, b"\0")
+        sect += struct.pack("<QQIIIIIIII", 0, size, 0, 3, 0, 0, section_flags, 0, 0, 0)
+        seg = struct.pack("<II", LC_SEGMENT_64, 72 + len(sect)) + b"__DATA".ljust(16, b"\0")
+        seg += struct.pack("<QQQQiiII", 0, 0, 0, 0, 3, 3, 1, 0)
+        header = struct.pack("<IiIIIIII", MH_MAGIC_64, CPU_TYPE_ARM64, 0, 6, 1, len(seg + sect), 0, 0)
+        return header + seg + sect
+    cases = [("initializer present", macho(S_MOD_INIT_FUNC_POINTERS, 8), True),
+             ("init offsets present", macho(S_INIT_FUNC_OFFSETS, 4), True),
+             ("empty initializer section", macho(S_MOD_INIT_FUNC_POINTERS, 0), False),
+             ("no initializer section", macho(0x0, 8), False)]
+    for name, data, expected in cases:
+        good = has_initializer(data) == expected
+        print(f"{'OK' if good else 'FAIL':4}  Mach-O {name}")
+        ok &= good
     wider = plistlib.dumps({"Filter": {"Bundles": ["com.apple.springboard", "com.apple.UIKit"]}}, fmt=plistlib.FMT_BINARY)
     rejected = parse_filter(wider) != EXPECTED_FILTER
     print(f"{'OK' if rejected else 'FAIL':4}  wider filter is not accepted")
     ok &= rejected
     return 0 if ok else 1
+
+
+LC_SEGMENT_64 = 0x19
+S_MOD_INIT_FUNC_POINTERS = 0x9
+S_INIT_FUNC_OFFSETS = 0x16
+
+
+def has_initializer(macho):
+    """True if a thin 64-bit Mach-O has a non-empty initializer section
+    (__mod_init_func / __init_offsets): i.e. a constructor such as %ctor."""
+    magic, _cpu, _sub, _ftype, ncmds, _size, _flags, _res = struct.unpack("<IiIIIIII", macho[:32])
+    if magic != MH_MAGIC_64:
+        return False
+    offset = 32
+    for _ in range(ncmds):
+        cmd, cmdsize = struct.unpack("<II", macho[offset:offset + 8])
+        if cmd == LC_SEGMENT_64:
+            nsects = struct.unpack("<I", macho[offset + 64:offset + 68])[0]
+            sect = offset + 72
+            for _ in range(nsects):
+                size = struct.unpack("<Q", macho[sect + 40:sect + 48])[0]
+                flags = struct.unpack("<I", macho[sect + 64:sect + 68])[0]
+                if (flags & 0xFF) in (S_MOD_INIT_FUNC_POINTERS, S_INIT_FUNC_OFFSETS) and size > 0:
+                    return True
+                sect += 80
+        offset += cmdsize
+    return False
+
+
+def activation_checks(path, data):
+    """The tweak dylib must be able to start itself inside SpringBoard."""
+    findings = []
+    slices_list = list(slices(data))
+    every = bool(slices_list) and all(has_initializer(body) for _c, _s, body in slices_list)
+    findings.append(("OK" if every else "FAIL",
+                     f"{path}: initializer (%ctor) present in every slice" if every
+                     else f"{path}: no initializer section — the tweak could never start"))
+    for needle in (b"HCGSpringBoardBootstrap", b"com.apple.springboard"):
+        present = needle in data
+        findings.append(("OK" if present else "FAIL", f"{path}: contains {needle.decode()}"))
+    return findings
 
 
 def describe(path, data):
@@ -158,7 +215,10 @@ def main():
                     ok = parsed == EXPECTED_FILTER
                     results.append(("OK" if ok else "FAIL", f"{rel}: filter = {parsed}"))
                 if name in ("HCGNexus.dylib", "HCGNexusPrefs"):
-                    results.extend(describe(rel, open(full, "rb").read()))
+                    data = open(full, "rb").read()
+                    results.extend(describe(rel, data))
+                    if name == "HCGNexus.dylib":
+                        results.extend(activation_checks(rel, data))
 
     failures = 0
     for level, text in results:

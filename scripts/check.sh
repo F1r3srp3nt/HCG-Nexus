@@ -42,7 +42,7 @@ echo "== Metadata =="
 CONTROL_VERSION="$(sed -n 's/^Version: //p' control)"
 CODE_VERSION="$(sed -n 's/^#define HCG_NEXUS_VERSION @"\(.*\)"/\1/p' Sources/Core/HCGConstants.h)"
 if [ "$CONTROL_VERSION" = "$CODE_VERSION" ]; then pass "Version $CONTROL_VERSION matches control"; else fail "Version mismatch: control=$CONTROL_VERSION code=$CODE_VERSION"; fi
-for plist in Prefs/Resources/*.plist Prefs/entry.plist PreviewHarness/Resources/Info.plist; do
+for plist in Prefs/Resources/*.plist Prefs/entry.plist PreviewHarness/Resources/Info.plist App/Info.plist; do
     check "plist parses: $plist" python3 -I -c 'import plistlib,sys; plistlib.load(open(sys.argv[1],"rb"))' "$plist"
 done
 check "Defaults: Root.plist 'enabled' default is false" python3 -I -c '
@@ -51,6 +51,19 @@ items=plistlib.load(open("Prefs/Resources/Root.plist","rb"))["items"]
 sys.exit(0 if any(i.get("key")=="enabled" and i.get("default") is False for i in items) else 1)'
 
 check "inspect-package.py self-test (filter plist formats)" python3 -I scripts/inspect-package.py --self-test
+
+echo "== Standalone app (HCGNexus.xcodeproj) =="
+check "Xcode project matches scripts/generate_xcodeproj.py" python3 -I scripts/generate_xcodeproj.py --check
+if python3 -I scripts/check_app_target.py; then pass "app target boundaries and Executable Maker discovery"; else fail "app target boundaries and Executable Maker discovery"; fi
+check "App/Info.plist parses" python3 -I -c 'import plistlib,sys; plistlib.load(open(sys.argv[1],"rb"))' App/Info.plist
+check "asset catalog JSON parses" python3 -I -c '
+import json,glob,sys
+[json.load(open(f)) for f in glob.glob("App/Assets.xcassets/**/Contents.json", recursive=True)]'
+if [ -n "${THEOS:-}" ] && [ -x "$THEOS/toolchain/linux/iphone/bin/clang" -o "$(uname)" = "Darwin" ]; then
+    if scripts/compile-app-target.sh; then pass "app target compiles and links (iOS SDKs)"; else fail "app target compiles and links (iOS SDKs)"; fi
+else
+    echo "SKIP  app target compile/link (set THEOS with the iOS toolchain, or run on macOS)"
+fi
 
 echo "== Core host tests =="
 if Tests/Host/run.sh; then pass "Core host tests"; else fail "Core host tests"; fi

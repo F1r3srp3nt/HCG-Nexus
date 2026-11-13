@@ -67,8 +67,22 @@ static UIWindowScene *HCGMainWindowScene(void) {
     _window = window;
 }
 
+// iOS 13+ only displays windows that belong to a scene. If SpringBoard had no
+// connected window scene when the overlay was created, attach one as soon as
+// it exists instead of leaving an invisible window behind.
+- (void)attachSceneIfNeeded {
+    if (!_window || _window.windowScene) return;
+    UIWindowScene *scene = HCGMainWindowScene();
+    if (scene) _window.windowScene = scene;
+}
+
+- (BOOL)windowHasScene {
+    return _window.windowScene != nil;
+}
+
 - (void)overlaySetContainerVisible:(BOOL)visible {
     if (!_window) return;
+    if (visible) [self attachSceneIfNeeded];
     if (!visible) {
         [self overlayTextInputActive:NO];
         _window.userInteractionEnabled = NO;

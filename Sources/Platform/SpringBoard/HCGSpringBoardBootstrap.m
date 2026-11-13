@@ -38,6 +38,10 @@ static void HCGDarwinCallback(CFNotificationCenterRef center, void *observer, CF
 @implementation HCGSpringBoardBootstrap
 
 + (void)startAfterLaunch {
+    [self startAfterLaunchWithReason:@"launch notification"];
+}
+
++ (void)startAfterLaunchWithReason:(NSString *)reason {
     if (gBootstrap) return;
     @try {
         if ([[NSFileManager defaultManager] fileExistsAtPath:HCGKillSwitchPath]) {
@@ -54,6 +58,7 @@ static void HCGDarwinCallback(CFNotificationCenterRef center, void *observer, CF
             return;
         }
         gBootstrap = [[HCGSpringBoardBootstrap alloc] init];
+        gBootstrap.startupNote = reason ?: @"unknown";
         [gBootstrap start];
     } @catch (NSException *exception) {
         os_log_error(HCGLog(), "HCG Nexus: startup failed: %{public}@", exception.reason);
@@ -63,7 +68,6 @@ static void HCGDarwinCallback(CFNotificationCenterRef center, void *observer, CF
 
 - (void)start {
     self.store = [[HCGPreferencesKeyValueStore alloc] initWithDomain:HCGNexusPreferencesDomain];
-    self.startupNote = @"loaded";
     CFNotificationCenterRef darwin = CFNotificationCenterGetDarwinNotifyCenter();
     CFNotificationCenterAddObserver(darwin, (__bridge const void *)self, HCGDarwinCallback,
                                     (__bridge CFStringRef)HCGNexusSettingsChangedDarwinNotification, NULL,
@@ -130,17 +134,19 @@ static void HCGDarwinCallback(CFNotificationCenterRef center, void *observer, CF
     NSMutableDictionary *status = [NSMutableDictionary dictionary];
     status[@"version"] = HCGBuildDescription();
     status[@"loadedInSpringBoard"] = @YES;
+    status[@"startedBy"] = self.startupNote ?: @"unknown";
     status[@"enabled"] = @(enabled);
     status[@"activated"] = @(self.overlay != nil);
     status[@"updated"] = @([[NSDate date] timeIntervalSince1970]);
     if (self.overlay) {
         NSDictionary *diag = [self.overlay diagnostics];
-        for (NSString *key in @[ @"availability", @"overlayWindows", @"gestureRecognizers", @"installCount", @"launcherCapabilities" ]) {
+        for (NSString *key in @[ @"availability", @"overlayWindows", @"gestureRecognizers", @"installCount", @"launcherCapabilities", @"panelState" ]) {
             id value = diag[key];
             if (value) status[key] = [value description];
         }
         status[@"lockSources"] = [self.lockMonitor sourceSummary];
         status[@"orientationSource"] = [self.environment orientationSourceSummary];
+        status[@"overlayWindowScene"] = self.environment.window ? (self.environment.windowHasScene ? @"attached" : @"MISSING (window cannot display)") : @"not created yet";
     }
     NSDictionary *previous = [self.store objectForKey:HCGRuntimeStatusKey];
     NSMutableDictionary *comparablePrevious = [previous isKindOfClass:[NSDictionary class]] ? [previous mutableCopy] : nil;
