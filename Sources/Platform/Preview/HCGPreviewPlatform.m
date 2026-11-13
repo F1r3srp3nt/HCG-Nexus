@@ -62,6 +62,14 @@
     return @"simulated: no app is ever launched; installation state is simulated";
 }
 
+- (NSString *)bundleLaunchUnavailableExplanation {
+    return @"Preview simulation: app launches are simulated.";
+}
+
+// Simulated: the harness pretends app launches work so the UI paths can be
+// exercised; every such launch is labelled as simulated.
+- (BOOL)canLaunchApplicationsByBundleIdentifier { return YES; }
+
 - (BOOL)canDetermineInstallation { return YES; }
 
 - (BOOL)isApplicationInstalled:(NSString *)bundleIdentifier {

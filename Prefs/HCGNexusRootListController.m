@@ -72,6 +72,7 @@ static NSString *const kDiagnosticsGroupID = @"diagnostics";
     context.model = [self model];
     [context.model reload];
     context.environmentName = @"Settings";
+    context.mode = HCGPanelModeSettingsApp;
     HCGWorkspaceManagerViewController *manager = [[HCGWorkspaceManagerViewController alloc] initWithContext:context];
     [self.navigationController pushViewController:manager animated:YES];
 }
@@ -127,7 +128,7 @@ static NSString *const kDiagnosticsGroupID = @"diagnostics";
     NSString *when = [NSDateFormatter localizedStringFromDate:updated dateStyle:NSDateFormatterShortStyle timeStyle:NSDateFormatterShortStyle];
     [specs addObject:[self valueRow:@"SpringBoard build" value:[status[@"version"] description]]];
     [specs addObject:[self valueRow:@"Activated" value:[status[@"activated"] boolValue] ? @"Yes" : @"No (disabled)"]];
-    for (NSString *key in @[ @"availability", @"overlayWindows", @"gestureRecognizers", @"installCount", @"launcherCapabilities", @"lockSources", @"orientationSource" ]) {
+    for (NSString *key in @[ @"startedBy", @"availability", @"overlayWindows", @"overlayWindowScene", @"gestureRecognizers", @"installCount", @"launcherCapabilities", @"lockSources", @"orientationSource" ]) {
         if (status[key]) [specs addObject:[self valueRow:key value:[status[key] description]]];
     }
     [group setProperty:[NSString stringWithFormat:@"Last reported by SpringBoard: %@.", when] forKey:@"footerText"];

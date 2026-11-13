@@ -62,15 +62,26 @@ static NSString *const kCell = @"HCGHomeCell";
     _subtitle.adjustsFontForContentSizeCategory = YES;
     _subtitle.textColor = [HCGTheme secondaryText];
 
+    // Mode badge: makes it obvious when this is not the system-wide overlay.
     _previewBadge = [[UILabel alloc] init];
-    _previewBadge.text = @"  PREVIEW · NOT INJECTED  ";
     _previewBadge.font = [UIFont monospacedSystemFontOfSize:10 weight:UIFontWeightBold];
-    _previewBadge.textColor = [HCGTheme obsidian];
-    _previewBadge.backgroundColor = [HCGTheme warning];
     _previewBadge.layer.cornerRadius = 4;
     _previewBadge.clipsToBounds = YES;
-    _previewBadge.hidden = !_context.isPreview;
-    _previewBadge.accessibilityLabel = @"Preview harness. Not injected into SpringBoard.";
+    _previewBadge.hidden = YES;
+    if (_context.mode == HCGPanelModePreview) {
+        _previewBadge.text = @"  PREVIEW · NOT INJECTED  ";
+        _previewBadge.textColor = [HCGTheme obsidian];
+        _previewBadge.backgroundColor = [HCGTheme warning];
+        _previewBadge.accessibilityLabel = @"Preview harness. Not injected into SpringBoard.";
+        _previewBadge.hidden = NO;
+    } else if (_context.mode == HCGPanelModeStandaloneApp) {
+        _previewBadge.text = @"  APP MODE  ";
+        _previewBadge.textColor = [HCGTheme obsidian];
+        _previewBadge.backgroundColor = [HCGTheme cyan];
+        _previewBadge.accessibilityLabel = @"Standalone app mode. Opens links. The system-wide edge handle needs the jailbreak package.";
+        _previewBadge.hidden = NO;
+    }
+    [_previewBadge setContentCompressionResistancePriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
 
     _closeButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [_closeButton setImage:[HCGTheme symbolNamed:@"xmark" pointSize:15] forState:UIControlStateNormal];
@@ -328,7 +339,7 @@ static NSString *const kCell = @"HCGHomeCell";
             [strongSelf presentActionError:error];
             return;
         }
-        if (strongSelf->_context.isPreview) {
+        if (strongSelf->_context.isPreview || strongSelf->_context.isStandaloneApp) {
             [strongSelf showToast:summary];
         } else if (strongSelf->_context.closePanelImmediately) {
             strongSelf->_context.closePanelImmediately();
@@ -343,7 +354,8 @@ static NSString *const kCell = @"HCGHomeCell";
         extra = [UIAlertAction actionWithTitle:@"Integration Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
             [weakSelf openSettings];
         }];
-    } else if (error.code == HCGErrorAppNotInstalled || error.code == HCGErrorNoHandlerForURL || error.code == HCGErrorInvalidTarget) {
+    } else if (error.code == HCGErrorAppNotInstalled || error.code == HCGErrorNoHandlerForURL || error.code == HCGErrorInvalidTarget ||
+               (error.code == HCGErrorLauncherUnavailable && _context.isStandaloneApp)) {
         extra = [UIAlertAction actionWithTitle:@"Edit Shortcuts" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
             [weakSelf editActiveWorkspace];
         }];
@@ -391,7 +403,11 @@ static NSString *const kCell = @"HCGHomeCell";
 
 - (NSString *)subtitleForAction:(HCGAction *)action {
     switch (action.kind) {
-        case HCGActionKindApp: return action.target;
+        case HCGActionKindApp:
+            if (_context.model.launcher && ![_context.model.launcher canLaunchApplicationsByBundleIdentifier]) {
+                return [NSString stringWithFormat:@"App · needs jailbreak package · %@", action.target];
+            }
+            return action.target;
         case HCGActionKindURL: return action.target;
         case HCGActionKindIntegration: {
             HCGIntegrationStatus *status = [_context.model statusForIntegration:action.target];

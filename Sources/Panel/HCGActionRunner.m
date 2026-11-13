@@ -22,6 +22,15 @@
 
 - (void)openBundle:(NSString *)bundle forAction:(HCGAction *)action displayName:(NSString *)name completion:(HCGActionCompletion)completion {
     id<HCGLauncher> launcher = _model.launcher;
+    if (![launcher canLaunchApplicationsByBundleIdentifier]) {
+        // The standalone app is sandboxed: iOS gives ordinary apps no public
+        // API to open another app by bundle identifier. Say so; never fake it.
+        NSError *error = HCGMakeError(HCGErrorLauncherUnavailable,
+                                      [NSString stringWithFormat:@"%@ can't be opened by bundle identifier here.", name],
+                                      [launcher bundleLaunchUnavailableExplanation]);
+        [self finishAction:action error:error summary:@"" completion:completion];
+        return;
+    }
     if ([launcher canDetermineInstallation] && ![launcher isApplicationInstalled:bundle]) {
         NSError *error = HCGMakeError(HCGErrorAppNotInstalled,
                                       [NSString stringWithFormat:@"%@ isn't installed.", name],
@@ -73,7 +82,9 @@
         case HCGActionKindIntegration: {
             HCGIntegrationStatus *status = [_model statusForIntegration:action.target];
             if (!status.canLaunch) {
-                HCGErrorCode code = status.state == HCGIntegrationStateAppMissing ? HCGErrorAppNotInstalled : HCGErrorIntegrationNotConnected;
+                HCGErrorCode code = HCGErrorIntegrationNotConnected;
+                if (status.state == HCGIntegrationStateAppMissing) code = HCGErrorAppNotInstalled;
+                if (status.state == HCGIntegrationStateUnavailableHere) code = HCGErrorLauncherUnavailable;
                 NSError *error = HCGMakeError(code, [NSString stringWithFormat:@"%@: %@", status.displayName, status.headline], status.detail);
                 [self finishAction:action error:error summary:@"" completion:completion];
                 return;

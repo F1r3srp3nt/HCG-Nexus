@@ -46,7 +46,8 @@ typedef NS_ENUM(NSInteger, HCGEditorRow) {
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Save" style:UIBarButtonItemStyleDone target:self action:@selector(save)];
 
     _kindControl = [[UISegmentedControl alloc] initWithItems:@[ @"App", @"Link", @"HCG" ]];
-    _kindControl.selectedSegmentIndex = 0;
+    // The standalone app can only open links, so start there.
+    _kindControl.selectedSegmentIndex = self.context.isStandaloneApp ? 1 : 0;
     _kindControl.selectedSegmentTintColor = [HCGTheme cyanSoft];
     [_kindControl setTitleTextAttributes:@{ NSForegroundColorAttributeName : [HCGTheme primaryText] } forState:UIControlStateNormal];
     _kindControl.accessibilityLabel = @"Shortcut type";
@@ -131,10 +132,16 @@ typedef NS_ENUM(NSInteger, HCGEditorRow) {
 
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section {
     if (_errorText.length) return _errorText;
+    BOOL app = self.context.isStandaloneApp;
     switch ([self selectedKind]) {
-        case HCGActionKindApp: return @"Enter the app's bundle identifier. If the app isn't installed, Nexus tells you when you open the shortcut.";
-        case HCGActionKindURL: return @"https links open in the default browser. Other schemes need an installed app that handles them.";
-        case HCGActionKindIntegration: return @"HCG integrations show \"Not connected\" until they are set up in HCG Nexus settings.";
+        case HCGActionKindApp:
+            if (app) return @"Bundle-identifier shortcuts are saved, but this standalone app can't open them: iOS only lets ordinary apps open links. They work with the HCG Nexus jailbreak package.";
+            return @"Enter the app's bundle identifier. If the app isn't installed, Nexus tells you when you open the shortcut.";
+        case HCGActionKindURL:
+            return @"https links open in the default browser. mailto:, tel:, sms: and an app's documented URL schemes open the app that handles them; if none does, Nexus reports it.";
+        case HCGActionKindIntegration:
+            if (app) return @"HCG integrations show their status in the standalone app; opening HCG apps needs the jailbreak package.";
+            return @"HCG integrations show \"Not connected\" until they are set up in HCG Nexus settings.";
     }
     return nil;
 }

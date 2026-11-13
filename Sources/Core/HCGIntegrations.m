@@ -67,6 +67,12 @@ static NSString *const kNotConnected = @"Not connected";
                  probe:(id<HCGAppInstallationProbe>)probe
            openingNote:(NSString *)openingNote {
     status.launchBundleIdentifier = bundleIdentifier;
+    if (probe != nil && ![probe canLaunchApplicationsByBundleIdentifier]) {
+        status.state = HCGIntegrationStateUnavailableHere;
+        status.headline = @"Needs jailbreak package";
+        status.detail = [NSString stringWithFormat:@"This build cannot open other apps by bundle identifier (%@). iOS only lets ordinary apps open links; opening apps directly needs the HCG Nexus jailbreak package.", bundleIdentifier];
+        return;
+    }
     if (probe == nil || ![probe canDetermineInstallation]) {
         status.state = HCGIntegrationStateUnverified;
         status.headline = @"Configured";

@@ -8,5 +8,8 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 FOUNDATION_EXPORT NSString *HCGBuildDescription(void);
+// Section identifiers (HCGSettingsSection raw values) shown for a mode;
+// exposed for regression tests.
+FOUNDATION_EXPORT NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode);
 
 NS_ASSUME_NONNULL_END

@@ -338,15 +338,22 @@ void HCGRunSearchTests(void) {
 @interface HCGFakeProbe : NSObject <HCGAppInstallationProbe> {
     NSSet *_installed;
     BOOL _canDetermine;
+    BOOL _canLaunch;
 }
 - (instancetype)initWithInstalled:(NSSet *)installed canDetermine:(BOOL)canDetermine;
+- (instancetype)initSandboxedApp; // like the standalone app: no bundle-ID launching
 @end
 
 @implementation HCGFakeProbe
 - (instancetype)initWithInstalled:(NSSet *)installed canDetermine:(BOOL)canDetermine {
-    if ((self = [super init])) { _installed = [installed copy]; _canDetermine = canDetermine; }
+    if ((self = [super init])) { _installed = [installed copy]; _canDetermine = canDetermine; _canLaunch = YES; }
     return self;
 }
+- (instancetype)initSandboxedApp {
+    if ((self = [super init])) { _installed = [[NSSet alloc] init]; _canDetermine = NO; _canLaunch = NO; }
+    return self;
+}
+- (BOOL)canLaunchApplicationsByBundleIdentifier { return _canLaunch; }
 - (BOOL)canDetermineInstallation { return _canDetermine; }
 - (BOOL)isApplicationInstalled:(NSString *)bundleIdentifier { return [_installed containsObject:bundleIdentifier]; }
 @end
@@ -391,7 +398,31 @@ static void testConfiguredIntegrations(void) {
     HCG_CHECK(!server.canLaunch && !maker.canLaunch, "no fabricated launch targets");
 }
 
+// Standalone app: configured app integrations must not claim to work.
+static void testSandboxedAppReportsBundleLaunchUnavailable(void) {
+    HCGSettings *s = [HCGSettings defaultSettings];
+    s.terminalVariant = HCGTerminalVariantStandard;
+    s.newsConnected = YES;
+    HCGFakeProbe *probe = [[HCGFakeProbe alloc] initSandboxedApp];
+    NSArray *ids = [NSArray arrayWithObjects:HCGIntegrationTerminal, HCGIntegrationNews, nil];
+    NSUInteger i;
+    for (i = 0; i < ids.count; i++) {
+        HCGIntegrationStatus *st = [HCGIntegrationCatalog statusForIdentifier:[ids objectAtIndex:i] settings:s probe:probe];
+        HCG_CHECK_EQ_INT(st.state, HCGIntegrationStateUnavailableHere);
+        HCG_CHECK_EQ_STR(st.headline, @"Needs jailbreak package");
+        HCG_CHECK(!st.canLaunch, "sandboxed app must not report a launchable integration");
+        HCG_CHECK([st.detail rangeOfString:@"bundle identifier"].location != NSNotFound, "explains why");
+    }
+    // Unconfigured stays "Not connected"; Server/Executable Maker unchanged.
+    HCGSettings *off = [HCGSettings defaultSettings];
+    HCGIntegrationStatus *t = [HCGIntegrationCatalog statusForIdentifier:HCGIntegrationTerminal settings:off probe:probe];
+    HCG_CHECK_EQ_STR(t.headline, @"Not connected");
+    HCGIntegrationStatus *server = [HCGIntegrationCatalog statusForIdentifier:HCGIntegrationServer settings:s probe:probe];
+    HCG_CHECK_EQ_STR(server.headline, @"Not connected");
+}
+
 void HCGRunIntegrationTests(void) {
     HCG_RUN(testUnconfiguredIntegrationsAreNotConnected);
     HCG_RUN(testConfiguredIntegrations);
+    HCG_RUN(testSandboxedAppReportsBundleLaunchUnavailable);
 }

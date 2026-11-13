@@ -2,8 +2,14 @@
 #import "HCGWorkspaceManagerViewController.h"
 #import "HCGTheme.h"
 
+// Build route label. Theos builds pass -DHCG_PACKAGE_SCHEME="rootless" etc.;
+// the Xcode project defines HCG_STANDALONE_APP=1.
 #ifndef HCG_PACKAGE_SCHEME
+#if defined(HCG_STANDALONE_APP) && HCG_STANDALONE_APP
+#define HCG_PACKAGE_SCHEME "standalone-app"
+#else
 #define HCG_PACKAGE_SCHEME "unspecified"
+#endif
 #endif
 
 NSString *HCGBuildDescription(void) {
@@ -18,17 +24,33 @@ typedef NS_ENUM(NSInteger, HCGSettingsSection) {
     HCGSettingsSectionWorkspaces,
     HCGSettingsSectionMaintenance,
     HCGSettingsSectionDiagnostics,
-    HCGSettingsSectionCount,
+    HCGSettingsSectionAppMode,      // standalone app only: what this build can do
 };
+
+// Sections shown for a mode. The standalone app never shows the enable switch,
+// handle or motion controls: there is no system-wide overlay to control.
+NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
+    if (mode == HCGPanelModeStandaloneApp) {
+        return @[ @(HCGSettingsSectionAppMode), @(HCGSettingsSectionIntegrations), @(HCGSettingsSectionWorkspaces), @(HCGSettingsSectionDiagnostics) ];
+    }
+    return @[ @(HCGSettingsSectionGeneral), @(HCGSettingsSectionHandle), @(HCGSettingsSectionMotion), @(HCGSettingsSectionIntegrations),
+              @(HCGSettingsSectionWorkspaces), @(HCGSettingsSectionMaintenance), @(HCGSettingsSectionDiagnostics) ];
+}
 
 @implementation HCGPanelSettingsViewController {
     NSArray<NSArray<NSString *> *> *_diagnostics;
+    NSArray<NSNumber *> *_sections;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.title = @"Settings";
+    _sections = HCGSettingsSectionsForMode(self.context.mode);
     [self refreshDiagnostics];
+}
+
+- (NSArray<NSNumber *> *)visibleSectionIdentifiers {
+    return _sections ?: HCGSettingsSectionsForMode(self.context.mode);
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -54,12 +76,13 @@ typedef NS_ENUM(NSInteger, HCGSettingsSection) {
 - (void)refreshDiagnostics {
     NSMutableArray *rows = [NSMutableArray array];
     [rows addObject:@[ @"Version", HCGBuildDescription() ]];
+    [rows addObject:@[ @"Mode", HCGPanelModeName(self.context.mode) ]];
     [rows addObject:@[ @"Running in", self.context.environmentName ?: @"unknown" ]];
     [rows addObject:@[ @"iOS", [UIDevice currentDevice].systemVersion ?: @"?" ]];
     NSDictionary *diag = self.context.diagnosticsProvider ? self.context.diagnosticsProvider() : @{};
     NSArray *keys = @[ @"availability", @"deviceLocked", @"coverSheetVisible", @"screenBlanked", @"panelState", @"overlayWindows",
                        @"gestureRecognizers", @"installCount", @"opens", @"closes", @"forcedCloses", @"orientation", @"manualRotation",
-                       @"animationsAllowed", @"launcher", @"launcherCapabilities", @"droppedEntriesOnLoad" ];
+                       @"animationsAllowed", @"launcher", @"launcherCapabilities", @"droppedEntriesOnLoad", @"dataStore" ];
     for (NSString *key in keys) {
         id value = diag[key];
         if (value) [rows addObject:@[ key, [value description] ]];
@@ -161,12 +184,16 @@ typedef NS_ENUM(NSInteger, HCGSettingsSection) {
 
 #pragma mark Table
 
+- (HCGSettingsSection)sectionAt:(NSInteger)index {
+    return (HCGSettingsSection)[self visibleSectionIdentifiers][(NSUInteger)index].integerValue;
+}
+
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return HCGSettingsSectionCount;
+    return (NSInteger)[self visibleSectionIdentifiers].count;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    switch ((HCGSettingsSection)section) {
+    switch ([self sectionAt:section]) {
         case HCGSettingsSectionGeneral: return @"HCG Nexus";
         case HCGSettingsSectionHandle: return @"Edge handle";
         case HCGSettingsSectionMotion: return @"Motion & feedback";
@@ -174,12 +201,13 @@ typedef NS_ENUM(NSInteger, HCGSettingsSection) {
         case HCGSettingsSectionWorkspaces: return @"Workspaces";
         case HCGSettingsSectionMaintenance: return @"Maintenance";
         case HCGSettingsSectionDiagnostics: return @"Diagnostics";
-        default: return nil;
+        case HCGSettingsSectionAppMode: return @"App mode";
     }
+    return nil;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section {
-    switch ((HCGSettingsSection)section) {
+    switch ([self sectionAt:section]) {
         case HCGSettingsSectionGeneral:
             return @"When off, the panel closes, the handle disappears and Nexus stops intercepting its gesture. Workspaces are kept; nothing is uninstalled.";
         case HCGSettingsSectionHandle:
@@ -187,25 +215,47 @@ typedef NS_ENUM(NSInteger, HCGSettingsSection) {
         case HCGSettingsSectionMotion:
             return @"Reduce Motion in iOS Accessibility settings always replaces sliding with a short fade.";
         case HCGSettingsSectionIntegrations:
+            if (self.context.isStandaloneApp) {
+                return @"In the standalone app, HCG integrations show their status only: opening another app by bundle identifier needs the jailbreak package. HCG Connect and ERP remain the authority for signed-in ecosystem access; Nexus stores no HCG credentials.";
+            }
             return @"HCG Connect and ERP remain the authority for signed-in ecosystem access. Nexus stores no HCG credentials and only opens installed apps.";
+        case HCGSettingsSectionAppMode:
+            return @"This is the sandboxed iPhone/iPad app. It keeps its own workspaces, separate from the jailbreak package and the preview harness. Ordinary app signing does not remove the iOS sandbox, so the system-wide edge handle and bundle-ID app launching are only available through the jailbreak package.";
         case HCGSettingsSectionDiagnostics:
-            return self.context.isPreview ? @"PREVIEW: these values come from the preview harness, not from SpringBoard. They do not verify the tweak on a device." : nil;
+            if (self.context.isPreview) return @"PREVIEW: these values come from the preview harness, not from SpringBoard. They do not verify the tweak on a device.";
+            return nil;
         default:
             return nil;
     }
 }
 
+- (NSArray<NSArray<NSString *> *> *)appModeRows {
+    id<HCGLauncher> launcher = self.context.model.launcher;
+    BOOL bundle = launcher && [launcher canLaunchApplicationsByBundleIdentifier];
+    return @[
+        @[ @"Mode", @"Standalone app" ],
+        @[ @"System-wide edge handle", @"Not available in this app (jailbreak package only)" ],
+        @[ @"Open links (https, mailto, documented app links)", launcher ? @"Available" : @"Unavailable" ],
+        @[ @"Open apps by bundle identifier", bundle ? @"Available" : @"Not available in the iOS sandbox" ],
+    ];
+}
+
+- (NSArray<NSString *> *)standaloneIntegrationIdentifiers {
+    return [HCGIntegrationCatalog allIdentifiers];
+}
+
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    switch ((HCGSettingsSection)section) {
+    switch ([self sectionAt:section]) {
         case HCGSettingsSectionGeneral: return 1;
         case HCGSettingsSectionHandle: return 4;
         case HCGSettingsSectionMotion: return 2;
-        case HCGSettingsSectionIntegrations: return 4;
+        case HCGSettingsSectionIntegrations: return self.context.isStandaloneApp ? (NSInteger)[self standaloneIntegrationIdentifiers].count : 4;
         case HCGSettingsSectionWorkspaces: return 2;
         case HCGSettingsSectionMaintenance: return 1;
         case HCGSettingsSectionDiagnostics: return (NSInteger)_diagnostics.count;
-        default: return 0;
+        case HCGSettingsSectionAppMode: return (NSInteger)[self appModeRows].count;
     }
+    return 0;
 }
 
 - (UITableViewCell *)controlCell:(NSString *)title control:(UIView *)control stacked:(BOOL)stacked {
@@ -242,9 +292,30 @@ typedef NS_ENUM(NSInteger, HCGSettingsSection) {
     return cell;
 }
 
+- (UITableViewCell *)statusCellForIntegration:(NSString *)identifier {
+    HCGIntegrationStatus *status = [self.context.model statusForIntegration:identifier];
+    UITableViewCell *cell = [self styledCellWithStyle:UITableViewCellStyleSubtitle identifier:@"status"];
+    cell.textLabel.text = status.displayName;
+    cell.detailTextLabel.text = status.headline;
+    cell.imageView.image = [HCGTheme symbolNamed:status.symbolName pointSize:17];
+    cell.imageView.tintColor = [HCGTheme secondaryText];
+    cell.accessoryType = UITableViewCellAccessoryDetailButton;
+    return cell;
+}
+
+- (NSString *)integrationIdentifierForRow:(NSInteger)row {
+    if (self.context.isStandaloneApp) {
+        NSArray *ids = [self standaloneIntegrationIdentifiers];
+        return row >= 0 && (NSUInteger)row < ids.count ? ids[(NSUInteger)row] : nil;
+    }
+    if (row == 2) return HCGIntegrationServer;
+    if (row == 3) return HCGIntegrationExecutableMaker;
+    return nil; // rows 0-1 are controls
+}
+
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     HCGSettings *s = [self settings];
-    switch ((HCGSettingsSection)indexPath.section) {
+    switch ([self sectionAt:indexPath.section]) {
         case HCGSettingsSectionGeneral:
             return [self controlCell:@"Enable HCG Nexus" control:[self switchOn:s.enabled action:@selector(enabledChanged:) label:@"Enable HCG Nexus"] stacked:NO];
         case HCGSettingsSectionHandle:
@@ -258,19 +329,13 @@ typedef NS_ENUM(NSInteger, HCGSettingsSection) {
             if (indexPath.row == 0) return [self controlCell:@"Animations" control:[self switchOn:s.animationsEnabled action:@selector(animationsChanged:) label:@"Animations"] stacked:NO];
             return [self controlCell:@"Haptics" control:[self switchOn:s.hapticsEnabled action:@selector(hapticsChanged:) label:@"Haptics"] stacked:NO];
         case HCGSettingsSectionIntegrations: {
-            if (indexPath.row == 0) {
+            if (!self.context.isStandaloneApp && indexPath.row == 0) {
                 return [self controlCell:@"HCG Terminal" control:[self segmentsWithItems:@[ @"Off", @"Standard", @"Unleashed" ] selected:s.terminalVariant action:@selector(terminalChanged:) label:@"HCG Terminal app variant"] stacked:YES];
             }
-            if (indexPath.row == 1) return [self controlCell:@"HCG News" control:[self switchOn:s.newsConnected action:@selector(newsChanged:) label:@"Open HCG News from the panel"] stacked:NO];
-            NSString *identifier = indexPath.row == 2 ? HCGIntegrationServer : HCGIntegrationExecutableMaker;
-            HCGIntegrationStatus *status = [self.context.model statusForIntegration:identifier];
-            UITableViewCell *cell = [self styledCellWithStyle:UITableViewCellStyleSubtitle identifier:@"status"];
-            cell.textLabel.text = status.displayName;
-            cell.detailTextLabel.text = status.headline;
-            cell.imageView.image = [HCGTheme symbolNamed:status.symbolName pointSize:17];
-            cell.imageView.tintColor = [HCGTheme secondaryText];
-            cell.accessoryType = UITableViewCellAccessoryDetailButton;
-            return cell;
+            if (!self.context.isStandaloneApp && indexPath.row == 1) {
+                return [self controlCell:@"HCG News" control:[self switchOn:s.newsConnected action:@selector(newsChanged:) label:@"Open HCG News from the panel"] stacked:NO];
+            }
+            return [self statusCellForIntegration:[self integrationIdentifierForRow:indexPath.row]];
         }
         case HCGSettingsSectionWorkspaces: {
             UITableViewCell *cell = [self styledCellWithStyle:UITableViewCellStyleValue1 identifier:@"value"];
@@ -292,6 +357,14 @@ typedef NS_ENUM(NSInteger, HCGSettingsSection) {
             cell.accessibilityHint = @"Restores handle, motion and haptic defaults. Keeps workspaces and the enabled state.";
             return cell;
         }
+        case HCGSettingsSectionAppMode: {
+            NSArray<NSString *> *row = [self appModeRows][(NSUInteger)indexPath.row];
+            UITableViewCell *cell = [self styledCellWithStyle:UITableViewCellStyleSubtitle identifier:@"appmode"];
+            cell.textLabel.text = row[0];
+            cell.detailTextLabel.text = row[1];
+            cell.selectionStyle = UITableViewCellSelectionStyleNone;
+            return cell;
+        }
         case HCGSettingsSectionDiagnostics: {
             UITableViewCell *cell = [self styledCellWithStyle:UITableViewCellStyleSubtitle identifier:@"diag"];
             NSArray<NSString *> *row = _diagnostics[(NSUInteger)indexPath.row];
@@ -301,14 +374,13 @@ typedef NS_ENUM(NSInteger, HCGSettingsSection) {
             cell.selectionStyle = UITableViewCellSelectionStyleNone;
             return cell;
         }
-        default:
-            return [self styledCellWithStyle:UITableViewCellStyleDefault identifier:@"empty"];
     }
+    return [self styledCellWithStyle:UITableViewCellStyleDefault identifier:@"empty"];
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    switch ((HCGSettingsSection)indexPath.section) {
+    switch ([self sectionAt:indexPath.section]) {
         case HCGSettingsSectionWorkspaces:
             if (indexPath.row == 0) {
                 [self.navigationController pushViewController:[[HCGWorkspaceManagerViewController alloc] initWithContext:self.context]
@@ -321,7 +393,7 @@ typedef NS_ENUM(NSInteger, HCGSettingsSection) {
             [self confirmReset];
             break;
         case HCGSettingsSectionIntegrations:
-            if (indexPath.row >= 2) [self tableView:tableView accessoryButtonTappedForRowWithIndexPath:indexPath];
+            if ([self integrationIdentifierForRow:indexPath.row]) [self tableView:tableView accessoryButtonTappedForRowWithIndexPath:indexPath];
             break;
         default:
             break;
@@ -329,8 +401,9 @@ typedef NS_ENUM(NSInteger, HCGSettingsSection) {
 }
 
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section != HCGSettingsSectionIntegrations || indexPath.row < 2) return;
-    NSString *identifier = indexPath.row == 2 ? HCGIntegrationServer : HCGIntegrationExecutableMaker;
+    if ([self sectionAt:indexPath.section] != HCGSettingsSectionIntegrations) return;
+    NSString *identifier = [self integrationIdentifierForRow:indexPath.row];
+    if (!identifier) return;
     HCGIntegrationStatus *status = [self.context.model statusForIntegration:identifier];
     HCGPresentError(self, HCGMakeError(HCGErrorIntegrationNotConnected, [NSString stringWithFormat:@"%@: %@", status.displayName, status.headline], status.detail), nil);
 }

@@ -221,6 +221,7 @@
     _context.runner = _runner;
     _context.environmentName = env.environmentName;
     _context.isPreview = env.isPreview;
+    _context.mode = env.isPreview ? HCGPanelModePreview : HCGPanelModeOverlay;
     _context.closePanel = ^{ [weakSelf.coordinator requestClose]; };
     _context.closePanelImmediately = ^{ [weakSelf.coordinator requestCloseImmediately]; };
     _context.diagnosticsProvider = ^NSDictionary *{ return [weakSelf diagnostics] ?: @{}; };

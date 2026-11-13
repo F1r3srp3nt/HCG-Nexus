@@ -11,11 +11,16 @@ typedef void (^HCGLaunchCompletion)(NSError *_Nullable error);
 //     class and selector is verified with respondsToSelector: first.
 //   * HCGPreviewLauncher (Sources/Platform/Preview) — preview harness; app
 //     launches are SIMULATED and reported as such.
+//   * HCGAppLauncher (Sources/Platform/App) — standalone iOS app; opens links
+//     with UIApplication and reports bundle-ID launching as unavailable.
 @protocol HCGLauncher <HCGAppInstallationProbe>
 @property (nonatomic, readonly) NSString *launcherName;
 @property (nonatomic, readonly) BOOL simulated;
 // One-line capability summary for diagnostics.
 - (NSString *)capabilitySummary;
+// Actionable explanation shown when -canLaunchApplicationsByBundleIdentifier
+// is NO (e.g. "iOS only lets ordinary apps open links...").
+- (NSString *)bundleLaunchUnavailableExplanation;
 // Completion is always delivered on the main queue.
 - (void)openApplicationWithBundleIdentifier:(NSString *)bundleIdentifier completion:(HCGLaunchCompletion)completion;
 - (void)openURL:(NSURL *)url completion:(HCGLaunchCompletion)completion;

@@ -43,6 +43,14 @@
             [[UIApplication sharedApplication] respondsToSelector:@selector(openURL:options:completionHandler:)] ? @"yes" : @"missing"];
 }
 
+- (NSString *)bundleLaunchUnavailableExplanation {
+    return @"This iOS version doesn't expose the LaunchServices calls HCG Nexus uses inside SpringBoard. Report your iOS and jailbreak versions (Settings › HCG Nexus › Diagnostics) so a compatible adapter can be added.";
+}
+
+- (BOOL)canLaunchApplicationsByBundleIdentifier {
+    return _canOpenApps;
+}
+
 - (BOOL)canDetermineInstallation {
     return _canCheckInstalled;
 }

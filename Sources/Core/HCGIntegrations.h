@@ -22,11 +22,18 @@ typedef NS_ENUM(NSInteger, HCGIntegrationState) {
     HCGIntegrationStateReady = 1,        // configured and the target app is installed
     HCGIntegrationStateAppMissing = 2,   // configured but the app is not installed
     HCGIntegrationStateUnverified = 3,   // configured; installation could not be checked
+    HCGIntegrationStateUnavailableHere = 4, // configured, but this build cannot open apps by bundle ID
 };
 
-// Answers "is this app installed?" without launching anything. Implemented by
-// the platform layer (LSApplicationWorkspace on device, stub in preview/tests).
+// Answers "is this app installed / can it be opened?" without launching
+// anything. Implemented by the platform layer: LSApplicationWorkspace inside
+// SpringBoard (jailbreak package), a simulation in the preview harness, and
+// the public-API launcher of the standalone app.
 @protocol HCGAppInstallationProbe <NSObject>
+// NO when this build cannot open other apps by bundle identifier at all
+// (the sandboxed standalone app). Shortcuts and integrations then report
+// "unavailable here" instead of pretending to work.
+- (BOOL)canLaunchApplicationsByBundleIdentifier;
 // NO when this environment cannot determine installation state at all.
 - (BOOL)canDetermineInstallation;
 - (BOOL)isApplicationInstalled:(NSString *)bundleIdentifier;
@@ -45,7 +52,7 @@ typedef NS_ENUM(NSInteger, HCGIntegrationState) {
 @property (nonatomic, copy) NSString *displayName;
 @property (nonatomic, copy) NSString *symbolName;
 @property (nonatomic) HCGIntegrationState state;
-@property (nonatomic, copy) NSString *headline;   // "Not connected", "Ready", ...
+@property (nonatomic, copy) NSString *headline;   // "Not connected", "Ready", "Needs jailbreak package", ...
 @property (nonatomic, copy) NSString *detail;     // actionable explanation
 @property (nonatomic, copy, nullable) NSString *launchBundleIdentifier;
 @property (nonatomic, readonly) BOOL canLaunch;
