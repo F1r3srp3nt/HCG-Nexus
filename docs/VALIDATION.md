@@ -21,7 +21,9 @@ Linux only (Theos clang 11 + GNUstep). **No device run and no Xcode run for
 | Payload ownership root:wheel and permissions 0755/0644 | **pass** (inspector; a planted 0666 file is rejected) |
 | PreferenceLoader entry → bundle → principal class; bundle version == package version (0.2.0) | **pass** |
 | Runtime report written off the main thread, also when Nexus refuses to start; Settings Status/Copy Diagnostics | compiles; **device-unverified** |
-| Xcode-built arm64e package for 0.2.0 | **not produced yet** — run *Build package* manually or `scripts/build-jailbreak-deb.sh` on a Mac |
+| **Xcode-built rootless package, run #9** on `907b1df` (https://github.com/F1r3srp3nt/HCG-Nexus/actions/runs/43553119233), `build-jailbreak-deb.sh --require-new-arm64e-abi` | **pass** — `com.hakmicapitalgroup.hcgnexus_0.2.0_iphoneos-arm64.deb`, **SHA-256 `1987156996c2e76fb005bb66590aff76b77c474c4387ede6e015f19a081616a5`**; tweak and Prefs arm64e versioned ptrauth ABI (v0) + arm64; initializer in every slice; tweak and Settings share build `907b1df330` (`rootless-release`); installs as root:wheel, 0755/0644; PreferenceLoader wiring and version 0.2.0 OK. Artifact `hcg-nexus-rootless-deb` (ID 14097301893, kept until 2026-11-21) |
+| Standalone app, run #9 (Xcode, simulator build, unit tests, simulator launch, unsigned device build, unsigned archive) | **pass**; artifact `hcg-nexus-app` (ID 14097342812) |
+| Run #8 on `5e30159` | Xcode build was correct (arm64e versioned ABI, shared build ID) but failed the new ownership check: on a Mac, Theos' `dm.pl` writes owner names root/wheel with the builder's numeric IDs (501/20), which dpkg installs as root:wheel. The check was corrected in `907b1df` to judge ownership as dpkg does (self-tested). The app job's artifact upload hit a GitHub service timeout |
 
 ## Standalone app + build routes (PR #1, branch `claude/hcg-nexus-tweak-yb1ii2` @ `5671146`, 2026-11-13)
 
