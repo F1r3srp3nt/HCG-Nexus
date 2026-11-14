@@ -36,6 +36,8 @@ absent "No method hooks in the SpringBoard layer" '%hook|MSHookMessageEx|MSHookF
 absent "No embedded credentials" '(password|passwd|secret|api[_-]?key|bearer)[[:space:]]*[:=][[:space:]]*@?"[^"]+' Sources Prefs PreviewHarness Tweak
 absent "No HCG Server admin endpoints or tokens" '127\.0\.0\.1|:7600|:7610|/api/v1|#token=' Sources Prefs Tweak
 absent "No invented HCG URL schemes" '(hcgterminal|hcgnews|hcgserver|hcgnexus)://' Sources Prefs Tweak PreviewHarness
+absent "Device Link stays out of shared, tweak, Settings and preview sources" 'HCGLinkServic|HCGLinkTypes|HCGDeviceLink|HCGConnectedDevices' Sources/Core Sources/Panel Sources/Platform/SpringBoard Sources/Platform/Preview Tweak Prefs PreviewHarness
+absent "Theos builds never compile Device Link or Swift" 'DeviceLink|\.swift' Makefile Prefs/Makefile PreviewHarness/Makefile
 check  "Tweak filter targets only SpringBoard" grep -qx '{ Filter = { Bundles = ( "com.apple.springboard" ); }; }' HCGNexus.plist
 
 echo "== Metadata =="
@@ -53,6 +55,7 @@ sys.exit(0 if any(i.get("key")=="enabled" and i.get("default") is False for i in
 check "inspect-package.py self-test (filter plist formats)" python3 -I scripts/inspect-package.py --self-test
 
 echo "== Standalone app (HCGNexus.xcodeproj) =="
+check "HCGDeviceLink is an unmodified vendored copy (VENDORED.sha256)" sh -c 'cd HCGDeviceLink && shasum -a 256 -c VENDORED.sha256'
 check "Xcode project matches scripts/generate_xcodeproj.py" python3 -I scripts/generate_xcodeproj.py --check
 if python3 -I scripts/check_app_target.py; then pass "app target boundaries and Executable Maker discovery"; else fail "app target boundaries and Executable Maker discovery"; fi
 check "App/Info.plist parses" python3 -I -c 'import plistlib,sys; plistlib.load(open(sys.argv[1],"rb"))' App/Info.plist

@@ -14,6 +14,7 @@ or `.ipa`, not a jailbreak `.deb`.
 | App shortcuts by bundle identifier | ❌ reported as **unavailable** — iOS has no public API for it |
 | HCG Terminal / News integrations | status only ("Not connected" / "Needs jailbreak package") |
 | System-wide edge handle and overlay | ❌ jailbreak package only. Settings show **App mode** and do not offer handle controls |
+| Connected Devices (HCG Device Link): pair with HCG Server, paired devices, shared reports | ✅ app only, foreground only. Sign-in is **Not configured** until HCG issues Nexus's HCG Connect client ([`CONNECTED_DEVICES.md`](CONNECTED_DEVICES.md)) |
 
 The header shows an **APP MODE** badge. Settings › App mode lists what this
 build can do. Signing the app normally (personal team, paid account,
@@ -29,8 +30,11 @@ reads the jailbreak package's preference domain
 
 ## Requirements
 
-* A Mac with Xcode. The project format is Xcode 14+ (`objectVersion 56`), and
-  every scheme setting is compatible with Xcode 15 and later.
+* A Mac with Xcode 15 or later. The project format is `objectVersion 60`,
+  which local Swift package references need. The app target links the vendored
+  `HCGDeviceLink/` package and compiles one Swift file for HCG Device Link. The
+  package has no remote dependencies on Apple platforms, so nothing is
+  downloaded.
 * **Device deployment target: iOS 14.0** (covers iOS 14.7). The Xcode you
   build with must still support iOS 14 as a deployment target: check
   *Settings › Minimum Deployments* in the target. If your Xcode only offers
@@ -42,6 +46,10 @@ reads the jailbreak package's preference domain
   device app with no warnings. All 8 unit tests pass on an iPhone 17 Pro
   simulator, and the app launches and stays running (CI run #7). Not yet run
   on a physical device.
+* **Connected Devices (HCG Device Link) has not been built with Xcode yet.**
+  It added Swift, a local package and 5 more unit tests after that run. Run
+  the manual *Build package* workflow (`app` job) to verify it; see
+  [`CONNECTED_DEVICES.md`](CONNECTED_DEVICES.md#what-was-verified-and-how).
 
 ## Build and run in Xcode
 

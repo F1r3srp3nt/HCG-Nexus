@@ -44,13 +44,15 @@ typedef NS_ENUM(NSInteger, HCGSettingsSection) {
     HCGSettingsSectionMaintenance,
     HCGSettingsSectionDiagnostics,
     HCGSettingsSectionAppMode,      // standalone app only: what this build can do
+    HCGSettingsSectionConnectedDevices, // standalone app only: HCG Device Link (Connected Devices screen)
 };
 
 // Sections shown for a mode. The standalone app never shows the enable switch,
 // handle or motion controls: there is no system-wide overlay to control.
 NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
     if (mode == HCGPanelModeStandaloneApp) {
-        return @[ @(HCGSettingsSectionAppMode), @(HCGSettingsSectionIntegrations), @(HCGSettingsSectionWorkspaces), @(HCGSettingsSectionDiagnostics) ];
+        return @[ @(HCGSettingsSectionAppMode), @(HCGSettingsSectionConnectedDevices), @(HCGSettingsSectionIntegrations),
+                  @(HCGSettingsSectionWorkspaces), @(HCGSettingsSectionDiagnostics) ];
     }
     return @[ @(HCGSettingsSectionGeneral), @(HCGSettingsSectionHandle), @(HCGSettingsSectionMotion), @(HCGSettingsSectionIntegrations),
               @(HCGSettingsSectionWorkspaces), @(HCGSettingsSectionMaintenance), @(HCGSettingsSectionDiagnostics) ];
@@ -221,6 +223,7 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         case HCGSettingsSectionMaintenance: return @"Maintenance";
         case HCGSettingsSectionDiagnostics: return @"Diagnostics";
         case HCGSettingsSectionAppMode: return @"App mode";
+        case HCGSettingsSectionConnectedDevices: return @"Connected devices";
     }
     return nil;
 }
@@ -235,9 +238,11 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
             return @"Reduce Motion in iOS Accessibility settings always replaces sliding with a short fade.";
         case HCGSettingsSectionIntegrations:
             if (self.context.isStandaloneApp) {
-                return @"In the standalone app, HCG integrations show their status only: opening another app by bundle identifier needs the jailbreak package. HCG Connect and ERP remain the authority for signed-in ecosystem access; Nexus stores no HCG credentials.";
+                return @"In the standalone app, HCG integrations show their status only: opening another app by bundle identifier needs the jailbreak package. HCG Connect and ERP remain the authority for signed-in ecosystem access. Only Connected Devices signs in to HCG Connect, and keeps that sign-in in this app's Keychain.";
             }
             return @"Opens the selected HCG app; neither app publishes deep links, so Nexus opens it at its start screen. HCG Connect and ERP remain the authority for signed-in ecosystem access; Nexus stores no HCG credentials.";
+        case HCGSettingsSectionConnectedDevices:
+            return @"Pair this app with an HCG Server you own (HCG Device Link) to see your other HCG devices and read the reports they share. HCG Connect identifies you and HCG decides what your account may do. Nothing is contacted until you act, and only while that screen is open.";
         case HCGSettingsSectionAppMode:
             return @"This is the sandboxed iPhone/iPad app. It keeps its own workspaces, separate from the jailbreak package and the preview harness. Ordinary app signing does not remove the iOS sandbox, so the system-wide edge handle and bundle-ID app launching are only available through the jailbreak package.";
         case HCGSettingsSectionDiagnostics:
@@ -273,6 +278,7 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         case HCGSettingsSectionMaintenance: return 1;
         case HCGSettingsSectionDiagnostics: return (NSInteger)_diagnostics.count;
         case HCGSettingsSectionAppMode: return (NSInteger)[self appModeRows].count;
+        case HCGSettingsSectionConnectedDevices: return 1;
     }
     return 0;
 }
@@ -382,6 +388,19 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
             cell.selectionStyle = UITableViewCellSelectionStyleNone;
             return cell;
         }
+        case HCGSettingsSectionConnectedDevices: {
+            UITableViewCell *cell = [self styledCellWithStyle:UITableViewCellStyleSubtitle identifier:@"devices"];
+            cell.textLabel.text = @"Connected Devices";
+            cell.imageView.image = [HCGTheme symbolNamed:@"link" pointSize:17];
+            if (self.context.connectedDevicesScreen) {
+                cell.detailTextLabel.text = @"HCG Device Link: pair with HCG Server, paired devices, shared reports";
+                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+            } else {
+                cell.detailTextLabel.text = @"Not available in this build";
+                cell.selectionStyle = UITableViewCellSelectionStyleNone;
+            }
+            return cell;
+        }
         case HCGSettingsSectionDiagnostics: {
             UITableViewCell *cell = [self styledCellWithStyle:UITableViewCellStyleSubtitle identifier:@"diag"];
             NSArray<NSString *> *row = _diagnostics[(NSUInteger)indexPath.row];
@@ -409,6 +428,11 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         case HCGSettingsSectionMaintenance:
             [self confirmReset];
             break;
+        case HCGSettingsSectionConnectedDevices: {
+            UIViewController *screen = self.context.connectedDevicesScreen ? self.context.connectedDevicesScreen(self.context) : nil;
+            if (screen) [self.navigationController pushViewController:screen animated:!UIAccessibilityIsReduceMotionEnabled()];
+            break;
+        }
         case HCGSettingsSectionIntegrations:
             if ([self integrationIdentifierForRow:indexPath.row]) [self tableView:tableView accessoryButtonTappedForRowWithIndexPath:indexPath];
             break;

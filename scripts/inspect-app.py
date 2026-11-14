@@ -7,6 +7,9 @@ Checks:
   * the executable exists and is a Mach-O for the expected platform
   * no SpringBoard/private-API or preview-simulation code leaked into the app
     (LSApplicationWorkspace, SBLockScreenManager, _setSecure, overlay classes...)
+  * the HCG Device Link client is linked (Swift class HCGLinkService and the
+    hcg.devicelink/1 protocol string), and Info.plist carries the HCG Connect
+    keys (empty until HCG issues Nexus's client) and a local-network reason
 
 Usage: scripts/inspect-app.py path/to/HCGNexus.app [--expect-min-os 14.0] [--platform iphoneos|iphonesimulator]
 """
@@ -22,6 +25,8 @@ FORBIDDEN = [
     b"HCGLockStateMonitor", b"HCGPreviewLauncher", b"HCGPreviewEnvironment",
     b"HCGOverlayController", b"HCGEdgeHandleView",
 ]
+# HCG Device Link (standalone app only): must be present in the app binary.
+REQUIRED = [b"HCGLinkService", b"hcg.devicelink/1"]
 FAT_MAGIC = 0xCAFEBABE
 MH_MAGIC_64 = 0xFEEDFACF
 
@@ -60,6 +65,9 @@ def main():
     check(icons.get("CFBundleIconName") == "AppIcon" or bool(icons.get("CFBundleIconFiles")),
           f"compiled app icon: {icons.get('CFBundleIconName') or icons.get('CFBundleIconFiles')}")
     check(os.path.isfile(os.path.join(app, "Assets.car")), "Assets.car present (asset catalog compiled)")
+    check(isinstance(info.get("HCGConnectClientID"), str) and isinstance(info.get("HCGConnectRedirectURI"), str),
+          f"HCG Connect keys present (client ID {'set' if info.get('HCGConnectClientID') else 'empty: not configured'})")
+    check(bool(info.get("NSLocalNetworkUsageDescription")), "NSLocalNetworkUsageDescription present (HCG Device Link)")
     if platform:
         check(info.get("DTPlatformName") == platform, f"DTPlatformName = {info.get('DTPlatformName')} (expected {platform})")
 
@@ -71,6 +79,8 @@ def main():
     check(is_macho, f"executable {exe_name} is Mach-O ({len(data)} bytes)")
     leaked = [n.decode() for n in FORBIDDEN if n in data]
     check(not leaked, "no SpringBoard/private-API/preview code in the app binary" + (f": found {leaked}" if leaked else ""))
+    missing = [n.decode() for n in REQUIRED if n not in data]
+    check(not missing, "HCG Device Link client linked into the app" + (f": missing {missing}" if missing else ""))
     signed = os.path.isdir(os.path.join(app, "_CodeSignature"))
     results.append(("INFO", f"code signature present: {signed}; embedded.mobileprovision: {os.path.isfile(os.path.join(app, 'embedded.mobileprovision'))}"))
 

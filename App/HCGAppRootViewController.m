@@ -3,6 +3,7 @@
 #import "HCGPanelHomeViewController.h"
 #import "HCGAppPlatform.h"
 #import "HCGTheme.h"
+#import "HCGConnectedDevicesViewController.h"
 
 @implementation HCGAppRootViewController {
     HCGNexusModel *_model;
@@ -23,6 +24,11 @@
         __weak typeof(self) weakSelf = self;
         _context.diagnosticsProvider = ^NSDictionary *{
             return [weakSelf diagnostics] ?: @{};
+        };
+        // HCG Device Link (standalone app only). The service is created when the
+        // screen is first opened, never at launch.
+        _context.connectedDevicesScreen = ^UIViewController *(HCGPanelContext *context) {
+            return [[HCGConnectedDevicesViewController alloc] initWithContext:context service:HCGSharedLinkService()];
         };
     }
     return self;

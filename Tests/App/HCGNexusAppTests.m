@@ -9,6 +9,9 @@
 #import "HCGPanelSettingsViewController.h"
 #import "HCGAppPlatform.h"
 #import "HCGAppRootViewController.h"
+#import "HCGLinkTypes.h"
+#import "HCGConnectedDevicesViewController.h"
+#import "HCGLinkReportViewController.h"
 
 @interface HCGNexusAppTests : XCTestCase
 @end
@@ -140,6 +143,102 @@
     walk(root.view);
     walk = nil;
     XCTAssertTrue(found, @"app mode must be clearly identified");
+}
+
+#pragma mark - HCG Device Link (Connected Devices, standalone app only)
+
+- (HCGPanelContext *)appContext {
+    HCGPanelContext *context = [[HCGPanelContext alloc] init];
+    context.mode = HCGPanelModeStandaloneApp;
+    context.model = [self makeModel];
+    return context;
+}
+
+- (void)testConnectedDevicesIsStandaloneAppOnly {
+    // 8 = HCGSettingsSectionConnectedDevices.
+    XCTAssertTrue([HCGSettingsSectionsForMode(HCGPanelModeStandaloneApp) containsObject:@8]);
+    XCTAssertFalse([HCGSettingsSectionsForMode(HCGPanelModeOverlay) containsObject:@8]);
+    XCTAssertFalse([HCGSettingsSectionsForMode(HCGPanelModeSettingsApp) containsObject:@8]);
+    XCTAssertFalse([HCGSettingsSectionsForMode(HCGPanelModePreview) containsObject:@8]);
+    HCGAppRootViewController *root = [[HCGAppRootViewController alloc] initWithModel:[self makeModel]];
+    XCTAssertNotNil(root.context.connectedDevicesScreen, @"the app wires the Connected Devices screen");
+    XCTAssertNil([self appContext].connectedDevicesScreen, @"nothing else provides it");
+}
+
+- (void)testDeviceLinkServiceIsLinkedAndNotConfiguredUntilHCGIssuesAClient {
+    id<HCGLinkServicing> service = HCGSharedLinkService();
+    XCTAssertNotNil(service, @"the Swift HCGLinkService must be linked into the app");
+    XCTAssertTrue([(NSObject *)service conformsToProtocol:@protocol(HCGLinkServicing)]);
+    XCTAssertTrue(service == HCGSharedLinkService(), @"one shared service");
+    HCGLinkSnapshot *snapshot = service.snapshot;
+    // Info.plist HCGConnectClientID / HCGConnectRedirectURI are empty: nothing is contacted.
+    XCTAssertEqual(snapshot.accountState, HCGLinkAccountStateNotConfigured);
+    XCTAssertTrue(snapshot.accountDetail.length > 0);
+    XCTAssertEqual(snapshot.connectionState, HCGLinkConnectionStateNotPaired);
+    XCTAssertEqual(snapshot.approvalsCount, 0);
+    XCTAssertFalse(snapshot.executionEnabled);
+    NSMutableArray<NSString *> *advertised = [NSMutableArray array];
+    for (HCGLinkCapabilityInfo *capability in snapshot.advertisedCapabilities) {
+        [advertised addObject:capability.identifier];
+        XCTAssertEqualObjects(capability.state, @"available");
+    }
+    XCTAssertEqualObjects(advertised, (@[ @"report.receive", @"report.view" ]), @"Nexus only receives and views reports");
+    XCTAssertNotNil([service previewInvitationCode:@"https://example.test/not-an-invitation"].problem);
+}
+
+- (void)testSharedReportIsShownAsPlainData {
+    HCGLinkOpenedReport *report = [[HCGLinkOpenedReport alloc] init];
+    report.title = @"Exposure Check — 1 finding";
+    report.fromName = @"Ana's iPhone";
+    report.fromApp = @"HCG Sentinel";
+    HCGLinkReportSection *section = [[HCGLinkReportSection alloc] init];
+    section.title = @"Finding 1: <b>Open admin panel</b>";
+    section.lines = @[ @"Location: https://example.test/admin", @"Evidence: $(rm -rf ~) [link](https://example.test)" ];
+    report.sections = @[ section ];
+    XCTAssertEqualObjects([HCGLinkReportViewController headerTextForReport:report],
+                          @"Report from Ana's iPhone (remote) — data only, never executed");
+
+    HCGLinkReportViewController *viewer = [[HCGLinkReportViewController alloc] initWithContext:[self appContext] report:report];
+    [viewer loadViewIfNeeded];
+    XCTAssertFalse(viewer.tableView.allowsSelection, @"nothing in a report can be tapped");
+    XCTAssertEqual([viewer numberOfSectionsInTableView:viewer.tableView], 2);
+    XCTAssertEqualObjects([viewer tableView:viewer.tableView titleForHeaderInSection:1], section.title, @"shown verbatim, not as HTML");
+    for (NSInteger row = 0; row < 2; row++) {
+        UITableViewCell *cell = [viewer tableView:viewer.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:1]];
+        XCTAssertEqualObjects(cell.textLabel.text, section.lines[(NSUInteger)row], @"verbatim plain text");
+        NSAttributedString *text = cell.textLabel.attributedText;
+        __block BOOL linked = NO;
+        [text enumerateAttribute:NSLinkAttributeName inRange:NSMakeRange(0, text.length) options:0
+                      usingBlock:^(id value, NSRange range, BOOL *stop) { if (value) linked = YES; }];
+        XCTAssertFalse(linked, @"no string becomes a link");
+    }
+    UITableViewCell *header = [viewer tableView:viewer.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+    XCTAssertTrue([header.textLabel.text containsString:@"data only, never executed"]);
+}
+
+- (void)testConnectedDevicesWithoutServiceSaysSo {
+    HCGConnectedDevicesViewController *screen = [[HCGConnectedDevicesViewController alloc] initWithContext:[self appContext] service:nil];
+    [screen loadViewIfNeeded];
+    XCTAssertEqual([screen numberOfSectionsInTableView:screen.tableView], 1);
+    UITableViewCell *cell = [screen tableView:screen.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+    XCTAssertEqualObjects(cell.textLabel.text, @"Not available in this build");
+}
+
+- (void)testConnectedDevicesScreenShowsLocalDeviceAndAccount {
+    id<HCGLinkServicing> service = HCGSharedLinkService();
+    XCTAssertNotNil(service);
+    HCGConnectedDevicesViewController *screen = [[HCGConnectedDevicesViewController alloc] initWithContext:[self appContext] service:service];
+    [screen loadViewIfNeeded];
+    NSMutableArray<NSString *> *headers = [NSMutableArray array];
+    for (NSInteger i = 0; i < [screen numberOfSectionsInTableView:screen.tableView]; i++) {
+        [headers addObject:[screen tableView:screen.tableView titleForHeaderInSection:i] ?: @""];
+    }
+    XCTAssertTrue([headers containsObject:@"HCG Connect account"]);
+    XCTAssertTrue([headers containsObject:@"This device"]);
+    XCTAssertTrue([headers containsObject:@"Pair device"]);
+    NSInteger local = (NSInteger)[headers indexOfObject:@"This device"];
+    UITableViewCell *cell = [screen tableView:screen.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:local]];
+    XCTAssertTrue([cell.accessibilityLabel containsString:@"this device"], @"the local device is labelled LOCAL");
 }
 
 @end

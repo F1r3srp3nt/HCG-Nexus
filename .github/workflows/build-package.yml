@@ -6,7 +6,9 @@
 # Two separate routes:
 #   app        — standalone iPhone/iPad app (HCGNexus.xcodeproj): simulator
 #                build + unit tests + launch screenshot, unsigned device build
-#                and unsigned archive (inspection only; not installable).
+#                and unsigned archive (inspection only; not installable). The
+#                app links the vendored HCG Device Link client (HCGDeviceLink/,
+#                Swift package); its own tests run on Linux (device-link job).
 #   jailbreak  — Theos .deb with Xcode's clang (the iOS 14+ arm64e ABI needs
 #                Apple clang; Linux toolchains emit the old ABI), verified with
 #                scripts/build-jailbreak-deb.sh. The preview harness .deb is a
@@ -45,13 +47,28 @@ jobs:
       - name: scripts/check.sh
         run: scripts/check.sh
 
+  device-link:
+    name: HCG Device Link client (vendored, Linux)
+    if: inputs.route != 'jailbreak'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Vendored HCG Device Link client is unmodified
+        run: cd HCGDeviceLink && shasum -a 256 -c VENDORED.sha256
+      - name: Toolchain
+        run: swift --version
+      - name: HCG Device Link client tests (unit + cross-language vectors)
+        run: swift test --package-path HCGDeviceLink
+
   app:
     name: Standalone app (Xcode)
     if: inputs.route != 'jailbreak'
     runs-on: macos-latest
-    needs: checks
+    needs: [checks, device-link]
     steps:
       - uses: actions/checkout@v4
+      - name: Vendored HCG Device Link client is unmodified
+        run: cd HCGDeviceLink && shasum -a 256 -c VENDORED.sha256
       - name: Xcode, SDKs and supported deployment range
         run: |
           xcodebuild -version

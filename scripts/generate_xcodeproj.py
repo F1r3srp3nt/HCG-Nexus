@@ -6,14 +6,21 @@ it is up to date (run by scripts/check.sh). Object IDs are deterministic, so
 regenerating without source changes produces an identical file.
 
 Target boundaries are enforced here: the app target may only compile
-App/, Sources/Core, Sources/Panel (minus overlay-only files) and
-Sources/Platform/App. SpringBoard, preview-harness, tweak and Settings-bundle
-sources can never be added to it.
+App/, Sources/Core, Sources/Panel (minus overlay-only files),
+Sources/Platform/App and Sources/Platform/App/DeviceLink. SpringBoard,
+preview-harness, tweak and Settings-bundle sources can never be added to it.
+
+HCG Device Link (docs/CONNECTED_DEVICES.md) is standalone-app only: the app
+target, and only the app target, links the vendored local Swift package
+HCGDeviceLink/ (XCLocalSwiftPackageReference) and compiles the Swift sources
+in Sources/Platform/App/DeviceLink with a bridging header. The Theos tweak and
+Settings bundle never see any of it (their Makefiles list their own sources).
 
 Usage:
   scripts/generate_xcodeproj.py           # write HCGNexus.xcodeproj
   scripts/generate_xcodeproj.py --check   # exit 1 if the committed project is stale
-  scripts/generate_xcodeproj.py --list    # print the app target's compiled sources
+  scripts/generate_xcodeproj.py --list    # print the app target's Objective-C sources (.m)
+  scripts/generate_xcodeproj.py --list-swift  # print the app target's Swift sources
 """
 import hashlib
 import os
@@ -28,7 +35,7 @@ DEPLOYMENT_TARGET = "14.0"
 MARKETING_VERSION = "0.2.0"
 
 # Directories whose sources form the app target, and files deliberately left out.
-APP_SOURCE_DIRS = ["App", "Sources/Core", "Sources/Panel", "Sources/Platform/App"]
+APP_SOURCE_DIRS = ["App", "Sources/Core", "Sources/Panel", "Sources/Platform/App", "Sources/Platform/App/DeviceLink"]
 APP_EXCLUDED_FILES = {
     # Overlay-only (SpringBoard window, edge handle); not used by the app.
     "Sources/Panel/HCGOverlayController.m",
@@ -39,6 +46,13 @@ APP_EXCLUDED_FILES = {
 FORBIDDEN_PREFIXES = ("Sources/Platform/SpringBoard", "Sources/Platform/Preview", "Tweak", "Prefs", "PreviewHarness")
 TEST_SOURCE_DIRS = ["Tests/App"]
 FRAMEWORKS = ["Foundation", "UIKit", "QuartzCore", "CoreGraphics"]
+# HCG Device Link: vendored Swift package (never edited here; see HCGDeviceLink/VENDORED.md),
+# linked into the app target only. Swift sources come from DEVICE_LINK_DIR.
+DEVICE_LINK_PACKAGE = "HCGDeviceLink"
+DEVICE_LINK_PRODUCT = "HCGDeviceLink"
+DEVICE_LINK_DIR = "Sources/Platform/App/DeviceLink"
+BRIDGING_HEADER = f"{DEVICE_LINK_DIR}/HCGNexus-Bridging-Header.h"
+SWIFT_VERSION = "5.0"
 
 
 def oid(*parts):
@@ -67,6 +81,7 @@ def files_in(dirs, suffixes):
 def file_type(path):
     if path.endswith(".m"): return "sourcecode.c.objc"
     if path.endswith(".h"): return "sourcecode.c.h"
+    if path.endswith(".swift"): return "sourcecode.swift"
     if path.endswith(".plist"): return "text.plist.xml"
     if path.endswith(".xcassets"): return "folder.assetcatalog"
     raise ValueError(path)
@@ -94,9 +109,17 @@ def render_value(v, indent):
 def build():
     app_sources = files_in(APP_SOURCE_DIRS, (".m",))
     app_headers = files_in(APP_SOURCE_DIRS, (".h",))
-    for path in app_sources + app_headers:
+    swift_sources = files_in(APP_SOURCE_DIRS, (".swift",))
+    for path in app_sources + app_headers + swift_sources:
         if path.startswith(FORBIDDEN_PREFIXES):
             raise SystemExit(f"refusing to add {path} to the standalone app target")
+    for path in swift_sources:
+        if not path.startswith(DEVICE_LINK_DIR + "/"):
+            raise SystemExit(f"Swift is only used for HCG Device Link ({DEVICE_LINK_DIR}): {path}")
+    if not os.path.isfile(os.path.join(ROOT, DEVICE_LINK_PACKAGE, "Package.swift")):
+        raise SystemExit(f"{DEVICE_LINK_PACKAGE}/Package.swift is missing (vendor it with HCG-Server scripts/vendor-devicelink.sh)")
+    if swift_sources and BRIDGING_HEADER not in app_headers:
+        raise SystemExit(f"{BRIDGING_HEADER} is missing")
     test_sources = files_in(TEST_SOURCE_DIRS, (".m",)) if os.path.isdir(os.path.join(ROOT, "Tests/App")) else []
 
     objects = {}
@@ -109,7 +132,7 @@ def build():
 
     # File references
     fileref = {}
-    for path in app_sources + app_headers + test_sources + ["App/Info.plist", "App/Assets.xcassets"]:
+    for path in app_sources + swift_sources + app_headers + test_sources + ["App/Info.plist", "App/Assets.xcassets"]:
         fileref[path] = add("PBXFileReference", oid("ref", path), {
             "isa": "PBXFileReference", "lastKnownFileType": file_type(path),
             "name": os.path.basename(path), "path": path, "sourceTree": "SOURCE_ROOT",
@@ -134,8 +157,19 @@ def build():
         return add("PBXBuildFile", oid("build", target, path_or_key), {"isa": "PBXBuildFile", "fileRef": ref},
                    f"{label} in {phase_name}")
 
-    app_src_bf = [buildfile(APP, p, fileref[p], "Sources", os.path.basename(p)) for p in app_sources]
+    app_src_bf = [buildfile(APP, p, fileref[p], "Sources", os.path.basename(p)) for p in app_sources + swift_sources]
     app_fw_bf = [buildfile(APP, "fw/" + fw, fw_ref[fw], "Frameworks", f"{fw}.framework") for fw in FRAMEWORKS]
+
+    # Local Swift package (HCG Device Link client), app target only.
+    package_ref = add("XCLocalSwiftPackageReference", oid("package", DEVICE_LINK_PACKAGE), {
+        "isa": "XCLocalSwiftPackageReference", "relativePath": DEVICE_LINK_PACKAGE,
+    }, f'XCLocalSwiftPackageReference "{DEVICE_LINK_PACKAGE}"')
+    package_product = add("XCSwiftPackageProductDependency", oid("packageproduct", APP, DEVICE_LINK_PRODUCT), {
+        "isa": "XCSwiftPackageProductDependency", "package": package_ref, "productName": DEVICE_LINK_PRODUCT,
+    }, DEVICE_LINK_PRODUCT)
+    app_fw_bf.append(add("PBXBuildFile", oid("build", APP, "package/" + DEVICE_LINK_PRODUCT), {
+        "isa": "PBXBuildFile", "productRef": package_product,
+    }, f"{DEVICE_LINK_PRODUCT} in Frameworks"))
     app_res_bf = [buildfile(APP, "App/Assets.xcassets", fileref["App/Assets.xcassets"], "Resources", "Assets.xcassets")]
     test_src_bf = [buildfile(TESTS, p, fileref[p], "Sources", os.path.basename(p)) for p in test_sources]
 
@@ -159,11 +193,12 @@ def build():
     def refs_under(prefix, paths):
         return [fileref[p] for p in paths if os.path.dirname(p) == prefix]
 
-    all_app_files = sorted(app_sources + app_headers)
+    all_app_files = sorted(app_sources + swift_sources + app_headers)
     g_app = group("App", "App", refs_under("App", all_app_files) + [fileref["App/Info.plist"], fileref["App/Assets.xcassets"]])
     g_core = group("Core", "Core", refs_under("Sources/Core", all_app_files))
     g_panel = group("Panel", "Panel", refs_under("Sources/Panel", all_app_files))
-    g_platform = group("PlatformApp", "Platform (App)", refs_under("Sources/Platform/App", all_app_files))
+    g_device_link = group("DeviceLink", "Device Link (App)", refs_under(DEVICE_LINK_DIR, all_app_files))
+    g_platform = group("PlatformApp", "Platform (App)", refs_under("Sources/Platform/App", all_app_files) + [g_device_link])
     g_sources = group("Sources", "Shared Sources", [g_core, g_panel, g_platform])
     g_tests = group("Tests", "Tests", [fileref[p] for p in test_sources])
     g_frameworks = group("Frameworks", "Frameworks", [fw_ref[f] for f in FRAMEWORKS])
@@ -204,7 +239,8 @@ def build():
         "GCC_WARN_UNINITIALIZED_AUTOS": "YES_AGGRESSIVE",
         "GCC_WARN_UNUSED_FUNCTION": "YES",
         "GCC_WARN_UNUSED_VARIABLE": "YES",
-        "HEADER_SEARCH_PATHS": ["$(SRCROOT)/Sources/Core", "$(SRCROOT)/Sources/Panel", "$(SRCROOT)/Sources/Platform/App", "$(SRCROOT)/App"],
+        "HEADER_SEARCH_PATHS": ["$(SRCROOT)/Sources/Core", "$(SRCROOT)/Sources/Panel", "$(SRCROOT)/Sources/Platform/App",
+                                f"$(SRCROOT)/{DEVICE_LINK_DIR}", "$(SRCROOT)/App"],
         "IPHONEOS_DEPLOYMENT_TARGET": DEPLOYMENT_TARGET,
         "SDKROOT": "iphoneos",
     }
@@ -215,11 +251,15 @@ def build():
         "GCC_OPTIMIZATION_LEVEL": "0",
         "GCC_PREPROCESSOR_DEFINITIONS": ["DEBUG=1", "HCG_STANDALONE_APP=1", "$(inherited)"],
         "ONLY_ACTIVE_ARCH": "YES",
+        "SWIFT_ACTIVE_COMPILATION_CONDITIONS": "DEBUG",
+        "SWIFT_OPTIMIZATION_LEVEL": "-Onone",
     })
     release_project = dict(common_project, **{
         "DEBUG_INFORMATION_FORMAT": "dwarf-with-dsym",
         "ENABLE_NS_ASSERTIONS": "NO",
         "GCC_PREPROCESSOR_DEFINITIONS": ["HCG_STANDALONE_APP=1", "$(inherited)"],
+        "SWIFT_COMPILATION_MODE": "wholemodule",
+        "SWIFT_OPTIMIZATION_LEVEL": "-O",
         "VALIDATE_PRODUCT": "YES",
     })
     app_settings = {
@@ -239,6 +279,9 @@ def build():
         "SUPPORTS_MACCATALYST": "NO",
         "SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD": "NO",
         "SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD": "NO",
+        "SWIFT_OBJC_BRIDGING_HEADER": BRIDGING_HEADER,
+        "SWIFT_OBJC_INTERFACE_HEADER_NAME": f"{APP}-Swift.h",
+        "SWIFT_VERSION": SWIFT_VERSION,
         "TARGETED_DEVICE_FAMILY": "1,2",
     }
     test_settings = {
@@ -285,7 +328,7 @@ def build():
     add("PBXNativeTarget", app_target, {
         "isa": "PBXNativeTarget", "buildConfigurationList": app_cl,
         "buildPhases": [app_sources_phase, app_fw_phase, app_res_phase], "buildRules": [], "dependencies": [],
-        "name": APP, "productName": APP, "productReference": app_product,
+        "name": APP, "packageProductDependencies": [package_product], "productName": APP, "productReference": app_product,
         "productType": "com.apple.product-type.application",
     }, APP)
     add("PBXNativeTarget", test_target, {
@@ -305,18 +348,19 @@ def build():
             },
         },
         "buildConfigurationList": project_cl,
-        "compatibilityVersion": "Xcode 14.0",
+        "compatibilityVersion": "Xcode 15.0",
         "developmentRegion": "en",
         "hasScannedForEncodings": "0",
         "knownRegions": ["en", "Base"],
         "mainGroup": main_group,
+        "packageReferences": [package_ref],
         "productRefGroup": g_products,
         "projectDirPath": "",
         "projectRoot": "",
         "targets": [app_target, test_target],
     }, "Project object")
 
-    lines = ["// !$*UTF8*$!", "{", "\tarchiveVersion = 1;", "\tclasses = {", "\t};", "\tobjectVersion = 56;", "\tobjects = {"]
+    lines = ["// !$*UTF8*$!", "{", "\tarchiveVersion = 1;", "\tclasses = {", "\t};", "\tobjectVersion = 60;", "\tobjects = {"]
     for section in sorted(sections):
         lines.append("")
         lines.append(f"/* Begin {section} section */")
@@ -431,11 +475,14 @@ def build():
         f"{PROJECT}/project.pbxproj": pbxproj,
         f"{PROJECT}/xcshareddata/xcschemes/{APP}.xcscheme": scheme,
         f"{PROJECT}/project.xcworkspace/contents.xcworkspacedata": workspace,
-    }, app_sources
+    }, app_sources, swift_sources
 
 
 def main():
-    outputs, app_sources = build()
+    outputs, app_sources, swift_sources = build()
+    if "--list-swift" in sys.argv:
+        print("\n".join(swift_sources))
+        return 0
     if "--list" in sys.argv:
         print("\n".join(app_sources))
         return 0
@@ -445,7 +492,7 @@ def main():
         if stale:
             print("HCGNexus.xcodeproj is out of date; run scripts/generate_xcodeproj.py:\n  " + "\n  ".join(stale))
             return 1
-        print(f"HCGNexus.xcodeproj is up to date ({len(app_sources)} app sources)")
+        print(f"HCGNexus.xcodeproj is up to date ({len(app_sources)} Objective-C and {len(swift_sources)} Swift app sources)")
         return 0
     for path, text in outputs.items():
         full = os.path.join(ROOT, path)

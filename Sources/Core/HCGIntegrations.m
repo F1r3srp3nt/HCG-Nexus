@@ -119,7 +119,7 @@ static NSString *const kNotConnected = @"Not connected";
     }
 
     if ([identifier isEqualToString:HCGIntegrationServer]) {
-        status.detail = @"HCG Server's admin API is only reachable on the host Mac's loopback interface and requires its local admin token. Nexus will not store that token; a phone connection needs an HCG Connect-authorised interface that does not exist yet.";
+        status.detail = @"Nexus never uses HCG Server's admin API or its local admin token. In the standalone HCG Nexus app, Settings › Connected Devices pairs with an HCG Server through HCG Device Link (HCG Connect sign-in, owner approval). The jailbreak package does not connect to HCG Server.";
         return status;
     }
 

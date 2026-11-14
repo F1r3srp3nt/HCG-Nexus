@@ -24,6 +24,10 @@ FOUNDATION_EXPORT NSString *HCGPanelModeName(HCGPanelMode mode);
 @property (nonatomic, copy, nullable) void (^closePanel)(void);       // animated close
 @property (nonatomic, copy, nullable) void (^closePanelImmediately)(void);
 @property (nonatomic, copy, nullable) NSDictionary *_Nonnull (^diagnosticsProvider)(void);
+// Standalone app only: builds the Connected Devices screen (HCG Device Link,
+// Sources/Platform/App/DeviceLink). nil in the jailbreak package, the Settings
+// bundle and the preview harness, which never connect to HCG Server.
+@property (nonatomic, copy, nullable) UIViewController *_Nullable (^connectedDevicesScreen)(HCGPanelContext *context);
 @property (nonatomic, readonly) BOOL insideOverlay;                  // closePanel != nil
 // YES only where the system-wide edge handle and overlay actually exist
 // (SpringBoard overlay, Settings bundle, preview simulation). NO in the
