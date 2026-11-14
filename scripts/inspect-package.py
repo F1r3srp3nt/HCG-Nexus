@@ -83,6 +83,17 @@ def self_test():
         good = parse_filter(raw) == EXPECTED_FILTER
         print(f"{'OK' if good else 'FAIL':4}  filter parse ({name})")
         ok &= good
+    owner_cases = [
+        ((0, 0, "0", "root"), ("root", "wheel")),        # dm.pl as (fake)root, Linux
+        ((501, 20, "root", "wheel"), ("root", "wheel")), # dm.pl as a Mac user
+        ((0, 0, "", ""), ("root", "wheel")),
+        ((501, 20, "runner", "staff"), ("runner", "staff")),
+        ((501, 501, "", ""), ("501", "501")),
+    ]
+    for args, want in owner_cases:
+        good = installed_owner(*args) == want
+        print(f"{'OK' if good else 'FAIL':4}  installed owner {args} -> {want}")
+        ok &= good
     def macho(section_flags, size):
         # Minimal thin arm64 Mach-O: header + one LC_SEGMENT_64 with one section.
         sect = b"__mod_init_func".ljust(16, b"\0") + b"__DATA".ljust(16, b"\0")
@@ -170,6 +181,20 @@ def describe(path, data):
 BUILD_MARKER = re.compile(rb"HCGNexusBuild:([^:;\x00]+):([^;\x00]+);")
 
 
+def installed_owner(uid, gid, uname, gname):
+    """Owner dpkg will give an entry on the device.
+
+    dpkg resolves the tar's user/group *names* when they exist on the device
+    and only falls back to the numeric IDs otherwise. Theos' dm.pl, run as a
+    normal user (e.g. on a Mac), writes the names root/wheel but keeps the
+    builder's numeric IDs (501/20); run as root it writes 0/0 with numeric
+    names. Both install as root:wheel.
+    """
+    user = "root" if uname == "root" or (uname in ("", "0") and uid == 0) else (uname or str(uid))
+    group = "wheel" if gname in ("wheel", "root") or (gname in ("", "0") and gid == 0) else (gname or str(gid))
+    return user, group
+
+
 def archive_checks(deb, scheme):
     """Ownership, permissions and entry types of the installed payload."""
     results = []
@@ -178,7 +203,7 @@ def archive_checks(deb, scheme):
     with tarfile.open(fileobj=io.BytesIO(tar_bytes)) as tar:
         for m in tar.getmembers():
             name = m.name.lstrip("./") or "/"
-            owners.add((m.uid, m.gid))
+            owners.add(installed_owner(m.uid, m.gid, m.uname, m.gname))
             if not (m.isdir() or m.isfile()):
                 odd_types.append(name)
                 continue
@@ -194,7 +219,7 @@ def archive_checks(deb, scheme):
                 want = 0o755 if executable else 0o644
                 if mode != want:
                     bad_modes.append(f"{name} {oct(mode)} (expected {oct(want)})")
-    results.append(("OK" if owners == {(0, 0)} else "FAIL", f"payload owned by root (uid/gid 0): {sorted(owners)}"))
+    results.append(("OK" if owners == {("root", "wheel")} else "FAIL", f"payload installs as root:wheel: {sorted(owners)}"))
     results.append(("FAIL" if bad_modes else "OK", f"payload permissions: {bad_modes or 'dirs 0755, binaries 0755, data 0644'}"))
     results.append(("FAIL" if odd_types else "OK", f"only regular files and directories: {odd_types or 'ok'}"))
     return results
