@@ -1,10 +1,27 @@
-# Validation status — milestone 1
+# Validation status
 
 The four kinds of evidence are reported separately and must not be
 substituted for one another. Only section 4 can show that the tweak works.
 
 Reproduce sections 1 and 3 with
 `THEOS=… HCG_ENV=rootless scripts/check.sh` (and again with `HCG_ENV=rootful`).
+
+## 0.2.0 — first device release candidate (branch `claude/hcg-nexus-tweak-yb1ii2`, 2026-11-14)
+
+Linux only (Theos clang 11 + GNUstep). **No device run and no Xcode run for
+0.2.0 yet**; device steps are in `DEVICE-CHECKLIST.md`.
+
+| Check | Result |
+|---|---|
+| Core host tests (new: diagnostics component states, redaction, report contents; only working integrations offered) | **pass** — 26,960 checks, 0 failures; new tests mutation-checked |
+| `HCG_ENV=rootless scripts/check.sh` and `HCG_ENV=rootful scripts/check.sh` (lint, plists, Xcode project regenerated and matching, app target compiles/links against iPhoneOS 14.5 and 16.5, package build, inspection) | **pass** for both |
+| Tweak + Settings bundle compile with `-Wall -Werror` (both layouts); preview harness builds | **pass** (only the expected Linux arm64e old-ABI linker warnings) |
+| Both layouts build into separate `packages/<layout>/`, `.theos/obj/<layout>`, `.theos/_<layout>` | **pass** |
+| Settings bundle and tweak carry the same build ID and config (`<commit>-dirty`, `rootless-release` / `rootful-release`); before this change the Settings bundle of a plain `make package` had an empty layout name | **pass** (inspector; a patched build ID is rejected) |
+| Payload ownership root:wheel and permissions 0755/0644 | **pass** (inspector; a planted 0666 file is rejected) |
+| PreferenceLoader entry → bundle → principal class; bundle version == package version (0.2.0) | **pass** |
+| Runtime report written off the main thread, also when Nexus refuses to start; Settings Status/Copy Diagnostics | compiles; **device-unverified** |
+| Xcode-built arm64e package for 0.2.0 | **not produced yet** — run *Build package* manually or `scripts/build-jailbreak-deb.sh` on a Mac |
 
 ## Standalone app + build routes (PR #1, branch `claude/hcg-nexus-tweak-yb1ii2` @ `5671146`, 2026-11-13)
 

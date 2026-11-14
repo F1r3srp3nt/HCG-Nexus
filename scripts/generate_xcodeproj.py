@@ -25,7 +25,7 @@ APP = "HCGNexus"
 TESTS = "HCGNexusTests"
 BUNDLE_ID = "com.hakmicapitalgroup.hcgnexus.app"
 DEPLOYMENT_TARGET = "14.0"
-MARKETING_VERSION = "0.1.0"
+MARKETING_VERSION = "0.2.0"
 
 # Directories whose sources form the app target, and files deliberately left out.
 APP_SOURCE_DIRS = ["App", "Sources/Core", "Sources/Panel", "Sources/Platform/App"]
@@ -226,7 +226,7 @@ def build():
         "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
         "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "AccentColor",
         "CODE_SIGN_STYLE": "Automatic",
-        "CURRENT_PROJECT_VERSION": "1",
+        "CURRENT_PROJECT_VERSION": "2",
         "DEVELOPMENT_TEAM": "",
         "GENERATE_INFOPLIST_FILE": "NO",
         "INFOPLIST_FILE": "App/Info.plist",
@@ -244,7 +244,7 @@ def build():
     test_settings = {
         "BUNDLE_LOADER": "$(TEST_HOST)",
         "CODE_SIGN_STYLE": "Automatic",
-        "CURRENT_PROJECT_VERSION": "1",
+        "CURRENT_PROJECT_VERSION": "2",
         "DEVELOPMENT_TEAM": "",
         "GENERATE_INFOPLIST_FILE": "YES",
         "IPHONEOS_DEPLOYMENT_TARGET": DEPLOYMENT_TARGET,

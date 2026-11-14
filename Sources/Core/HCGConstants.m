@@ -3,6 +3,7 @@
 NSString *const HCGNexusPreferencesDomain = @"com.hakmicapitalgroup.hcgnexus";
 NSString *const HCGNexusSettingsChangedDarwinNotification = @"com.hakmicapitalgroup.hcgnexus/settings-changed";
 NSString *const HCGNexusWorkspacesChangedDarwinNotification = @"com.hakmicapitalgroup.hcgnexus/workspaces-changed";
+NSString *const HCGNexusStatusRequestDarwinNotification = @"com.hakmicapitalgroup.hcgnexus/status-request";
 NSString *const HCGNexusErrorDomain = @"com.hakmicapitalgroup.hcgnexus.error";
 
 NSError *HCGMakeError(HCGErrorCode code, NSString *message, NSString *recovery) {

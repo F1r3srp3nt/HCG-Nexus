@@ -80,6 +80,29 @@ static UIWindowScene *HCGMainWindowScene(void) {
     return _window.windowScene != nil;
 }
 
+- (NSDictionary *)windowDiagnostics {
+    if (!_window) return @{ @"overlayWindow" : @"not created (Nexus not enabled while unlocked yet)" };
+    NSString *scene = @"none — the window cannot be displayed";
+    UIWindowScene *ws = _window.windowScene;
+    if (ws) {
+        NSString *state = @"unknown";
+        switch (ws.activationState) {
+            case UISceneActivationStateForegroundActive: state = @"foregroundActive"; break;
+            case UISceneActivationStateForegroundInactive: state = @"foregroundInactive"; break;
+            case UISceneActivationStateBackground: state = @"background"; break;
+            case UISceneActivationStateUnattached: state = @"unattached"; break;
+        }
+        scene = [NSString stringWithFormat:@"attached (%@)", state];
+    }
+    return @{
+        @"overlayWindow" : @"created",
+        @"overlayWindowScene" : scene,
+        @"overlayWindowHidden" : _window.hidden ? @"yes" : @"no",
+        @"overlayWindowLevel" : [NSString stringWithFormat:@"%.0f", (double)_window.windowLevel],
+        @"overlayWindowFrame" : NSStringFromCGRect(_window.frame),
+    };
+}
+
 - (void)overlaySetContainerVisible:(BOOL)visible {
     if (!_window) return;
     if (visible) [self attachSceneIfNeeded];

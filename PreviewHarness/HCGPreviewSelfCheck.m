@@ -118,7 +118,7 @@ static HCGSystemSignals Signals(HCGTriState locked, HCGTriState cover) {
 
     // 8. Integrations
     NSArray<HCGIntegrationStatus *> *statuses = [model integrationStatuses];
-    BOOL allNotConnected = statuses.count == 4;
+    BOOL allNotConnected = statuses.count == 2; // only integrations that can work are offered
     for (HCGIntegrationStatus *status in statuses) {
         if (![status.headline isEqualToString:@"Not connected"]) allNotConnected = NO;
     }

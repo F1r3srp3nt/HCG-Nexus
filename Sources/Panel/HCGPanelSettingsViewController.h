@@ -7,6 +7,11 @@ NS_ASSUME_NONNULL_BEGIN
 @interface HCGPanelSettingsViewController : HCGPanelTableViewController
 @end
 
+// Version, build identifier (git commit, "-dirty" if uncommitted changes) and
+// configuration (e.g. "rootless-release") compiled into this binary.
+FOUNDATION_EXPORT NSString *HCGBuildVersion(void);
+FOUNDATION_EXPORT NSString *HCGBuildIdentifier(void);
+FOUNDATION_EXPORT NSString *HCGBuildConfiguration(void);
 FOUNDATION_EXPORT NSString *HCGBuildDescription(void);
 // Section identifiers (HCGSettingsSection raw values) shown for a mode;
 // exposed for regression tests.

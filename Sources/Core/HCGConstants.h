@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
 
 // Keep in sync with `Version:` in /control (scripts/check.sh verifies this).
-#define HCG_NEXUS_VERSION @"0.1.0"
+#define HCG_NEXUS_VERSION @"0.2.0"
 
 // CFPreferences domain shared by SpringBoard (reader) and the Settings bundle.
 FOUNDATION_EXPORT NSString *const HCGNexusPreferencesDomain;
@@ -10,6 +10,9 @@ FOUNDATION_EXPORT NSString *const HCGNexusPreferencesDomain;
 FOUNDATION_EXPORT NSString *const HCGNexusSettingsChangedDarwinNotification;
 // Darwin notification posted after workspaces/recents change.
 FOUNDATION_EXPORT NSString *const HCGNexusWorkspacesChangedDarwinNotification;
+// Posted by Settings to ask SpringBoard to rewrite its runtime status report.
+// It carries no payload and triggers nothing else (not a command channel).
+FOUNDATION_EXPORT NSString *const HCGNexusStatusRequestDarwinNotification;
 
 // Error domain for user-facing validation and launch errors.
 FOUNDATION_EXPORT NSString *const HCGNexusErrorDomain;

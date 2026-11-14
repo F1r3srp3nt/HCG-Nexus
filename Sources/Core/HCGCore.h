@@ -25,3 +25,4 @@
 #import "HCGPanelStateMachine.h"
 #import "HCGOverlayPolicy.h"
 #import "HCGOverlayCoordinator.h"
+#import "HCGDiagnostics.h"

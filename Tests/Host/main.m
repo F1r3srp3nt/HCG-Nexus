@@ -19,6 +19,7 @@ int main(int argc, const char *argv[]) {
     HCGRunGeometryTests();
     HCGRunStateMachineTests();
     HCGRunOverlayTests();
+    HCGRunDiagnosticsTests();
     fprintf(stdout, "%d checks, %d failures\n", HCGTestChecks, HCGTestFailures);
     [pool release];
     return HCGTestFailures == 0 ? 0 : 1;

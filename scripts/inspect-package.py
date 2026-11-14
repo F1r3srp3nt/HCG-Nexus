@@ -14,6 +14,8 @@ or a FAIL with --require-new-arm64e-abi (required for A12+ devices on iOS 14+,
 including the confirmed iPhone 13 Pro).
 """
 import io
+import plistlib
+import re
 import struct
 import subprocess
 import sys
@@ -165,6 +167,72 @@ def describe(path, data):
     return findings
 
 
+BUILD_MARKER = re.compile(rb"HCGNexusBuild:([^:;\x00]+):([^;\x00]+);")
+
+
+def archive_checks(deb, scheme):
+    """Ownership, permissions and entry types of the installed payload."""
+    results = []
+    tar_bytes = subprocess.run(["dpkg-deb", "--fsys-tarfile", deb], check=True, capture_output=True).stdout
+    owners, bad_modes, odd_types = set(), [], []
+    with tarfile.open(fileobj=io.BytesIO(tar_bytes)) as tar:
+        for m in tar.getmembers():
+            name = m.name.lstrip("./") or "/"
+            owners.add((m.uid, m.gid))
+            if not (m.isdir() or m.isfile()):
+                odd_types.append(name)
+                continue
+            mode = m.mode & 0o7777
+            if mode & 0o7000:
+                bad_modes.append(f"{name} {oct(mode)} (setuid/setgid/sticky)")
+            elif mode & 0o022:
+                bad_modes.append(f"{name} {oct(mode)} (group/world-writable)")
+            elif m.isdir() and mode != 0o755:
+                bad_modes.append(f"{name} {oct(mode)} (directory should be 0755)")
+            elif m.isfile():
+                executable = os.path.basename(name) in ("HCGNexus.dylib", "HCGNexusPrefs")
+                want = 0o755 if executable else 0o644
+                if mode != want:
+                    bad_modes.append(f"{name} {oct(mode)} (expected {oct(want)})")
+    results.append(("OK" if owners == {(0, 0)} else "FAIL", f"payload owned by root (uid/gid 0): {sorted(owners)}"))
+    results.append(("FAIL" if bad_modes else "OK", f"payload permissions: {bad_modes or 'dirs 0755, binaries 0755, data 0644'}"))
+    results.append(("FAIL" if odd_types else "OK", f"only regular files and directories: {odd_types or 'ok'}"))
+    return results
+
+
+def consistency_checks(tmp, prefix, scheme):
+    """Settings bundle wiring and same-build proof for tweak + Settings."""
+    results = []
+    bundle = os.path.join(tmp, prefix + "Library/PreferenceBundles/HCGNexusPrefs.bundle")
+    entry = os.path.join(tmp, prefix + "Library/PreferenceLoader/Preferences/HCGNexusPrefs.plist")
+    try:
+        info = plistlib.load(open(os.path.join(bundle, "Info.plist"), "rb"))
+        ent = plistlib.load(open(entry, "rb")).get("entry", {})
+        wired = (info.get("CFBundleExecutable") == "HCGNexusPrefs" and ent.get("bundle") == "HCGNexusPrefs"
+                 and info.get("NSPrincipalClass") == ent.get("detail") == "HCGNexusRootListController")
+        results.append(("OK" if wired else "FAIL", f"PreferenceLoader entry -> bundle {ent.get('bundle')} / {ent.get('detail')}; "
+                        f"Info.plist executable {info.get('CFBundleExecutable')} principal {info.get('NSPrincipalClass')}"))
+        version = info.get("CFBundleShortVersionString")
+    except Exception as exc:  # noqa: BLE001 - report, don't crash
+        results.append(("FAIL", f"Settings bundle plists unreadable: {exc}"))
+        version = None
+    markers = {}
+    for rel in ("Library/MobileSubstrate/DynamicLibraries/HCGNexus.dylib", "Library/PreferenceBundles/HCGNexusPrefs.bundle/HCGNexusPrefs"):
+        path = os.path.join(tmp, prefix + rel)
+        if os.path.exists(path):
+            found = set(BUILD_MARKER.findall(open(path, "rb").read()))
+            markers[os.path.basename(rel)] = found
+    values = set().union(*markers.values()) if markers else set()
+    if len(markers) == 2 and len(values) == 1 and all(markers.values()):
+        build_id, config = (v.decode() for v in next(iter(values)))
+        results.append(("OK", f"tweak and Settings bundle share build {build_id} ({config})"))
+        if scheme:
+            results.append(("OK" if config.startswith(scheme + "-") else "FAIL", f"build config {config} matches package scheme {scheme}"))
+    else:
+        results.append(("FAIL", f"build markers differ or are missing: { {k: sorted(v) for k, v in markers.items()} }"))
+    return results, version
+
+
 def main():
     global REQUIRE_NEW_ABI
     if "--self-test" in sys.argv[1:]:
@@ -202,6 +270,11 @@ def main():
             for rel in expected:
                 p = os.path.join(tmp, prefix + rel)
                 results.append(("OK" if os.path.exists(p) else "FAIL", f"/{prefix}{rel}"))
+            checks, bundle_version = consistency_checks(tmp, prefix, scheme)
+            results.extend(checks)
+            pkg_version = next((l.split(":", 1)[1].strip() for l in control.splitlines() if l.startswith("Version:")), None)
+            results.append(("OK" if bundle_version == pkg_version else "FAIL",
+                            f"Settings bundle version {bundle_version} == package Version {pkg_version}"))
             if scheme == "rootless":
                 stray = [d for d in os.listdir(tmp) if d not in ("DEBIAN", "var")]
                 results.append(("FAIL" if stray else "OK", f"nothing outside /var/jb: {stray or 'ok'}"))
@@ -219,6 +292,8 @@ def main():
                     results.extend(describe(rel, data))
                     if name == "HCGNexus.dylib":
                         results.extend(activation_checks(rel, data))
+
+    results.extend(archive_checks(deb, scheme))
 
     failures = 0
     for level, text in results:

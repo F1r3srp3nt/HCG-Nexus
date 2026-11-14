@@ -12,13 +12,13 @@
 # with --require-new-arm64e-abi.
 #
 # It never installs anything, never contacts a device and never resprings.
-# The verified .deb is left in --output (default: ./packages).
+# The verified .deb is left in --output (default: ./packages/<env>).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_NAME="rootless"
 ARCHS=""
-OUTPUT="$ROOT/packages"
+OUTPUT=""
 CHECK_ONLY=0
 
 usage() { sed -n '2,16p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; }
@@ -33,6 +33,7 @@ while [ $# -gt 0 ]; do
     esac
 done
 case "$ENV_NAME" in rootless|rootful) ;; *) echo "--env must be rootless or rootful (roothide is not set up)." >&2; exit 2 ;; esac
+[ -n "$OUTPUT" ] || OUTPUT="$ROOT/packages/$ENV_NAME"
 
 FAILED=0
 ok()   { printf 'OK    %s\n' "$1"; }
@@ -119,7 +120,7 @@ echo; echo "== Build =="
 mkdir -p "$OUTPUT"
 find "$OUTPUT" -maxdepth 1 -name 'com.hakmicapitalgroup.hcgnexus_*.deb' -delete
 cd "$ROOT"
-"$MAKE_BIN" clean >/dev/null
+"$MAKE_BIN" clean "HCG_ENV=$ENV_NAME" >/dev/null
 MAKE_ARGS=(package FINALPACKAGE=1 "HCG_ENV=$ENV_NAME" "THEOS_PACKAGE_DIR=$OUTPUT")
 [ -n "$ARCHS" ] && MAKE_ARGS+=("HCG_ARCHS=$ARCHS")
 echo "$MAKE_BIN ${MAKE_ARGS[*]}"

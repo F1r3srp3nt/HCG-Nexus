@@ -9,10 +9,17 @@
 - (BOOL)openApplicationWithBundleID:(NSString *)bundleIdentifier;
 @end
 
+// SpringBoard's own launcher (private UIApplication API inside SpringBoard),
+// used only as a verified fallback when LaunchServices refuses.
+@interface UIApplication (HCGSpringBoardLaunch)
+- (BOOL)launchApplicationWithIdentifier:(NSString *)identifier suspended:(BOOL)suspended;
+@end
+
 @implementation HCGSpringBoardLauncher {
     id _workspace;
     BOOL _canCheckInstalled;
     BOOL _canOpenApps;
+    BOOL _canFallback;
 }
 
 @synthesize launcherName = _launcherName;
@@ -27,7 +34,8 @@
             _workspace = [workspaceClass defaultWorkspace];
         }
         _canCheckInstalled = [_workspace respondsToSelector:@selector(applicationIsInstalled:)];
-        _canOpenApps = [_workspace respondsToSelector:@selector(openApplicationWithBundleID:)];
+        _canFallback = [[UIApplication sharedApplication] respondsToSelector:@selector(launchApplicationWithIdentifier:suspended:)];
+        _canOpenApps = [_workspace respondsToSelector:@selector(openApplicationWithBundleID:)] || _canFallback;
     }
     return self;
 }
@@ -37,9 +45,10 @@
 }
 
 - (NSString *)capabilitySummary {
-    return [NSString stringWithFormat:@"installCheck=%@ appLaunch=%@ urlOpen=%@",
-            _canCheckInstalled ? @"yes" : @"missing",
-            _canOpenApps ? @"yes" : @"missing",
+    return [NSString stringWithFormat:@"installCheck=%@ appLaunch=%@ fallback=%@ urlOpen=%@",
+            _canCheckInstalled ? @"LSApplicationWorkspace applicationIsInstalled:" : @"missing",
+            [_workspace respondsToSelector:@selector(openApplicationWithBundleID:)] ? @"LSApplicationWorkspace openApplicationWithBundleID:" : @"missing",
+            _canFallback ? @"launchApplicationWithIdentifier:suspended:" : @"missing",
             [[UIApplication sharedApplication] respondsToSelector:@selector(openURL:options:completionHandler:)] ? @"yes" : @"missing"];
 }
 
@@ -67,14 +76,18 @@
                                 @"Report your iOS and jailbreak versions (Settings › HCG Nexus › Diagnostics) so a compatible adapter can be added."));
         return;
     }
-    id workspace = _workspace;
+    id workspace = [_workspace respondsToSelector:@selector(openApplicationWithBundleID:)] ? _workspace : nil;
+    BOOL canFallback = _canFallback;
     NSString *bundle = [bundleIdentifier copy];
     // LaunchServices IPC happens off the main thread; it is user-initiated and
     // never part of a SpringBoard lifecycle callback.
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
-        BOOL ok = [workspace openApplicationWithBundleID:bundle];
+        BOOL ok = workspace ? [workspace openApplicationWithBundleID:bundle] : NO;
         dispatch_async(dispatch_get_main_queue(), ^{
-            completion(ok ? nil : HCGMakeError(HCGErrorLaunchFailed,
+            BOOL launched = ok;
+            // SpringBoard's own launcher must be called on the main thread.
+            if (!launched && canFallback) launched = [[UIApplication sharedApplication] launchApplicationWithIdentifier:bundle suspended:NO];
+            completion(launched ? nil : HCGMakeError(HCGErrorLaunchFailed,
                                                [NSString stringWithFormat:@"%@ couldn't be opened.", bundle],
                                                @"Open the app from the Home Screen once, then try again. If it is restricted by Screen Time, allow it first."));
         });

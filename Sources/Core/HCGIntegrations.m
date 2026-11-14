@@ -35,6 +35,10 @@ static NSString *const kNotConnected = @"Not connected";
     return [NSArray arrayWithObjects:HCGIntegrationTerminal, HCGIntegrationServer, HCGIntegrationNews, HCGIntegrationExecutableMaker, nil];
 }
 
++ (NSArray *)offeredIdentifiers {
+    return [NSArray arrayWithObjects:HCGIntegrationTerminal, HCGIntegrationNews, nil];
+}
+
 + (NSString *)displayNameForIdentifier:(NSString *)identifier {
     if ([identifier isEqualToString:HCGIntegrationTerminal]) return @"HCG Terminal";
     if ([identifier isEqualToString:HCGIntegrationServer]) return @"HCG Server";
@@ -130,7 +134,7 @@ static NSString *const kNotConnected = @"Not connected";
 
 + (NSArray *)allStatusesWithSettings:(HCGSettings *)settings probe:(id<HCGAppInstallationProbe>)probe {
     NSMutableArray *result = [[NSMutableArray alloc] init];
-    NSArray *identifiers = [self allIdentifiers];
+    NSArray *identifiers = [self offeredIdentifiers];
     NSUInteger i;
     for (i = 0; i < identifiers.count; i++) {
         [result addObject:[self statusForIdentifier:[identifiers objectAtIndex:i] settings:settings probe:probe]];

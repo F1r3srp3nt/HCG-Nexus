@@ -166,7 +166,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: hcg-nexus-${{ inputs.hcg_env }}-deb
-          path: src/packages/*.deb
+          path: src/packages/${{ inputs.hcg_env }}/*.deb
           if-no-files-found: error
           retention-days: 7
       - uses: actions/upload-artifact@v4

@@ -17,8 +17,8 @@ device yet; see `VALIDATION.md`.
 
 | `HCG_ENV` | Package layout | SDK : deployment target | Typical jailbreaks with this layout | Status |
 |---|---|---|---|---|
-| `rootless` (default) | `/var/jb`, `Architecture: iphoneos-arm64` | iPhoneOS16.5 : **15.0** | rootless jailbreaks for iOS 15 and later, e.g. Dopamine, palera1n (rootless) | builds; Xcode-built arm64e verified for this branch (CI run #7) and main @ `c7cd62c` (run #6) |
-| `rootful` | `/`, `Architecture: iphoneos-arm` | iPhoneOS14.5 : **14.0** | rootful jailbreaks, e.g. on iOS 14.x (iOS 14.7 needs this layout) | builds; Xcode-built package not yet produced in CI |
+| `rootless` (default) | `/var/jb`, `Architecture: iphoneos-arm64` | iPhoneOS16.5 : **15.0** | rootless jailbreaks for iOS 15 and later, e.g. Dopamine, palera1n (rootless) | **release target**; builds; Xcode-built arm64e verified for 0.1.0 (CI runs #6, #7); runtime unverified on device |
+| `rootful` | `/`, `Architecture: iphoneos-arm` | iPhoneOS14.5 : **14.0** | rootful jailbreaks, e.g. on iOS 14.x (iOS 14.7 needs this layout) | builds and inspects clean (Linux); Xcode-built package not yet produced; **not supported** until verified |
 | `roothide` | — | — | — | refused by the Makefile |
 
 Rules the package itself enforces:

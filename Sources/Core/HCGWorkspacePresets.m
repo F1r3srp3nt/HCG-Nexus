@@ -28,9 +28,9 @@ static HCGAction *Integration(NSString *identifier) {
 
 + (NSString *)summaryForPreset:(NSString *)preset {
     if ([preset isEqualToString:HCGPresetCommand]) return @"Daily planning, mail, notes and HCG News.";
-    if ([preset isEqualToString:HCGPresetDeveloper]) return @"HCG Terminal, Executable Maker, Files and Shortcuts.";
+    if ([preset isEqualToString:HCGPresetDeveloper]) return @"HCG Terminal, Files, Shortcuts and Safari.";
     if ([preset isEqualToString:HCGPresetStudio]) return @"Camera, Photos, Voice Memos and Music.";
-    if ([preset isEqualToString:HCGPresetInfrastructure]) return @"HCG Server, Terminal and build tooling.";
+    if ([preset isEqualToString:HCGPresetInfrastructure]) return @"HCG Terminal, Files, Shortcuts and Settings.";
     return @"An empty workspace for your own shortcuts.";
 }
 
@@ -57,7 +57,6 @@ static HCGAction *Integration(NSString *identifier) {
     if ([preset isEqualToString:HCGPresetDeveloper]) {
         return [NSArray arrayWithObjects:
                 Integration(HCGIntegrationTerminal),
-                Integration(HCGIntegrationExecutableMaker),
                 App(@"Files", @"com.apple.DocumentsApp", @"folder"),
                 App(@"Shortcuts", @"com.apple.shortcuts", @"square.2.layers.3d"),
                 App(@"Safari", @"com.apple.mobilesafari", @"safari"),
@@ -74,9 +73,9 @@ static HCGAction *Integration(NSString *identifier) {
     }
     if ([preset isEqualToString:HCGPresetInfrastructure]) {
         return [NSArray arrayWithObjects:
-                Integration(HCGIntegrationServer),
                 Integration(HCGIntegrationTerminal),
-                Integration(HCGIntegrationExecutableMaker),
+                App(@"Files", @"com.apple.DocumentsApp", @"folder"),
+                App(@"Shortcuts", @"com.apple.shortcuts", @"square.2.layers.3d"),
                 App(@"Settings", @"com.apple.Preferences", @"gearshape"),
                 nil];
     }

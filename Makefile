@@ -4,7 +4,9 @@
 # iOS 16.5, Dopamine rootless (/var/jb), ElleKit, Sileo. HCG_ENV therefore
 # defaults to rootless; HCG_ENV=rootful remains for other devices.
 #
-#   make package FINALPACKAGE=1                 # rootless, for the confirmed device
+#   gmake package FINALPACKAGE=1                # rootless → packages/rootless/
+#   gmake package FINALPACKAGE=1 HCG_ENV=rootful # rootful  → packages/rootful/ (unverified)
+#   scripts/build-jailbreak-deb.sh               # same, with toolchain preflight + verification
 #
 # The arm64e slice MUST be built with Apple's clang (Xcode 12 or later): the
 # open-source Linux toolchains emit the pre-iOS-14 arm64e ABI, which
@@ -29,6 +31,27 @@ else ifeq ($(_HCG_ONLY_CLEAN),)
   $(error Set HCG_ENV=rootless or HCG_ENV=rootful after confirming your jailbreak layout (see docs/ENVIRONMENT.md))
 endif
 
+# Theos needs GNU Make 4 or newer (macOS ships 3.81: `brew install make`, then gmake).
+ifeq ($(filter 4.% 5.% 6.% 7.%,$(MAKE_VERSION)),)
+  $(error GNU Make 4 or newer is required (this is $(MAKE_VERSION)). On macOS: brew install make, then run gmake)
+endif
+
+# Build identity, shown in Settings › HCG Nexus and in diagnostics. Override
+# with HCG_BUILD_ID=… when building from a tree without git metadata.
+ifeq ($(origin HCG_BUILD_ID),undefined)
+  HCG_BUILD_ID := $(or $(shell git -C "$(CURDIR)" rev-parse --short=10 HEAD 2>/dev/null),nogit)$(if $(shell git -C "$(CURDIR)" status --porcelain --untracked-files=no 2>/dev/null),-dirty)
+endif
+HCG_BUILD_CONFIG := $(HCG_ENV)-$(if $(FINALPACKAGE),release,debug)
+
+# Separate outputs per configuration so a rootless build can never pick up
+# rootful objects (or the reverse): .theos/obj/<env>…, .theos/_<env>,
+# packages/<env>/. Exported so the Prefs subproject uses the same layout and
+# the same HCG_ENV/build identity.
+THEOS_OBJ_DIR_NAME = obj/$(HCG_ENV)$(_THEOS_OBJ_DIR_EXTENSION)
+THEOS_STAGING_DIR_NAME = _$(HCG_ENV)
+THEOS_PACKAGE_DIR_NAME = packages/$(HCG_ENV)
+export HCG_ENV HCG_BUILD_ID HCG_BUILD_CONFIG THEOS_OBJ_DIR_NAME THEOS_STAGING_DIR_NAME THEOS_PACKAGE_DIR_NAME
+
 # arm64e built with an old-ABI toolchain (e.g. clang 11 on Linux) is flagged by
 # scripts/inspect-package.py; override with HCG_ARCHS once the device is known.
 HCG_ARCHS ?= arm64 arm64e
@@ -44,7 +67,7 @@ HCGNexus_FILES = Tweak/Tweak.x \
 	$(wildcard Sources/Platform/SpringBoard/*.m)
 HCGNexus_CFLAGS = -fobjc-arc -Wall -Werror \
 	-ISources/Core -ISources/Panel -ISources/Platform/SpringBoard \
-	-DHCG_PACKAGE_SCHEME=\"$(HCG_ENV)\"
+	-DHCG_PACKAGE_SCHEME=\"$(HCG_ENV)\" -DHCG_BUILD_ID=\"$(HCG_BUILD_ID)\" -DHCG_BUILD_CONFIG=\"$(HCG_BUILD_CONFIG)\"
 HCGNexus_FRAMEWORKS = UIKit QuartzCore CoreFoundation
 # No %hook is used, so generate runtime-only Logos code: the dylib does not
 # link CydiaSubstrate and works with whichever injector loads it.

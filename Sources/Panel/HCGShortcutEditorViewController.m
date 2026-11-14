@@ -54,7 +54,7 @@ typedef NS_ENUM(NSInteger, HCGEditorRow) {
     [_kindControl addTarget:self action:@selector(kindChanged) forControlEvents:UIControlEventValueChanged];
 
     NSMutableArray *names = [NSMutableArray array];
-    for (NSString *identifier in [HCGIntegrationCatalog allIdentifiers]) {
+    for (NSString *identifier in [HCGIntegrationCatalog offeredIdentifiers]) {
         [names addObject:[[HCGIntegrationCatalog displayNameForIdentifier:identifier] stringByReplacingOccurrencesOfString:@"HCG " withString:@""]];
     }
     _integrationControl = [[UISegmentedControl alloc] initWithItems:names];
@@ -96,7 +96,7 @@ typedef NS_ENUM(NSInteger, HCGEditorRow) {
     NSString *title = _nameField.text ?: @"";
     NSString *symbol = kind == HCGActionKindURL ? @"link" : @"app";
     if (kind == HCGActionKindIntegration) {
-        NSArray *identifiers = [HCGIntegrationCatalog allIdentifiers];
+        NSArray *identifiers = [HCGIntegrationCatalog offeredIdentifiers];
         NSInteger index = MAX(0, _integrationControl.selectedSegmentIndex);
         target = identifiers[(NSUInteger)index];
         symbol = [HCGIntegrationCatalog symbolNameForIdentifier:target];

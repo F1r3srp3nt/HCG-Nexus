@@ -73,10 +73,10 @@ if [ -n "${HCG_ENV:-}" ]; then
     if [ -z "${THEOS:-}" ]; then
         fail "THEOS is not set"
     else
-        rm -rf packages
-        if make clean >/dev/null 2>&1 && make package HCG_ENV="$HCG_ENV" FINALPACKAGE=1 >/tmp/hcg-nexus-build.log 2>&1; then
+        rm -rf "packages/$HCG_ENV"
+        if make clean HCG_ENV="$HCG_ENV" >/dev/null 2>&1 && make package HCG_ENV="$HCG_ENV" FINALPACKAGE=1 >/tmp/hcg-nexus-build.log 2>&1; then
             pass "make package HCG_ENV=$HCG_ENV"
-            DEB="$(ls packages/*.deb | head -n1)"
+            DEB="$(ls "packages/$HCG_ENV"/*.deb | head -n1)"
             ABI_FLAG=""
             [ "${HCG_REQUIRE_NEW_ABI:-0}" = "1" ] && ABI_FLAG="--require-new-arm64e-abi"
             if python3 -I scripts/inspect-package.py "$DEB" "$HCG_ENV" $ABI_FLAG; then pass "package inspection"; else fail "package inspection"; fi

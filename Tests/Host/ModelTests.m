@@ -362,7 +362,7 @@ static void testUnconfiguredIntegrationsAreNotConnected(void) {
     HCGSettings *s = [HCGSettings defaultSettings];
     HCGFakeProbe *probe = [[HCGFakeProbe alloc] initWithInstalled:[NSSet setWithObjects:HCGTerminalBundleIdentifier, HCGNewsBundleIdentifier, nil] canDetermine:YES];
     NSArray *statuses = [HCGIntegrationCatalog allStatusesWithSettings:s probe:probe];
-    HCG_CHECK_EQ_INT(statuses.count, 4);
+    HCG_CHECK_EQ_INT(statuses.count, 2);
     NSUInteger i;
     for (i = 0; i < statuses.count; i++) {
         HCGIntegrationStatus *st = [statuses objectAtIndex:i];
@@ -421,7 +421,29 @@ static void testSandboxedAppReportsBundleLaunchUnavailable(void) {
     HCG_CHECK_EQ_STR(server.headline, @"Not connected");
 }
 
+// Placeholders must not be offered: no phone-reachable interface exists.
+static void testOnlyWorkingIntegrationsAreOffered(void) {
+    NSArray *offered = [HCGIntegrationCatalog offeredIdentifiers];
+    HCG_CHECK([offered containsObject:HCGIntegrationTerminal] && [offered containsObject:HCGIntegrationNews], "terminal + news offered");
+    HCG_CHECK(![offered containsObject:HCGIntegrationServer] && ![offered containsObject:HCGIntegrationExecutableMaker], "server/maker not offered");
+    // Saved shortcuts from older builds still validate.
+    HCG_CHECK([HCGAction validationErrorForKind:HCGActionKindIntegration title:@"S" target:HCGIntegrationServer] == nil, "legacy shortcut validates");
+    NSArray *presets = [HCGWorkspacePresets presetIdentifiers];
+    NSUInteger p, a;
+    for (p = 0; p < presets.count; p++) {
+        HCGWorkspace *ws = [HCGWorkspacePresets workspaceForPreset:[presets objectAtIndex:p] name:nil];
+        for (a = 0; a < ws.actions.count; a++) {
+            HCGAction *action = [ws.actions objectAtIndex:a];
+            if (action.kind == HCGActionKindIntegration) {
+                HCG_CHECK([offered containsObject:action.target], "preset %s uses unoffered integration %s",
+                          [[presets objectAtIndex:p] UTF8String], [action.target UTF8String]);
+            }
+        }
+    }
+}
+
 void HCGRunIntegrationTests(void) {
+    HCG_RUN(testOnlyWorkingIntegrationsAreOffered);
     HCG_RUN(testUnconfiguredIntegrationsAreNotConnected);
     HCG_RUN(testConfiguredIntegrations);
     HCG_RUN(testSandboxedAppReportsBundleLaunchUnavailable);

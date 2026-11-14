@@ -14,7 +14,9 @@ Both routes share `Sources/Core` and `Sources/Panel`. They never share data:
 the app keeps its own sandboxed store, separate from the tweak's preferences
 and the preview harness.
 
-> **Status:** development build.
+> **Status:** 0.2.0, first device release candidate. What works and how it
+> was verified: [`docs/FEATURES.md`](docs/FEATURES.md). First run on the
+> phone: [`docs/DEVICE-CHECKLIST.md`](docs/DEVICE-CHECKLIST.md).
 > * **Jailbreak package:** confirmed target **iPhone 13 Pro · iOS 16.5 ·
 >   Dopamine (rootless) · ElleKit · Sileo**. Its Xcode-built rootless package
 >   passes the strict arm64e ABI check.
@@ -55,8 +57,8 @@ scripts/
   inspect-package.py       .deb layout, activation entry point, arm64e ABI
   inspect-app.py           built .app: Info.plist, icons, platform, no private APIs
 .github/workflows/build-package.yml   MANUAL ONLY: app (simulator, tests, unsigned device) + jailbreak .deb
-docs/                      STANDALONE-APP, INSTALL-AND-RECOVERY, COMPATIBILITY, RUNTIME, ENVIRONMENT,
-                           INTEGRATIONS, VALIDATION, ICONS
+docs/                      FEATURES, DEVICE-CHECKLIST, INSTALL-AND-RECOVERY, STANDALONE-APP, COMPATIBILITY,
+                           RUNTIME, ENVIRONMENT, INTEGRATIONS, VALIDATION, ICONS
 ```
 
 ## Quick start
@@ -66,7 +68,8 @@ docs/                      STANDALONE-APP, INSTALL-AND-RECOVERY, COMPATIBILITY, 
 open HCGNexus.xcodeproj            # scheme HCGNexus → pick a simulator → Run
 
 # Jailbreak package (Mac with Xcode + Theos)
-scripts/build-jailbreak-deb.sh     # verified .deb in packages/; nothing is installed
+scripts/build-jailbreak-deb.sh     # verified .deb in packages/rootless/; nothing is installed
+gmake package FINALPACKAGE=1 HCG_ENV=rootless   # same package, plain Theos (GNU Make 4+)
 
 # Checks (Linux or Mac)
 scripts/check.sh                   # add THEOS=… to also compile/link the app target
@@ -99,7 +102,7 @@ scripts/check.sh                   # add THEOS=… to also compile/link the app 
   shortcut to the fix.
 * **HCG integrations.**
   * Terminal and News open their apps once enabled.
-  * Server and Executable Maker show "Not connected": they have no
+  * Server and Executable Maker are not offered: they have no
     phone-reachable contract yet.
   * No credentials are stored and no schemes are invented.
   * See [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md).
@@ -166,7 +169,7 @@ To remove it, uninstall **HCG Nexus** in the package manager. Full steps:
    rootless, ElleKit, Sileo. Build defaults updated.
 2. ~~Produce the new-ABI arm64e rootless `.deb`~~ — done: *Build package* run #4
    passes `--require-new-arm64e-abi` (artifact `hcg-nexus-rootless-deb`).
-3. **Run the device checklist** in [`docs/VALIDATION.md`](docs/VALIDATION.md).
+3. **Run the device checklist** in [`docs/DEVICE-CHECKLIST.md`](docs/DEVICE-CHECKLIST.md).
    Adjust the window level, orientation mapping and text-input focus based on
    what is observed.
 4. ~~Add a real Xcode app project~~ — done: `HCGNexus.xcodeproj` (standalone

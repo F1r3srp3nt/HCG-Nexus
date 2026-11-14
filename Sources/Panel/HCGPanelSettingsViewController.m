@@ -12,8 +12,27 @@
 #endif
 #endif
 
+#ifndef HCG_BUILD_ID
+#define HCG_BUILD_ID "unknown"
+#endif
+#ifndef HCG_BUILD_CONFIG
+#if defined(HCG_STANDALONE_APP) && HCG_STANDALONE_APP
+#define HCG_BUILD_CONFIG "standalone-app"
+#else
+#define HCG_BUILD_CONFIG "unspecified"
+#endif
+#endif
+
+// Plain marker so scripts/inspect-package.py can prove the tweak and the
+// Settings bundle in one package were built from the same source and config.
+__attribute__((used)) static const char HCGBuildMarker[] = "HCGNexusBuild:" HCG_BUILD_ID ":" HCG_BUILD_CONFIG ";";
+
+NSString *HCGBuildVersion(void) { return HCG_NEXUS_VERSION; }
+NSString *HCGBuildIdentifier(void) { return @HCG_BUILD_ID; }
+NSString *HCGBuildConfiguration(void) { return @HCG_BUILD_CONFIG; }
+
 NSString *HCGBuildDescription(void) {
-    return [NSString stringWithFormat:@"%@ · package scheme: %s · built %s", HCG_NEXUS_VERSION, HCG_PACKAGE_SCHEME, __DATE__];
+    return [NSString stringWithFormat:@"%@ (build %s, %s)", HCG_NEXUS_VERSION, HCG_BUILD_ID, HCG_BUILD_CONFIG];
 }
 
 typedef NS_ENUM(NSInteger, HCGSettingsSection) {
@@ -218,7 +237,7 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
             if (self.context.isStandaloneApp) {
                 return @"In the standalone app, HCG integrations show their status only: opening another app by bundle identifier needs the jailbreak package. HCG Connect and ERP remain the authority for signed-in ecosystem access; Nexus stores no HCG credentials.";
             }
-            return @"HCG Connect and ERP remain the authority for signed-in ecosystem access. Nexus stores no HCG credentials and only opens installed apps.";
+            return @"Opens the selected HCG app; neither app publishes deep links, so Nexus opens it at its start screen. HCG Connect and ERP remain the authority for signed-in ecosystem access; Nexus stores no HCG credentials.";
         case HCGSettingsSectionAppMode:
             return @"This is the sandboxed iPhone/iPad app. It keeps its own workspaces, separate from the jailbreak package and the preview harness. Ordinary app signing does not remove the iOS sandbox, so the system-wide edge handle and bundle-ID app launching are only available through the jailbreak package.";
         case HCGSettingsSectionDiagnostics:
@@ -241,7 +260,7 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
 }
 
 - (NSArray<NSString *> *)standaloneIntegrationIdentifiers {
-    return [HCGIntegrationCatalog allIdentifiers];
+    return [HCGIntegrationCatalog offeredIdentifiers];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -249,7 +268,7 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         case HCGSettingsSectionGeneral: return 1;
         case HCGSettingsSectionHandle: return 4;
         case HCGSettingsSectionMotion: return 2;
-        case HCGSettingsSectionIntegrations: return self.context.isStandaloneApp ? (NSInteger)[self standaloneIntegrationIdentifiers].count : 4;
+        case HCGSettingsSectionIntegrations: return self.context.isStandaloneApp ? (NSInteger)[self standaloneIntegrationIdentifiers].count : 2;
         case HCGSettingsSectionWorkspaces: return 2;
         case HCGSettingsSectionMaintenance: return 1;
         case HCGSettingsSectionDiagnostics: return (NSInteger)_diagnostics.count;
@@ -308,9 +327,7 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         NSArray *ids = [self standaloneIntegrationIdentifiers];
         return row >= 0 && (NSUInteger)row < ids.count ? ids[(NSUInteger)row] : nil;
     }
-    if (row == 2) return HCGIntegrationServer;
-    if (row == 3) return HCGIntegrationExecutableMaker;
-    return nil; // rows 0-1 are controls
+    return nil; // overlay modes: rows 0-1 are the Terminal and News controls
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {

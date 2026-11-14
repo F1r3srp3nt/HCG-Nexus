@@ -17,6 +17,8 @@ FOUNDATION_EXPORT const UIWindowLevel HCGOverlayWindowLevel;
 // NO means the overlay window is not attached to a UIWindowScene and therefore
 // cannot be displayed (reported in Settings › HCG Nexus › Diagnostics).
 @property (nonatomic, readonly) BOOL windowHasScene;
+// Window facts for the runtime report (existence, scene, hidden, level, frame).
+- (NSDictionary<NSString *, NSString *> *)windowDiagnostics;
 @end
 
 NS_ASSUME_NONNULL_END

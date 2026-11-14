@@ -59,7 +59,14 @@ typedef NS_ENUM(NSInteger, HCGIntegrationState) {
 @end
 
 @interface HCGIntegrationCatalog : NSObject
+// Every identifier a saved shortcut may reference (kept so older workspaces
+// still validate and report an accurate status).
 + (NSArray<NSString *> *)allIdentifiers;
+// Integrations that can actually do something on a phone today (open their
+// app): HCG Terminal and HCG News. Only these are offered in the UI, presets
+// and status lists; HCG Server and Executable Maker have no phone-reachable
+// interface, so offering them would show a capability that does not exist.
++ (NSArray<NSString *> *)offeredIdentifiers;
 + (nullable NSString *)displayNameForIdentifier:(NSString *)identifier;
 + (NSString *)symbolNameForIdentifier:(NSString *)identifier;
 // Pure function of settings + installation probe. Performs no I/O itself
@@ -67,6 +74,7 @@ typedef NS_ENUM(NSInteger, HCGIntegrationState) {
 + (HCGIntegrationStatus *)statusForIdentifier:(NSString *)identifier
                                      settings:(HCGSettings *)settings
                                         probe:(nullable id<HCGAppInstallationProbe>)probe;
+// Statuses for -offeredIdentifiers.
 + (NSArray<HCGIntegrationStatus *> *)allStatusesWithSettings:(HCGSettings *)settings
                                                        probe:(nullable id<HCGAppInstallationProbe>)probe;
 @end
