@@ -108,8 +108,25 @@ static void testActionDictionaryRoundTrip(void) {
     HCG_CHECK([HCGAction actionFromDictionary:(NSDictionary *)@"nope" error:NULL] == nil, "non-dictionary rejected");
 }
 
+static void testRepoProductPageURL(void) {
+    NSURL *url = [NSURL URLWithString:HCGNexusRepoProductPageURLString];
+    HCG_CHECK(url != nil, "constant parses as a URL");
+    HCG_CHECK_EQ_STR(url.scheme, @"https");
+    HCG_CHECK_EQ_STR(url.host, @"repo.hakmicapitalgroup.com");
+    HCG_CHECK_EQ_STR(url.absoluteString, @"https://repo.hakmicapitalgroup.com/products/hcg-nexus/");
+    NSString *path = [url.path stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"/"]];
+    HCG_CHECK_EQ_STR(path, @"products/hcg-nexus");
+    HCG_CHECK(url.query == nil, "no query string (no identifiers or tokens)");
+    HCG_CHECK(url.fragment == nil, "no fragment");
+    HCG_CHECK(url.user == nil && url.password == nil, "no credentials");
+    HCG_CHECK(url.port == nil, "default HTTPS port");
+    HCG_CHECK([HCGAction validationErrorForKind:HCGActionKindURL title:@"HCG Repo" target:HCGNexusRepoProductPageURLString] == nil,
+              "accepted by the same rules as link shortcuts");
+}
+
 void HCGRunActionTests(void) {
     HCG_RUN(testActionValidation);
+    HCG_RUN(testRepoProductPageURL);
     HCG_RUN(testActionDictionaryRoundTrip);
 }
 

@@ -14,6 +14,11 @@ FOUNDATION_EXPORT NSString *const HCGNexusWorkspacesChangedDarwinNotification;
 // It carries no payload and triggers nothing else (not a command channel).
 FOUNDATION_EXPORT NSString *const HCGNexusStatusRequestDarwinNotification;
 
+// HCG Repo product page for HCG Nexus. A fixed HTTPS address: no query, no
+// fragment and never an account, session or device identifier. Nexus makes no
+// request to it; Settings hands it to the launcher only when the user taps it.
+FOUNDATION_EXPORT NSString *const HCGNexusRepoProductPageURLString;
+
 // Error domain for user-facing validation and launch errors.
 FOUNDATION_EXPORT NSString *const HCGNexusErrorDomain;
 

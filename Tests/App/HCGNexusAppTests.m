@@ -126,6 +126,14 @@
     XCTAssertTrue(context.isStandaloneApp);
 }
 
+- (void)testSettingsShowAboutSectionInEveryMode {
+    // 8 = About (HCG Repo product page); shown in the app and in the overlay.
+    for (NSNumber *mode in @[ @(HCGPanelModeStandaloneApp), @(HCGPanelModeOverlay), @(HCGPanelModePreview) ]) {
+        NSArray<NSNumber *> *sections = HCGSettingsSectionsForMode((HCGPanelMode)mode.integerValue);
+        XCTAssertTrue([sections containsObject:@8], @"mode %@", mode);
+    }
+}
+
 - (void)testRootShowsAppModeBadge {
     HCGAppRootViewController *root = [[HCGAppRootViewController alloc] initWithModel:[self makeModel]];
     [root loadViewIfNeeded];
