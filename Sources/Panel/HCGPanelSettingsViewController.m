@@ -44,21 +44,24 @@ typedef NS_ENUM(NSInteger, HCGSettingsSection) {
     HCGSettingsSectionMaintenance,
     HCGSettingsSectionDiagnostics,
     HCGSettingsSectionAppMode,      // standalone app only: what this build can do
+    HCGSettingsSectionAbout,        // HCG Repo product page (opens in Safari)
 };
 
 // Sections shown for a mode. The standalone app never shows the enable switch,
 // handle or motion controls: there is no system-wide overlay to control.
 NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
     if (mode == HCGPanelModeStandaloneApp) {
-        return @[ @(HCGSettingsSectionAppMode), @(HCGSettingsSectionIntegrations), @(HCGSettingsSectionWorkspaces), @(HCGSettingsSectionDiagnostics) ];
+        return @[ @(HCGSettingsSectionAppMode), @(HCGSettingsSectionIntegrations), @(HCGSettingsSectionWorkspaces), @(HCGSettingsSectionAbout),
+                  @(HCGSettingsSectionDiagnostics) ];
     }
     return @[ @(HCGSettingsSectionGeneral), @(HCGSettingsSectionHandle), @(HCGSettingsSectionMotion), @(HCGSettingsSectionIntegrations),
-              @(HCGSettingsSectionWorkspaces), @(HCGSettingsSectionMaintenance), @(HCGSettingsSectionDiagnostics) ];
+              @(HCGSettingsSectionWorkspaces), @(HCGSettingsSectionMaintenance), @(HCGSettingsSectionAbout), @(HCGSettingsSectionDiagnostics) ];
 }
 
 @implementation HCGPanelSettingsViewController {
     NSArray<NSArray<NSString *> *> *_diagnostics;
     NSArray<NSNumber *> *_sections;
+    BOOL _openingRepoPage;
 }
 
 - (void)viewDidLoad {
@@ -221,6 +224,7 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         case HCGSettingsSectionMaintenance: return @"Maintenance";
         case HCGSettingsSectionDiagnostics: return @"Diagnostics";
         case HCGSettingsSectionAppMode: return @"App mode";
+        case HCGSettingsSectionAbout: return @"About";
     }
     return nil;
 }
@@ -273,6 +277,7 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         case HCGSettingsSectionMaintenance: return 1;
         case HCGSettingsSectionDiagnostics: return (NSInteger)_diagnostics.count;
         case HCGSettingsSectionAppMode: return (NSInteger)[self appModeRows].count;
+        case HCGSettingsSectionAbout: return 1;
     }
     return 0;
 }
@@ -374,6 +379,15 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
             cell.accessibilityHint = @"Restores handle, motion and haptic defaults. Keeps workspaces and the enabled state.";
             return cell;
         }
+        case HCGSettingsSectionAbout: {
+            UITableViewCell *cell = [self styledCellWithStyle:UITableViewCellStyleSubtitle identifier:@"link"];
+            cell.textLabel.text = @"HCG Repo";
+            cell.detailTextLabel.text = @"Product page (opens in Safari)";
+            cell.imageView.image = [HCGTheme symbolNamed:@"safari" pointSize:17];
+            cell.imageView.tintColor = [HCGTheme secondaryText];
+            cell.accessibilityTraits |= UIAccessibilityTraitLink;
+            return cell;
+        }
         case HCGSettingsSectionAppMode: {
             NSArray<NSString *> *row = [self appModeRows][(NSUInteger)indexPath.row];
             UITableViewCell *cell = [self styledCellWithStyle:UITableViewCellStyleSubtitle identifier:@"appmode"];
@@ -409,6 +423,9 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         case HCGSettingsSectionMaintenance:
             [self confirmReset];
             break;
+        case HCGSettingsSectionAbout:
+            [self openRepoPage];
+            break;
         case HCGSettingsSectionIntegrations:
             if ([self integrationIdentifierForRow:indexPath.row]) [self tableView:tableView accessoryButtonTappedForRowWithIndexPath:indexPath];
             break;
@@ -423,6 +440,31 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
     if (!identifier) return;
     HCGIntegrationStatus *status = [self.context.model statusForIntegration:identifier];
     HCGPresentError(self, HCGMakeError(HCGErrorIntegrationNotConnected, [NSString stringWithFormat:@"%@: %@", status.displayName, status.headline], status.detail), nil);
+}
+
+// Opens the fixed HCG Repo page through the launcher, like a link shortcut: the
+// system shows it in Safari and Nexus itself makes no request. A failure is
+// reported once with the launcher's own error; nothing else is affected.
+- (void)openRepoPage {
+    if (_openingRepoPage) return; // ignore double taps
+    id<HCGLauncher> launcher = self.context.model.launcher;
+    NSURL *url = [NSURL URLWithString:HCGNexusRepoProductPageURLString];
+    if (!launcher || ![url.scheme.lowercaseString isEqualToString:@"https"]) {
+        HCGPresentError(self, HCGMakeError(HCGErrorLauncherUnavailable, @"Links can't be opened here.", nil), nil);
+        return;
+    }
+    _openingRepoPage = YES;
+    __weak typeof(self) weakSelf = self;
+    [launcher openURL:url completion:^(NSError *error) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;
+        strongSelf->_openingRepoPage = NO;
+        if (error) {
+            HCGPresentError(strongSelf, error, nil);
+        } else if (!strongSelf.context.isPreview && !strongSelf.context.isStandaloneApp && strongSelf.context.closePanelImmediately) {
+            strongSelf.context.closePanelImmediately(); // overlay: get out of Safari's way, as shortcuts do
+        }
+    }];
 }
 
 - (void)confirmReset {

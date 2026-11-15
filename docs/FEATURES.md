@@ -42,6 +42,7 @@ Legend:
 | Workspace management (create, rename, reorder, delete, presets Command/Developer/Studio/Infrastructure) | **Verified (automated)** for data; UI device-unverified | host tests |
 | App shortcuts by bundle ID | Implemented, device-unverified | LaunchServices `openApplicationWithBundleID:` off the main thread, then SpringBoard's own launcher as a verified-at-runtime fallback; Settings reports which selectors exist |
 | Link (URL) shortcuts | Implemented, device-unverified | public `openURL:options:completionHandler:` |
+| In-panel Settings › About › **HCG Repo** (also in the standalone app): opens the fixed product page `https://repo.hakmicapitalgroup.com/products/hcg-nexus/` in Safari through the launcher; Nexus itself makes no request | Implemented, device-unverified | URL constant host-tested (https, host, path, no query/fragment); not added to Settings › HCG Nexus, which has no launcher |
 | HCG Terminal (Standard / Unleashed) and HCG News | Implemented, device-unverified | open by bundle ID; "Not connected" until turned on; "App not installed" if the app is absent |
 | Rotation | Implemented, device-unverified | source reported in Status |
 | Reduce Motion, VoiceOver labels, haptics toggle | Implemented, device-unverified | — |
