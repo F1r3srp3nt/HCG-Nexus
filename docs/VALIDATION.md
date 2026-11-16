@@ -6,6 +6,67 @@ substituted for one another. Only section 4 can show that the tweak works.
 Reproduce sections 1 and 3 with
 `THEOS=… HCG_ENV=rootless scripts/check.sh` (and again with `HCG_ENV=rootful`).
 
+## 0.2.0 — run #10: the package to install (recorded 2026-11-16)
+
+This is the only package to use for the device test:
+
+| | |
+|---|---|
+| File | `com.hakmicapitalgroup.hcgnexus_0.2.0_iphoneos-arm64.deb` (236,034 bytes) |
+| **SHA-256** | **`799734e7949b30bf90f2790f602e0043bac3a23e7bd43898f811f2bde3addc2e`** |
+| Built from | `main` @ `13416698ea72f814e9960c09ff17115c3f00cb4c` (clean tree; embedded build ID `13416698ea`, config `rootless-release`) |
+| Workflow | *Build package* run **#10**, ID 43557670545, manual dispatch on `main`, route `both`, layout `rootless`, 2026-11-14 04:38–05:08 UTC: https://github.com/F1r3srp3nt/HCG-Nexus/actions/runs/43557670545 |
+| Toolchain | macOS runner, Xcode clang, Theos (latest at build time), iPhoneOS16.5 SDK, deployment target 15.0 |
+| Artifact | `hcg-nexus-rootless-deb`, ID **14099414356**, zip SHA-256 `dd84f6bc3dcde26e6d92204b6f162e7f6cd1aab2c61d49dbcc962e8f51a18e54`, GitHub expiry **2026-11-21 05:07 UTC** |
+| Other artifacts of run #10 (not for the phone) | `hcg-nexus-app` (standalone app, ID 14099492161); `hcg-nexus-preview-SIMULATION-rootless-deb` (preview simulation, ID 14099364406) |
+
+Checks on this exact file:
+
+* **CI (run #10), all three jobs passed.**
+  - Lint + 26,960 host checks passed.
+  - Standalone app job passed: simulator build, unit tests, simulator launch, unsigned device build and archive.
+  - Jailbreak job passed. `scripts/build-jailbreak-deb.sh --require-new-arm64e-abi` confirmed:
+    - tweak and Prefs have arm64 slices and arm64e slices with the versioned ptrauth ABI (v0);
+    - the initializer is present in every slice;
+    - tweak and Settings share build `13416698ea`;
+    - payload installs as root:wheel, dirs/binaries 0755, data 0644;
+    - everything is under `/var/jb`, with no maintainer scripts;
+    - the filter is SpringBoard only;
+    - PreferenceLoader wiring is correct and the version is 0.2.0.
+* **Independent re-check (2026-11-16).**
+  - The artifact was downloaded again through the GitHub API. The zip digest matched GitHub's recorded digest, and the `.deb` SHA-256 matched the CI log.
+  - `scripts/inspect-package.py … rootless --require-new-arm64e-abi` passed on the downloaded file.
+* **Install helper.** `Tests/Device/test-install-local.sh` passes 14/14 against this file. It covers: accepted; wrong model, iOS or architecture refused; no `/var/jb` refused; missing dependencies refused with no download; modified file refused; run #9's file refused.
+
+### Run #9 and run #10 are not byte-identical: what differs
+
+| | Run #9 | Run #10 |
+|---|---|---|
+| Commit | `907b1df` (branch) | `1341669` (main) |
+| `.deb` SHA-256 | `19871569…616a5` | `799734e7…dc2e` |
+
+* **Source.** The only change between the two commits is `docs/VALIDATION.md` (3 lines). No source, resource, Makefile or package metadata changed.
+* **Package.** Everything is byte-identical except the two Mach-O binaries:
+  - `control`, `Root.plist`, `Info.plist`, the PreferenceLoader entry, the filter plist and the icons are identical;
+  - the archive itself differs only in timestamps and lzma output size.
+* **Binaries.** In each binary (`HCGNexus.dylib`, `HCGNexusPrefs`) and each slice (arm64, arm64e), 190–192 bytes differ, all in three places:
+  1. the embedded build ID: `907b1df330` → `13416698ea`, 2 occurrences per slice (same length, so no layout shift);
+  2. `LC_UUID`: derived from the content, so it changes when the build ID changes;
+  3. the ad-hoc code signature (`ldid`): it hashes the pages that changed.
+* **Proof.** With those three normalised, every slice of both binaries is byte-for-byte identical, with equal sizes and signature offsets.
+* **Conclusion.** Executable code and data are identical, so runtime behaviour is the same. The only visible difference is the build ID shown in Settings › HCG Nexus and in the diagnostics report.
+
+### What this package contains, compared with newer work
+
+The run #10 package is exactly 0.2.0 as described in `docs/FEATURES.md` at `1341669`. It does **not** contain:
+
+| Change | Where it lives | Affects the jailbreak package? |
+|---|---|---|
+| In-panel Settings › About › **HCG Repo** row (opens `https://repo.hakmicapitalgroup.com/products/hcg-nexus/` in Safari) | `main` after the build: `60c3b77`, merged as `3136149` (PR #2) | **Yes** (overlay panel and standalone app) — **not in the run #10 .deb** |
+| **Connected Devices / HCG Device Link** (pairing with HCG Server through HCG Connect, paired devices, shared reports; Swift package `HCGDeviceLink`) | branch `claude/lucid-mendel-egzyd6` only (`bc40ad3`, `24ec523`; based on `1341669`, not merged) | No: standalone app only. `Sources/Platform/App/` is compiled only into the Xcode app target; the tweak and Prefs Makefiles include only `Sources/Core`, `Sources/Panel` and `Sources/Platform/SpringBoard`. The shared panel code gains a section the overlay never shows. One Core string (the detail text for a legacy HCG Server shortcut) changes wording |
+
+`claude/lucid-mendel-egzyd6` and `main` both edit `Sources/Panel/HCGPanelSettingsViewController.m`. A test merge (`git merge-tree origin/main origin/claude/lucid-mendel-egzyd6`, 2026-11-16) conflicts in that file only. The conflicts are in the section enum and the section lists, which both sides extend.
+
 ## 0.2.0 — first device release candidate (branch `claude/hcg-nexus-tweak-yb1ii2`, 2026-11-14)
 
 Linux only (Theos clang 11 + GNUstep). **No device run and no Xcode run for
