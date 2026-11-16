@@ -5,7 +5,7 @@ resprings. Every device step is yours to run.
 
 ## Build the jailbreak package
 
-Confirmed target: iPhone 13 Pro, iOS 16.5, Dopamine (rootless), ElleKit, Sileo.
+Confirmed target (re-confirmed 2026-11-16): iPhone 13 Pro, iOS 16.5, Dopamine (rootless), ElleKit; installs from Terminal/SSH.
 This route builds a jailbreak `.deb`. It is separate from the standalone app's
 IPA route (`docs/STANDALONE-APP.md`) and does not need HCG Executable Maker or
 any particular Executable Maker release.
@@ -75,7 +75,42 @@ Linux builds are fine for compile checks and the host tests, but not for an
 A12+ device. The preview harness is a separate package and is not needed on
 the phone.
 
-## Install on Dopamine with Sileo (manual)
+## Install from a local file with Terminal/SSH (no repository)
+
+Confirmed setup: iPhone 13 Pro (`iPhone14,2`), iOS 16.5, Dopamine (rootless,
+`/var/jb`), ElleKit. HCG Repo is suspected of crashing Sileo, so this route uses
+neither Sileo nor any repository. `dpkg` installs the one local file.
+
+Use **only** `com.hakmicapitalgroup.hcgnexus_0.2.0_iphoneos-arm64.deb`, SHA-256
+`799734e7949b30bf90f2790f602e0043bac3a23e7bd43898f811f2bde3addc2e` (run #10, see
+`VALIDATION.md`). Do not use the standalone app or the preview-simulation package.
+
+1. **Copy two files to the phone**, into the same folder (for example
+   `/var/mobile/Documents/hcg-nexus/`), with AirDrop and the Files app or `scp`:
+   the `.deb` and `scripts/device/hcg-nexus-install-local.sh`.
+2. **Check (changes nothing):**
+   ```sh
+   cd /var/mobile/Documents/hcg-nexus
+   sh hcg-nexus-install-local.sh
+   ```
+   The script checks the file name, the SHA-256, the package's control fields,
+   and that every file goes under `/var/jb`. It checks the device: `iPhone14,2`,
+   iOS 16.5, `/var/jb` present, dpkg architecture `iphoneos-arm64`. It checks
+   that ElleKit and PreferenceLoader are already installed. Any mismatch stops it
+   with the reason, and it never downloads anything.
+3. **Install:** `sudo sh hcg-nexus-install-local.sh --install`. This runs
+   `dpkg -i` on the local file only. It does not respring.
+   Without the script, the equivalent manual steps are:
+   ```sh
+   sha256sum com.hakmicapitalgroup.hcgnexus_0.2.0_iphoneos-arm64.deb   # must print 799734e7…dc2e
+   dpkg-query -W ellekit preferenceloader                             # both must be listed
+   sudo dpkg -i ./com.hakmicapitalgroup.hcgnexus_0.2.0_iphoneos-arm64.deb
+   ```
+4. **Respring when you choose:** Dopamine app › *Respring*, or
+   `sudo killall -9 SpringBoard`.
+5. Continue with `DEVICE-CHECKLIST.md`.
+
+## Install on Dopamine with Sileo (only if Sileo works without HCG Repo)
 
 1. Get `com.hakmicapitalgroup.hcgnexus_0.2.0_iphoneos-arm64.deb` onto the
    phone (AirDrop or Files) and open it with **Sileo**, then tap *Get* /
@@ -112,16 +147,17 @@ sets `INSTALL_TARGET_PROCESSES`, so nothing is killed.
    then respring. Nexus will not create anything at the next SpringBoard
    launch, and Settings › HCG Nexus shows *SpringBoard: Stopped* with the
    reason. Delete the file and respring to undo.
-4. **Uninstall:** Sileo → *Installed* → **HCG Nexus** → *Remove*, or
-   `sudo apt remove com.hakmicapitalgroup.hcgnexus` over SSH, then respring. Settings and workspaces stay in
+4. **Uninstall:** over Terminal/SSH, `sudo dpkg -r com.hakmicapitalgroup.hcgnexus`
+   (no repository involved), or Sileo → *Installed* → **HCG Nexus** → *Remove*.
+   Then respring. Settings and workspaces stay in
    `/var/mobile/Library/Preferences/com.hakmicapitalgroup.hcgnexus.plist`.
    Delete that file only if you also want to erase workspaces.
 5. **SpringBoard crash loop:** Dopamine is semi-untethered, so **rebooting**
    returns the phone to stock iOS with no tweaks loaded. Before jailbreaking
    again, turn off tweak injection in the Dopamine app's settings (if your
-   Dopamine version has that option), jailbreak, then remove HCG Nexus in
-   Sileo (step 4) or create the kill-switch file (step 3), and turn tweak
-   injection back on. ElleKit's safe mode after a SpringBoard crash is a
+   Dopamine version has that option), jailbreak, then remove HCG Nexus with
+   `sudo dpkg -r com.hakmicapitalgroup.hcgnexus` (step 4; Sileo is not needed)
+   or create the kill-switch file (step 3), and turn tweak injection back on. ElleKit's safe mode after a SpringBoard crash is a
    further fallback.
 
 Uninstalling or disabling never touches other HCG apps or services.

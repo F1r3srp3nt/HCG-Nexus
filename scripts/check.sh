@@ -65,6 +65,14 @@ else
     echo "SKIP  app target compile/link (set THEOS with the iOS toolchain, or run on macOS)"
 fi
 
+echo "== Device install helper =="
+if sh -n scripts/device/hcg-nexus-install-local.sh; then pass "install helper parses as POSIX sh"; else fail "install helper parses as POSIX sh"; fi
+if grep -v '^#' scripts/device/hcg-nexus-install-local.sh | grep -Eq 'killall|sbreload|ldrestart|reboot|(^|[;&|(])[[:space:]]*(sudo[[:space:]]+)?apt(-get)?[[:space:]]+[a-z]|>>[[:space:]]*[^[:space:]]*sources'; then
+    fail "install helper must not respring, reboot, use apt or edit sources"
+else
+    pass "install helper never resprings, reboots, uses apt or edits sources"
+fi
+
 echo "== Core host tests =="
 if Tests/Host/run.sh; then pass "Core host tests"; else fail "Core host tests"; fi
 
