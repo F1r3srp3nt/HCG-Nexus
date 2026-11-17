@@ -16,6 +16,7 @@ endif
 HCG_ARCHS ?= arm64 arm64e
 ARCHS = $(HCG_ARCHS)
 
+THEOS_PLATFORM_DEB_COMPRESSION_TYPE = gzip
 include $(THEOS)/makefiles/common.mk
 
 APPLICATION_NAME = HCGNexusPreview
