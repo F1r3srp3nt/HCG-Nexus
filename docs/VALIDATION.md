@@ -6,7 +6,49 @@ substituted for one another. Only section 4 can show that the tweak works.
 Reproduce sections 1 and 3 with
 `THEOS=… HCG_ENV=rootless scripts/check.sh` (and again with `HCG_ENV=rootful`).
 
-## 0.2.0 — run #10: the package to install (recorded 2026-11-16)
+## 0.2.1~beta1 — run #13: the candidate package to install (recorded 2026-11-17)
+
+**Status: not yet device-tested.**
+
+| | |
+|---|---|
+| File | `com.hakmicapitalgroup.hcgnexus_0.2.1~beta1_iphoneos-arm64.deb` (450,270 bytes) |
+| **SHA-256** | **`948465eaa30fd8cf1bc9fd98141362fe08c4e24ab0b23d788a39fa65d8ac17af`** |
+| Built from | `58e2dbd81e6cca1bf3589d864403b05ebb8d966e` on branch `claude/nexus-0.2.1-beta1` (embedded build ID `58e2dbd81e`, config `rootless-release`) |
+| Workflow | *Build package* run **#13**, ID 44019802883, route `jailbreak`, layout `rootless`, 2026-11-17 04:49–04:51 UTC |
+| Artifact | `hcg-nexus-rootless-deb`, ID 14300601854, zip SHA-256 `d3ac321bfb14068271491ab556573a9d570b72466e8047e3d8f210cb5b2d5235`, expires 2026-11-24 |
+| Distribution | HCG Repo Candidate, `https://repo.hakmicapitalgroup.com/repo/candidate/`. HCG Nexus is paid; this exact version is free there by an owner-approved exception |
+
+**Why a new version instead of run #10's 0.2.0**
+* **Packaging.** Run #10's data member is `data.tar.lzma`: legacy lzma-alone, properties `0x5d`, 64 MiB dictionary, no
+  stored size. That is the same header as the HCG Vortex beta whose unpack crashed on a device with `dpkg-deb … Bus
+  error: 10` (cause unconfirmed). This build is gzip (`data.tar.gz`, `control.tar.gz`). `scripts/inspect-package.py`
+  now refuses lzma-alone, and it flags run #10.
+* **Version.** HCG Repo already records 0.2.0 as run #9 (`19871569…`), and recorded versions are immutable there.
+
+**Same code as run #10.** Compared with `1341669`, the only source changes are `HCG_NEXUS_VERSION` and the Settings
+bundle's `CFBundleShortVersionString`. Packaging changed in `Makefile` (gzip) and `control` (Version).
+Docs/tests/scripts from `be03ee0` do not affect the binaries.
+
+**Checks on this exact file (downloaded through the GitHub API; zip digest matched GitHub's record):**
+* CI: lint + 26,960 host checks passed. `build-jailbreak-deb.sh --require-new-arm64e-abi` passed.
+* This repository's `scripts/inspect-package.py … rootless --require-new-arm64e-abi` passed:
+  - arm64 and arm64e slices (versioned ptrauth ABI v0) in both binaries;
+  - the initializer is present;
+  - shared build `58e2dbd81e`;
+  - root:wheel ownership, 0755/0644 permissions;
+  - `ar` members `debian-binary`, `control.tar.gz`, `data.tar.gz` (gzip magic checked);
+  - Settings bundle version 0.2.1 matches the package's base version.
+* HCG Repo `hcgrepo inspect`: passed. Its one warning, `firmware-undeclared`, notes the binaries need iOS 15.0+ and
+  the package declares no firmware range.
+* HCG Repo trial import, build and offline verification of both sources passed:
+  - the stable index is unchanged and still empty;
+  - the candidate index lists this file with this SHA-256;
+  - 0.2.0 appears nowhere in the output.
+
+## 0.2.0 — run #10: verified, not offered for installation (recorded 2026-11-16)
+
+> Superseded for device testing by 0.2.1~beta1 above, because of its lzma packaging.
 
 This is the only package to use for the device test:
 
