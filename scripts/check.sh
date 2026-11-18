@@ -53,6 +53,9 @@ items=plistlib.load(open("Prefs/Resources/Root.plist","rb"))["items"]
 sys.exit(0 if any(i.get("key")=="enabled" and i.get("default") is False for i in items) else 1)'
 
 check "inspect-package.py self-test (filter plist formats)" python3 -I scripts/inspect-package.py --self-test
+check "Halo border definition validator self-test" python3 -I scripts/check_halo_border.py --self-test
+check "Halo border definition valid, nexusVersion == control Version" python3 -I scripts/check_halo_border.py Prefs/Resources/HaloBorder.plist --version "$CONTROL_VERSION"
+absent "Nexus never references HCG Halo code (independent package)" '#import.*Halo|HaloRenderer|HaloPreferences' Sources Tweak Prefs PreviewHarness
 
 echo "== Standalone app (HCGNexus.xcodeproj) =="
 check "HCGDeviceLink is an unmodified vendored copy (VENDORED.sha256)" sh -c 'cd HCGDeviceLink && shasum -a 256 -c VENDORED.sha256'

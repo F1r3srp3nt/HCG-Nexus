@@ -167,6 +167,26 @@
 		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
+			<key>id</key>
+			<string>appearanceGroup</string>
+			<key>footerText</key>
+			<string>HCG Halo can draw an animated light border around this panel. Lighting, colours and presets are set in HCG Halo, which is a separate package; without it Nexus looks as usual.</string>
+			<key>label</key>
+			<string>Appearance</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>action</key>
+			<string>openHaloBorder:</string>
+			<key>id</key>
+			<string>haloBorder</string>
+			<key>label</key>
+			<string>Halo border</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
 			<key>label</key>
 			<string>HCG Terminal</string>
 		</dict>

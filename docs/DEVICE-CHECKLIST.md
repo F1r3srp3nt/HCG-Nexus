@@ -1,8 +1,8 @@
-# Device checklist — HCG Nexus 0.3.0~beta1 via HCG Repo Candidate
+# Device checklist — HCG Nexus 0.3.1~beta1 (with HCG Halo 0.2.0~beta1) via HCG Repo Candidate
 
 **Setup (owner-confirmed):** iPhone 13 Pro (`iPhone14,2`), iOS 16.5, Dopamine (rootless), ElleKit, Zebra.
-**Package:** `com.hakmicapitalgroup.hcgnexus_0.3.0~beta1_iphoneos-arm64.deb`. Its SHA-256 is recorded in
-`VALIDATION.md` (0.3.0~beta1). It is a free public demo in `https://repo.hakmicapitalgroup.com/repo/candidate/`.
+**Package:** `com.hakmicapitalgroup.hcgnexus_0.3.1~beta1_iphoneos-arm64.deb`. Its SHA-256 is recorded in
+`VALIDATION.md` (0.3.1~beta1). It is a free public demo in `https://repo.hakmicapitalgroup.com/repo/candidate/`.
 **Status: not yet device-tested.** The simulator screenshots show the standalone app, not SpringBoard.
 The 0.2.1~beta1 checklist is in git history (`claude/nexus-0.2.1-beta1`).
 
@@ -11,7 +11,7 @@ Apps. Tools › Restore Previous Layout undoes that.
 
 | # | Do | Expect |
 |---|---|---|
-| 1 | Zebra: refresh HCG Repo Candidate, install/upgrade **HCG Nexus 0.3.0~beta1**, respring | Install log clean (`data.tar.gz`); Settings › HCG Nexus › Status: *Installed 0.3.0~beta1*, *SpringBoard: Running* |
+| 1 | Zebra: refresh HCG Repo Candidate, install/upgrade **HCG Nexus 0.3.1~beta1**, respring | Install log clean (`data.tar.gz`); Settings › HCG Nexus › Status: *Installed 0.3.1~beta1*, *SpringBoard: Running* |
 | 2 | Enable, open the panel | Smoked-glass panel; chrome **HCG** logo + NEXUS in the header; section bar; Overview opens first |
 | 3 | Overview | Emblem header (no banner yet); workspace chips switch with one tap; quick actions run; device rows show `iPhone14,2`, iOS 16.5, battery %, Low Power, thermal, storage, uptime |
 | 4 | Settings › HCG Nexus › Panel glass: opacity min/max, blur Off/Light/Standard/Strong | The panel changes at once; text stays readable at every setting; with blur off the panel never goes below ~60 % |
@@ -23,6 +23,11 @@ Apps. Tools › Restore Previous Layout undoes that.
 | 10 | HCG Products | Each app shows Installed / Not installed correctly; *Open* launches installed ones; Sentinel screens open; Server / Executable Maker explain the next step; account always "not shared" |
 | 11 | Devices and Account in the tweak | "Not part of the jailbreak package" and "Sign-in is in the standalone app" — no data, no sign-in |
 | 12 | Respring with the panel open; lock while open | Panel closes; handle hidden on lock screen |
+
+| 13 | In the open panel, tap the grid button (**Command Mode**); then rotate, lock, and reopen | Status tiles: battery %, charging, Low Power, network, storage, thermal. Integration states never claim *Connected* without proof. Lock or close removes it; the panel returns when it is dismissed |
+| 14 | With **HCG Halo 0.2.0~beta1** installed (either order, one respring): Settings › HCG Nexus › Appearance › **Halo border** | Opens HCG Halo's *Nexus Panel Border* page: *HCG Nexus 0.3.1~beta1 · compatible*; the preview shows the panel outline |
+| 15 | HCG Halo › Border Target **HCG Nexus Panel**, Enable HCG Halo on; open, drag-cancel and close the panel; switch workspace; open Command Mode | Light trace on open, border follows the panel, fades with it on close and while Command Mode is shown; one soft pulse on workspace change; no orphaned border; all panel controls respond |
+| 16 | Turn HCG Halo off with the panel open; then remove HCG Halo and respring | Border gone at once; Nexus looks and works as usual; Appearance › Halo border explains HCG Halo is not installed |
 
 Report back with: a pass or fail for each row, the pasted diagnostics report, and screenshots of rows 2, 3, 4 and 10.
 

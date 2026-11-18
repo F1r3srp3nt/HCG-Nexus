@@ -317,6 +317,7 @@ def main():
                 "Library/PreferenceBundles/HCGNexusPrefs.bundle/icon.png",
                 "Library/PreferenceBundles/HCGNexusPrefs.bundle/icon@2x.png",
                 "Library/PreferenceBundles/HCGNexusPrefs.bundle/icon@3x.png",
+                "Library/PreferenceBundles/HCGNexusPrefs.bundle/HaloBorder.plist",
             ]
             expected += [
                 "Library/Application Support/HCGNexus/hcg-logo.png",
@@ -325,6 +326,14 @@ def main():
             for rel in expected:
                 p = os.path.join(tmp, prefix + rel)
                 results.append(("OK" if os.path.exists(p) else "FAIL", f"/{prefix}{rel}"))
+            definition = os.path.join(tmp, prefix + "Library/PreferenceBundles/HCGNexusPrefs.bundle/HaloBorder.plist")
+            if os.path.exists(definition):
+                sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+                import check_halo_border
+                pkg_ver = next((l.split(":", 1)[1].strip() for l in control.splitlines() if l.startswith("Version:")), None)
+                problems = check_halo_border.validate(open(definition, "rb").read(), pkg_ver)
+                results.append(("FAIL" if problems else "OK",
+                                f"HaloBorder.plist (Halo border definition, schema 1): {'; '.join(problems) or 'valid, nexusVersion == ' + str(pkg_ver)}"))
             checks, bundle_version = consistency_checks(tmp, prefix, scheme)
             results.extend(checks)
             pkg_version = next((l.split(":", 1)[1].strip() for l in control.splitlines() if l.startswith("Version:")), None)

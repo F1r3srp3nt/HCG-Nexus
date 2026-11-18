@@ -9,6 +9,17 @@
 #import "HCGSystemInfo.h"
 
 static NSString *const kStatusGroupID = @"status";
+static NSString *const kAppearanceGroupID = @"appearanceGroup";
+
+// HCG Halo is a separate package. Its Settings bundle is installed next to
+// ours (<jbroot>/Library/PreferenceBundles/HCGHaloPrefs.bundle) and declares
+// HCGHaloNexusIntegration = <version> in its Info.plist; its controller class
+// HaloNexusBorderController provides the Halo-owned "Halo border" page
+// (docs/HALO-BORDER.md). Nothing is loaded unless the user opens that row.
+static NSString *const kHaloBundleName = @"HCGHaloPrefs.bundle";
+static NSString *const kHaloIntegrationKey = @"HCGHaloNexusIntegration";
+static NSString *const kHaloControllerClass = @"HaloNexusBorderController";
+static const NSInteger kHaloIntegrationVersion = 1;
 static NSString *const kDiagnosticsGroupID = @"diagnostics";
 
 @implementation HCGNexusRootListController {
@@ -36,6 +47,11 @@ static NSString *const kDiagnosticsGroupID = @"diagnostics";
         NSArray *status = [self statusSpecifiers];
         [specs insertObjects:status atIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(insertAt, status.count)]];
         [specs addObjectsFromArray:[self diagnosticsSpecifiers]];
+        for (PSSpecifier *spec in specs) {
+            if (![spec.identifier isEqualToString:kAppearanceGroupID]) continue;
+            NSString *footer = [spec propertyForKey:@"footerText"] ?: @"";
+            [spec setProperty:[NSString stringWithFormat:@"%@\n\n%@", footer, [self haloAvailabilityText]] forKey:@"footerText"];
+        }
         _specifiers = specs;
     }
     return _specifiers;
@@ -86,6 +102,57 @@ static NSString *const kDiagnosticsGroupID = @"diagnostics";
     HCGSettings *settings = [HCGSettings settingsFromStore:[self store]];
     [[self model] saveSettings:settings];
     if ([key isEqualToString:@"enabled"]) [self requestFreshStatus];
+}
+
+#pragma mark Halo border (separate HCG Halo package)
+
+- (nullable NSString *)haloBundlePath {
+    NSString *ours = [NSBundle bundleForClass:[self class]].bundlePath;
+    NSString *path = [[ours stringByDeletingLastPathComponent] stringByAppendingPathComponent:kHaloBundleName];
+    return [[NSFileManager defaultManager] fileExistsAtPath:path] ? path : nil;
+}
+
+// Integration version declared by the installed Halo, 0 if none (read from its
+// Info.plist only; no Halo code runs for this).
+- (NSInteger)installedHaloIntegrationVersion {
+    NSString *path = [self haloBundlePath];
+    if (!path) return 0;
+    NSDictionary *info = [NSDictionary dictionaryWithContentsOfFile:[path stringByAppendingPathComponent:@"Info.plist"]];
+    id value = [info isKindOfClass:[NSDictionary class]] ? info[kHaloIntegrationKey] : nil;
+    return [value isKindOfClass:[NSNumber class]] ? [value integerValue] : 0;
+}
+
+- (NSString *)haloAvailabilityText {
+    if (![self haloBundlePath]) return @"HCG Halo is not installed.";
+    NSInteger version = [self installedHaloIntegrationVersion];
+    if (version == kHaloIntegrationVersion) return @"HCG Halo is installed: open Halo border to set it up.";
+    if (version == 0) return @"The installed HCG Halo is too old for the Nexus border: update HCG Halo.";
+    return @"The installed HCG Halo uses a different border interface: update HCG Nexus and HCG Halo together.";
+}
+
+- (void)openHaloBorder:(PSSpecifier *)specifier {
+    NSString *path = [self haloBundlePath];
+    NSString *problem = nil;
+    UIViewController *controller = nil;
+    if (!path) {
+        problem = @"Install HCG Halo to light up this panel. Nexus works the same without it.";
+    } else if ([self installedHaloIntegrationVersion] != kHaloIntegrationVersion) {
+        problem = [self haloAvailabilityText];
+    } else {
+        NSBundle *bundle = [NSBundle bundleWithPath:path];
+        NSError *error = nil;
+        Class cls = ([bundle isLoaded] || [bundle loadAndReturnError:&error]) ? NSClassFromString(kHaloControllerClass) : Nil;
+        if (cls && [cls isSubclassOfClass:[UIViewController class]]) controller = [[cls alloc] init];
+        if (!controller) problem = [NSString stringWithFormat:@"HCG Halo's border settings could not be opened%@.",
+                                    error.localizedDescription.length ? [@": " stringByAppendingString:error.localizedDescription] : @""];
+    }
+    if (controller) {
+        [self.navigationController pushViewController:controller animated:YES];
+        return;
+    }
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Halo border" message:problem preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+    [self presentViewController:alert animated:YES completion:nil];
 }
 
 #pragma mark Buttons

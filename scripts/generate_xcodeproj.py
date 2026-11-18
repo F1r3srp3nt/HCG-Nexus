@@ -32,7 +32,7 @@ APP = "HCGNexus"
 TESTS = "HCGNexusTests"
 BUNDLE_ID = "com.hakmicapitalgroup.hcgnexus.app"
 DEPLOYMENT_TARGET = "14.0"
-MARKETING_VERSION = "0.3.0"
+MARKETING_VERSION = "0.3.1"
 
 # Directories whose sources form the app target, and files deliberately left out.
 APP_SOURCE_DIRS = ["App", "Sources/Core", "Sources/Panel", "Sources/Platform/App", "Sources/Platform/App/DeviceLink"]
@@ -42,6 +42,8 @@ APP_EXCLUDED_FILES = {
     "Sources/Panel/HCGOverlayController.h",
     "Sources/Panel/HCGEdgeHandleView.m",
     "Sources/Panel/HCGEdgeHandleView.h",
+    "Sources/Panel/HCGNexusBorderInterface.m",   # border interface for HCG Halo: overlay only
+    "Sources/Panel/HCGNexusBorderInterface.h",
 }
 FORBIDDEN_PREFIXES = ("Sources/Platform/SpringBoard", "Sources/Platform/Preview", "Tweak", "Prefs", "PreviewHarness")
 TEST_SOURCE_DIRS = ["Tests/App"]

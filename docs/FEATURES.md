@@ -1,4 +1,15 @@
-# Feature inventory — 0.3.0~beta1 (redesign, candidate)
+# Feature inventory — 0.3.1~beta1 (redesign + Command Mode + HCG Halo border interface, candidate)
+
+## 0.3.1~beta1: combined release
+
+0.3.1~beta1 is 0.3.0~beta1 (below) plus two additions:
+- **Command Mode**, from PR #3: the grid button in the panel header shows device status tiles, shortcuts and HCG
+  integration states. It uses `Network.framework`'s path monitor for the network tile.
+- **HCG Halo border interface**, from PR #4: `HaloBorder.plist`, `HCGNexusBorderInterface`, and Settings ›
+  Appearance › Halo border. See [HALO-BORDER.md](HALO-BORDER.md).
+
+Simulator-tested only; real-device testing is pending.
+
 
 ## 0.3.0~beta1: what changed and how far it is proven
 

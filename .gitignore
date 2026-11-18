@@ -8,3 +8,4 @@ PreviewHarness/packages/
 build/
 packages/
 xcuserdata/
+__pycache__/

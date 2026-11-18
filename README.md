@@ -14,7 +14,7 @@ Both routes share `Sources/Core` and `Sources/Panel`. They never share data:
 the app keeps its own sandboxed store, separate from the tweak's preferences
 and the preview harness.
 
-> **Status:** 0.3.0~beta1, the redesign. It has a smoked-glass panel and seven sections: Overview,
+> **Status:** 0.3.1~beta1: the redesign + Command Mode + the optional HCG Halo border interface. It has a smoked-glass panel and seven sections: Overview,
 > Workspaces, Tools, HCG Products, Connected Devices, Apps and Account. What works and how it was verified:
 > [`docs/FEATURES.md`](docs/FEATURES.md). Device checks: [`docs/DEVICE-CHECKLIST.md`](docs/DEVICE-CHECKLIST.md).
 > HCG login readiness: [`docs/HCG-CONNECT-REGISTRATION.md`](docs/HCG-CONNECT-REGISTRATION.md).
@@ -82,6 +82,19 @@ gmake package FINALPACKAGE=1 HCG_ENV=rootless   # same package, plain Theos (GNU
 # Checks (Linux or Mac)
 scripts/check.sh                   # add THEOS=… to also compile/link the app target
 ```
+
+## Optional HCG Halo panel border (since 0.3.1~beta1)
+
+The jailbreak package publishes a versioned, declarative **border definition**
+(`<jbroot>/Library/PreferenceBundles/HCGNexusPrefs.bundle/HaloBorder.plist`) and a
+small in-process **border interface** (live panel host view and open/close,
+geometry and workspace events). With **HCG Halo 0.2.0~beta1** or later
+installed and set to *HCG Nexus Panel*, Halo draws its animated border around
+the live panel. Nexus draws nothing itself and never requires Halo. Settings ›
+HCG Nexus › Appearance › **Halo border** opens Halo's own border page. The
+contract, the exact location and the test matrix are in
+[`docs/HALO-BORDER.md`](docs/HALO-BORDER.md). Preview evidence only so far; not
+yet device-tested.
 
 ## Implemented in the jailbreak package (milestone 1)
 

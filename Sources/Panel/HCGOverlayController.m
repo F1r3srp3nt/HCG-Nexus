@@ -5,6 +5,7 @@
 #import "HCGActionRunner.h"
 #import "HCGPanelHomeViewController.h"
 #import "HCGCommandModeViewController.h"
+#import "HCGNexusBorderInterface.h"
 
 #pragma mark - Pass-through views
 
@@ -90,6 +91,11 @@
     BOOL _panExceededThreshold;
     UIImpactFeedbackGenerator *_haptics;
     NSUInteger _layoutPasses;
+    // Border interface for HCG Halo (docs/HALO-BORDER.md). Nexus draws nothing here.
+    HCGBorderHostView *_borderHost;
+    HCGNexusBorderInterface *_borderInterface;
+    CGSize _borderHostSize;
+    NSString *_activeWorkspaceIdentifier;
 }
 
 - (instancetype)initWithModel:(HCGNexusModel *)model environment:(id<HCGOverlayEnvironment>)environment {
@@ -112,6 +118,9 @@
 
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+    if (_borderInterface && [HCGNexusBorderInterface activeInterface] == _borderInterface) {
+        [HCGNexusBorderInterface setActiveInterface:nil];
+    }
 }
 
 #pragma mark Public
@@ -131,6 +140,12 @@
 - (void)modelDidChange:(NSNotification *)note {
     [self applyModelSettings];
     if (_coordinator.stateMachine.isPresented) [_home reloadContent];
+    NSString *active = _model.workspaceStore.activeWorkspace.identifier;
+    BOOL changed = !(active == _activeWorkspaceIdentifier || [active isEqualToString:_activeWorkspaceIdentifier]);
+    _activeWorkspaceIdentifier = [active copy];
+    if (changed && _borderInterface && _coordinator.stateMachine.isPresented && !_panelHost.hidden) {
+        [_borderInterface noteEvent:HCGNexusBorderEventWorkspaceChanged];
+    }
 }
 
 - (void)accessibilityChanged:(NSNotification *)note {
@@ -248,6 +263,12 @@
     [_panelHost addSubview:_navigation.view];
     [_navigation didMoveToParentViewController:_container];
 
+    // Above the content, never interactive, never clipping: HCG Halo (if
+    // installed) adds its border here. Without Halo it stays empty.
+    _borderHost = [[HCGBorderHostView alloc] initWithFrame:_panelHost.bounds];
+    [_panelHost addSubview:_borderHost];
+    _activeWorkspaceIdentifier = [_model.workspaceStore.activeWorkspace.identifier copy];
+
     _haptics = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleLight];
 
     NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
@@ -257,6 +278,9 @@
 
     [env overlayInstallContainerViewController:_container];
     [self layoutOverlay];
+
+    _borderInterface = [[HCGNexusBorderInterface alloc] initWithBorderHostView:_borderHost panelView:_panelHost cornerRadius:22];
+    [HCGNexusBorderInterface setActiveInterface:_borderInterface];
 }
 
 - (void)overlaySetVisible:(BOOL)visible {
@@ -292,6 +316,9 @@
         : CGAffineTransformIdentity;
     __weak typeof(self) weakSelf = self;
 
+    [_borderInterface noteTransition:(opening ? HCGNexusBorderEventWillOpen : HCGNexusBorderEventWillClose)
+                          generation:generation duration:duration reducedMotion:crossfade];
+
     if (opening) {
         [_home reloadContent];
         [self layoutOverlay];
@@ -308,9 +335,13 @@
         };
         void (^done)(BOOL) = ^(BOOL finished) {
             __strong typeof(weakSelf) strongSelf = weakSelf;
-            if (strongSelf && strongSelf->_coordinator.stateMachine.isPresented) [strongSelf->_home panelDidAppear];
-            UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, [weakSelf panelAccessibilityFocus]);
-            [weakSelf.coordinator panelTransitionFinished:generation];
+            if (!strongSelf) return;
+            if (strongSelf->_coordinator.stateMachine.isPresented) [strongSelf->_home panelDidAppear];
+            UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, [strongSelf panelAccessibilityFocus]);
+            if (generation == strongSelf->_coordinator.stateMachine.generation && !strongSelf->_panelHost.hidden) {
+                [strongSelf->_borderInterface noteTransition:HCGNexusBorderEventDidOpen generation:generation duration:duration reducedMotion:crossfade];
+            }
+            [strongSelf.coordinator panelTransitionFinished:generation];
         };
         if (duration > 0) {
             [UIView animateWithDuration:duration delay:0 usingSpringWithDamping:(animated ? 0.86 : 1.0) initialSpringVelocity:0
@@ -362,6 +393,7 @@
     _dimming.alpha = 0;
     [_navigation popToRootViewControllerAnimated:NO];
     [_home resetTransientState];
+    [_borderInterface noteTransition:HCGNexusBorderEventDidClose generation:_coordinator.stateMachine.generation duration:0 reducedMotion:_coordinator.reduceMotion];
     if (!_handle.hidden) UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, _handle);
 }
 
@@ -552,9 +584,14 @@
         _panelHost.layer.shadowPath = [UIBezierPath bezierPathWithRoundedRect:_panelHost.bounds cornerRadius:22].CGPath;
         _navigation.view.frame = _panelHost.bounds;
         _panelBackground.frame = _panelHost.bounds;
+        _borderHost.frame = _panelHost.bounds;
         _panelHost.transform = saved;
     }
     [CATransaction commit];
+    if (_borderHost && !CGSizeEqualToSize(_borderHost.bounds.size, _borderHostSize)) {
+        _borderHostSize = _borderHost.bounds.size;
+        [_borderInterface noteEvent:HCGNexusBorderEventGeometry];
+    }
 }
 
 #pragma mark Keyboard & text input
