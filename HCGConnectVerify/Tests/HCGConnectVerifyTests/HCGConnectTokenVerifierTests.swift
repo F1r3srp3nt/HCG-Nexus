@@ -174,6 +174,31 @@ final class HCGConnectTokenVerifierTests: XCTestCase {
         await expect(.unknownSigningKey) { _ = try await self.verifier.verifyIDToken(self.signer.sign(self.idClaims()), nonce: .required("n-123")) }
     }
 
+    func testOnCurveCheckAcceptsBothRootsAndRejectsOthers() {
+        for _ in 0..<8 {
+            let raw = P256.Signing.PrivateKey().publicKey.rawRepresentation
+            let x = Data(raw.prefix(32)), y = Data(raw.suffix(32))
+            XCTAssertTrue(HCGConnectSigningKeys.isOnCurve(x: x, y: y))
+            // The other root (p - y) is also on the curve.
+            let p: [UInt8] = [0xff, 0xff, 0xff, 0xff, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
+            var other = [UInt8](repeating: 0, count: 32)
+            var borrow = 0
+            let ys = Array(y)
+            for i in stride(from: 31, through: 0, by: -1) {
+                var d = Int(p[i]) - Int(ys[i]) - borrow
+                borrow = d < 0 ? 1 : 0
+                if d < 0 { d += 256 }
+                other[i] = UInt8(d)
+            }
+            XCTAssertTrue(HCGConnectSigningKeys.isOnCurve(x: x, y: Data(other)))
+            var flipped = ys
+            flipped[31] ^= 0x01
+            XCTAssertFalse(HCGConnectSigningKeys.isOnCurve(x: x, y: Data(flipped)))
+            XCTAssertFalse(HCGConnectSigningKeys.isOnCurve(x: x, y: Data(repeating: 7, count: 32)))
+        }
+    }
+
     func testUnsignedAndSymmetricTokensAreRejected() async {
         let claims = encode(idClaims())
         for alg in ["none", "HS256", "RS256", "ES384", ""] {

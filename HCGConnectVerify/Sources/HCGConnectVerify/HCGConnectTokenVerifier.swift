@@ -152,8 +152,36 @@ public actor HCGConnectSigningKeys {
         if let use = jwk["use"] as? String, use != "sig" { return nil }
         guard let x = (jwk["x"] as? String).flatMap(HCGJWT.base64URLDecode), x.count == 32,
               let y = (jwk["y"] as? String).flatMap(HCGJWT.base64URLDecode), y.count == 32,
-              let key = try? P256.Signing.PublicKey(rawRepresentation: x + y) else { return nil } // rejects off-curve points
+              isOnCurve(x: x, y: y),
+              let key = try? P256.Signing.PublicKey(rawRepresentation: x + y) else { return nil }
         return (jwk["kid"] as? String ?? "", key)
+    }
+
+    /// P-256 field prime p, big-endian.
+    private static let fieldPrime: [UInt8] = [
+        0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    ]
+
+    /// Explicit on-curve check (HCG-Server refuses off-curve keys too). CryptoKit's
+    /// rawRepresentation initializer accepts some off-curve points on Apple platforms, while
+    /// swift-crypto rejects them; this makes both behave the same. The point is rebuilt from x
+    /// alone (fails when x has no point on the curve); y must then be that point's y or p - y.
+    public static func isOnCurve(x: Data, y: Data) -> Bool {
+        guard let rebuilt = try? P256.Signing.PublicKey(compactRepresentation: x) else { return false }
+        let rootY = Array(rebuilt.rawRepresentation.suffix(32))
+        let givenY = Array(y)
+        if rootY == givenY { return true }
+        // p - rootY (rootY < p), big-endian subtraction.
+        var negated = [UInt8](repeating: 0, count: 32)
+        var borrow = 0
+        for i in stride(from: 31, through: 0, by: -1) {
+            var digit = Int(fieldPrime[i]) - Int(rootY[i]) - borrow
+            borrow = digit < 0 ? 1 : 0
+            if digit < 0 { digit += 256 }
+            negated[i] = UInt8(digit)
+        }
+        return negated == givenY
     }
 }
 
