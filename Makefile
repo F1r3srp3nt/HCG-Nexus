@@ -41,6 +41,10 @@ endif
 ifeq ($(origin HCG_BUILD_ID),undefined)
   HCG_BUILD_ID := $(or $(shell git -C "$(CURDIR)" rev-parse --short=10 HEAD 2>/dev/null),nogit)$(if $(shell git -C "$(CURDIR)" status --porcelain --untracked-files=no 2>/dev/null),-dirty)
 endif
+# Package compression: gzip. Theos' default (legacy lzma-alone with a 64 MiB dictionary) is the
+# format of the HCG Vortex beta whose unpack crashed on a device (dpkg-deb Bus error 10); gzip is
+# read by every dpkg. scripts/inspect-package.py rejects lzma-alone data members.
+THEOS_PLATFORM_DEB_COMPRESSION_TYPE = gzip
 HCG_BUILD_CONFIG := $(HCG_ENV)-$(if $(FINALPACKAGE),release,debug)
 
 # Separate outputs per configuration so a rootless build can never pick up
