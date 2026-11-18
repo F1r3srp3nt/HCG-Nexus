@@ -121,8 +121,8 @@
 - (void)testStandaloneSettingsHideOverlayControls {
     NSArray<NSNumber *> *app = HCGSettingsSectionsForMode(HCGPanelModeStandaloneApp);
     NSArray<NSNumber *> *overlay = HCGSettingsSectionsForMode(HCGPanelModeOverlay);
-    // 0 = enable switch, 1 = edge handle, 2 = motion (overlay transitions).
-    for (NSNumber *overlayOnly in @[ @0, @1, @2 ]) {
+    // Enable switch, edge handle and motion (overlay transitions) belong to the overlay.
+    for (NSNumber *overlayOnly in @[ @(HCGSettingsSectionGeneral), @(HCGSettingsSectionHandle), @(HCGSettingsSectionMotion) ]) {
         XCTAssertFalse([app containsObject:overlayOnly], @"section %@ must not appear in the standalone app", overlayOnly);
         XCTAssertTrue([overlay containsObject:overlayOnly]);
     }
@@ -132,11 +132,37 @@
     XCTAssertTrue(context.isStandaloneApp);
 }
 
+// Every Settings row builds in every mode, with a title: a section listed for a mode but not wired
+// for it (or wired to overlay-only state) fails here instead of on a device.
+- (void)testSettingsBuildEveryRowInEveryMode {
+    for (NSNumber *mode in @[ @(HCGPanelModeStandaloneApp), @(HCGPanelModeOverlay), @(HCGPanelModePreview) ]) {
+        HCGPanelContext *context = [self appContextWithModel:[self makeModel]];
+        context.mode = (HCGPanelMode)mode.integerValue;
+        HCGPanelSettingsViewController *settings = [[HCGPanelSettingsViewController alloc] initWithContext:context];
+        [settings loadViewIfNeeded];
+        [settings beginAppearanceTransition:YES animated:NO]; // fills Diagnostics, as on screen
+        [settings endAppearanceTransition];
+        UITableView *table = settings.tableView;
+        NSInteger sections = [settings numberOfSectionsInTableView:table];
+        XCTAssertEqual(sections, (NSInteger)HCGSettingsSectionsForMode(context.mode).count, @"mode %@", mode);
+        for (NSInteger section = 0; section < sections; section++) {
+            XCTAssertGreaterThan([settings tableView:table titleForHeaderInSection:section].length, 0u, @"mode %@ section %ld", mode, (long)section);
+            NSInteger rows = [settings tableView:table numberOfRowsInSection:section];
+            XCTAssertGreaterThan(rows, 0, @"mode %@ section %ld", mode, (long)section);
+            for (NSInteger row = 0; row < rows; row++) {
+                UITableViewCell *cell = [settings tableView:table cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:section]];
+                XCTAssertNotNil(cell, @"mode %@ section %ld row %ld", mode, (long)section, (long)row);
+            }
+        }
+    }
+}
+
 - (void)testSettingsShowAboutSectionInEveryMode {
-    // 8 = About (HCG Repo product page); shown in the app and in the overlay.
+    // About (HCG Repo product page) and Panel glass (the app's panel uses the same glass) are in every mode.
     for (NSNumber *mode in @[ @(HCGPanelModeStandaloneApp), @(HCGPanelModeOverlay), @(HCGPanelModePreview) ]) {
         NSArray<NSNumber *> *sections = HCGSettingsSectionsForMode((HCGPanelMode)mode.integerValue);
-        XCTAssertTrue([sections containsObject:@8], @"mode %@", mode);
+        XCTAssertTrue([sections containsObject:@(HCGSettingsSectionAbout)], @"mode %@", mode);
+        XCTAssertTrue([sections containsObject:@(HCGSettingsSectionGlass)], @"mode %@", mode);
     }
 }
 
@@ -166,11 +192,10 @@
 }
 
 - (void)testConnectedDevicesIsStandaloneAppOnly {
-    // 8 = HCGSettingsSectionConnectedDevices.
-    XCTAssertTrue([HCGSettingsSectionsForMode(HCGPanelModeStandaloneApp) containsObject:@8]);
-    XCTAssertFalse([HCGSettingsSectionsForMode(HCGPanelModeOverlay) containsObject:@8]);
-    XCTAssertFalse([HCGSettingsSectionsForMode(HCGPanelModeSettingsApp) containsObject:@8]);
-    XCTAssertFalse([HCGSettingsSectionsForMode(HCGPanelModePreview) containsObject:@8]);
+    XCTAssertTrue([HCGSettingsSectionsForMode(HCGPanelModeStandaloneApp) containsObject:@(HCGSettingsSectionConnectedDevices)]);
+    XCTAssertFalse([HCGSettingsSectionsForMode(HCGPanelModeOverlay) containsObject:@(HCGSettingsSectionConnectedDevices)]);
+    XCTAssertFalse([HCGSettingsSectionsForMode(HCGPanelModeSettingsApp) containsObject:@(HCGSettingsSectionConnectedDevices)]);
+    XCTAssertFalse([HCGSettingsSectionsForMode(HCGPanelModePreview) containsObject:@(HCGSettingsSectionConnectedDevices)]);
     HCGAppRootViewController *root = [[HCGAppRootViewController alloc] initWithModel:[self makeModel]];
     XCTAssertNotNil(root.context.connectedDevicesScreen, @"the app wires the Connected Devices screen");
     XCTAssertNil([self appContext].connectedDevicesScreen, @"nothing else provides it");

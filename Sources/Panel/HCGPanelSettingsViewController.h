@@ -13,6 +13,21 @@ FOUNDATION_EXPORT NSString *HCGBuildVersion(void);
 FOUNDATION_EXPORT NSString *HCGBuildIdentifier(void);
 FOUNDATION_EXPORT NSString *HCGBuildConfiguration(void);
 FOUNDATION_EXPORT NSString *HCGBuildDescription(void);
+// Settings sections. Raw values are stable identifiers: append new ones, never insert.
+typedef NS_ENUM(NSInteger, HCGSettingsSection) {
+    HCGSettingsSectionGeneral,
+    HCGSettingsSectionHandle,
+    HCGSettingsSectionMotion,
+    HCGSettingsSectionIntegrations,
+    HCGSettingsSectionWorkspaces,
+    HCGSettingsSectionMaintenance,
+    HCGSettingsSectionDiagnostics,
+    HCGSettingsSectionAppMode,      // standalone app only: what this build can do
+    HCGSettingsSectionAbout,        // HCG Repo product page (opens in Safari)
+    HCGSettingsSectionConnectedDevices, // standalone app only: HCG Device Link (Connected Devices screen)
+    HCGSettingsSectionGlass,        // panel opacity and blur (appended: raw values above are stable identifiers)
+};
+
 // Section identifiers (HCGSettingsSection raw values) shown for a mode;
 // exposed for regression tests.
 FOUNDATION_EXPORT NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode);

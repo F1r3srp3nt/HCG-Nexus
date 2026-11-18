@@ -35,25 +35,11 @@ NSString *HCGBuildDescription(void) {
     return [NSString stringWithFormat:@"%@ (build %s, %s)", HCG_NEXUS_VERSION, HCG_BUILD_ID, HCG_BUILD_CONFIG];
 }
 
-typedef NS_ENUM(NSInteger, HCGSettingsSection) {
-    HCGSettingsSectionGeneral,
-    HCGSettingsSectionHandle,
-    HCGSettingsSectionMotion,
-    HCGSettingsSectionIntegrations,
-    HCGSettingsSectionWorkspaces,
-    HCGSettingsSectionMaintenance,
-    HCGSettingsSectionDiagnostics,
-    HCGSettingsSectionAppMode,      // standalone app only: what this build can do
-    HCGSettingsSectionAbout,        // HCG Repo product page (opens in Safari)
-    HCGSettingsSectionConnectedDevices, // standalone app only: HCG Device Link (Connected Devices screen)
-    HCGSettingsSectionGlass,        // panel opacity and blur (appended: raw values above are stable identifiers)
-};
-
 // Sections shown for a mode. The standalone app never shows the enable switch,
 // handle or motion controls: there is no system-wide overlay to control.
 NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
     if (mode == HCGPanelModeStandaloneApp) {
-        return @[ @(HCGSettingsSectionAppMode), @(HCGSettingsSectionConnectedDevices), @(HCGSettingsSectionIntegrations),
+        return @[ @(HCGSettingsSectionAppMode), @(HCGSettingsSectionConnectedDevices), @(HCGSettingsSectionGlass), @(HCGSettingsSectionIntegrations),
                   @(HCGSettingsSectionWorkspaces), @(HCGSettingsSectionAbout), @(HCGSettingsSectionDiagnostics) ];
     }
     return @[ @(HCGSettingsSectionGeneral), @(HCGSettingsSectionGlass), @(HCGSettingsSectionHandle), @(HCGSettingsSectionMotion), @(HCGSettingsSectionIntegrations),
