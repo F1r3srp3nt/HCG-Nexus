@@ -74,7 +74,7 @@ static NSString *HCGHaloString(NSDictionary *d, NSString *key) {
     if (!facts.haloInstalled) {
         return [self make:HCGHaloBorderStateNotInstalled
                    detail:@"HCG Halo is not installed. Nexus keeps its own outline."
-                       on:NO canSwitch:NO note:@"Install HCG Halo 0.2.1~beta1 or later to use its border."];
+                       on:NO canSwitch:NO note:@"Install HCG Halo 0.3.1~beta1 or later to use its border."];
     }
     NSString *version = facts.haloVersion.length ? facts.haloVersion : @"(unknown version)";
     if (facts.integrationVersion < 1) {
@@ -92,7 +92,7 @@ static NSString *HCGHaloString(NSDictionary *d, NSString *key) {
     BOOL canSwitch = facts.controlVersion == HCGHaloSupportedControlVersion;
     NSString *note = nil;
     if (facts.controlVersion == 0) {
-        note = [NSString stringWithFormat:@"HCG Halo %@ can only be switched in its own settings (Border Target). HCG Halo 0.2.1~beta1 adds this switch.", version];
+        note = [NSString stringWithFormat:@"HCG Halo %@ can only be switched in its own settings (Border Target). HCG Halo 0.3.1~beta1 adds this switch.", version];
     } else if (!canSwitch) {
         note = [NSString stringWithFormat:@"HCG Halo %@ uses a newer switch interface (version %ld) than this Nexus understands.", version, (long)facts.controlVersion];
     }

@@ -20,11 +20,11 @@ static NSDictionary *HaloStatus(NSString *engine, NSString *nexusState, NSString
     return d;
 }
 
-// Halo 0.2.1~beta1 with the switch API, panel border on, engine active, waiting for the panel.
+// Halo 0.3.1~beta1 with the switch API, panel border on, engine active, waiting for the panel.
 static HCGHaloBorderFacts *ReadyFacts(void) {
     HCGHaloBorderFacts *f = [[HCGHaloBorderFacts alloc] init];
     f.haloInstalled = YES;
-    f.haloVersion = @"0.2.1~beta1";
+    f.haloVersion = @"0.3.1~beta1";
     f.integrationVersion = 1;
     f.controlVersion = 1;
     f.haloPreferences = HaloPrefs(YES, @"nexus");
@@ -86,7 +86,7 @@ static void testHaloDisabledStates(void) {
         HCGHaloBorderStatus *s = [HCGHaloBorderStatus statusWithFacts:f];
         HCG_CHECK_EQ_INT(s.state, HCGHaloBorderStateDisabled);
         HCG_CHECK(!s.switchOn, "off: %s", [[prefs description] UTF8String]);
-        HCG_CHECK(s.canSwitch, "Halo 0.2.1 can be switched on from Nexus");
+        HCG_CHECK(s.canSwitch, "Halo 0.3.1 can be switched on from Nexus");
     }
     // A malformed 'enabled' value means off.
     HCGHaloBorderFacts *bad = ReadyFacts();

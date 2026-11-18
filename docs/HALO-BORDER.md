@@ -119,7 +119,7 @@ The switch sits in Settings › HCG Nexus › Appearance and in the panel's own 
 Nexus never writes HCG Halo's settings and contains none of its rendering code:
 
 - **Switching:** Nexus calls HCG Halo's `HaloNexusControl` (`+setNexusBorderEnabled:error:`, contract
-  `HCGHaloNexusControl` = 1 in `HCGHaloPrefs.bundle`'s Info.plist; HCG Halo 0.2.1~beta1 or later).
+  `HCGHaloNexusControl` = 1 in `HCGHaloPrefs.bundle`'s Info.plist; HCG Halo 0.3.1~beta1 or later).
   - HCG Halo decides how its own settings change, and never turns its screen-edge light on: HCG Halo off → panel
     only; screen edge on → both; off → panel removed, screen edge untouched.
   - It is refused while HCG Halo's kill switch or launch guard is active.
