@@ -39,7 +39,6 @@ typedef NS_ENUM(NSInteger, HCGSettingsSection) {
     HCGSettingsSectionGeneral,
     HCGSettingsSectionHandle,
     HCGSettingsSectionMotion,
-    HCGSettingsSectionGlass,        // panel opacity and blur
     HCGSettingsSectionIntegrations,
     HCGSettingsSectionWorkspaces,
     HCGSettingsSectionMaintenance,
@@ -47,6 +46,7 @@ typedef NS_ENUM(NSInteger, HCGSettingsSection) {
     HCGSettingsSectionAppMode,      // standalone app only: what this build can do
     HCGSettingsSectionAbout,        // HCG Repo product page (opens in Safari)
     HCGSettingsSectionConnectedDevices, // standalone app only: HCG Device Link (Connected Devices screen)
+    HCGSettingsSectionGlass,        // panel opacity and blur (appended: raw values above are stable identifiers)
 };
 
 // Sections shown for a mode. The standalone app never shows the enable switch,

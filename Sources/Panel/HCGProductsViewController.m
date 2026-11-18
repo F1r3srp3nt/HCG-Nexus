@@ -58,17 +58,13 @@
     cell.detailTextLabel.text = product.hasPhoneApp ? [NSString stringWithFormat:@"%@ · Account: not shared", installText]
                                                     : [NSString stringWithFormat:@"%@ · %@", product.platform, installText];
     cell.imageView.tintColor = install == HCGProductInstallStateInstalled ? [HCGTheme cyan] : [HCGTheme secondaryText];
-    cell.accessoryType = UITableViewCellAccessoryDetailButton;
+    cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator; // the whole row opens the details (44 pt+)
     cell.accessibilityHint = @"Shows status, routes and what you can do next.";
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    [self showProduct:[self productAt:indexPath]];
-}
-
-- (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
     [self showProduct:[self productAt:indexPath]];
 }
 

@@ -263,8 +263,24 @@
     return context;
 }
 
+// A system-drawn, non-interactive cell accessory (disclosure chevron, checkmark). Recent iOS draws these with a
+// UIButton outside the content view; it is decoration, the row itself is the touch target. Interactive system
+// accessories (detail buttons) and anything Nexus adds itself (content view, accessoryView) are still checked.
+static BOOL HCGIsDecorativeCellAccessory(UIView *view) {
+    UIView *ancestor = view.superview;
+    while (ancestor && ![ancestor isKindOfClass:[UITableViewCell class]]) ancestor = ancestor.superview;
+    if (!ancestor) return NO;
+    UITableViewCell *cell = (UITableViewCell *)ancestor;
+    if ([view isDescendantOfView:cell.contentView]) return NO;
+    if (cell.accessoryView && [view isDescendantOfView:cell.accessoryView]) return NO;
+    UITableViewCellAccessoryType type = cell.isEditing ? cell.editingAccessoryType : cell.accessoryType;
+    return type == UITableViewCellAccessoryDisclosureIndicator || type == UITableViewCellAccessoryCheckmark;
+}
+
 static void HCGCollectButtons(UIView *view, NSMutableArray<UIButton *> *out) {
-    if ([view isKindOfClass:[UIButton class]] && !view.hidden && view.alpha > 0.01) [out addObject:(UIButton *)view];
+    if ([view isKindOfClass:[UIButton class]] && !view.hidden && view.alpha > 0.01 && !HCGIsDecorativeCellAccessory(view)) {
+        [out addObject:(UIButton *)view];
+    }
     for (UIView *sub in view.subviews) HCGCollectButtons(sub, out);
 }
 
