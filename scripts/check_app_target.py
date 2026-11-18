@@ -46,8 +46,8 @@ for rel in sources + headers + swift_sources:
             if word in code:
                 hits.append(f"{rel}:{n}: {word}")
 report(not hits, f"app target ({len(sources)} Objective-C + {len(swift_sources)} Swift sources) uses public APIs only" + ("".join("\n      " + h for h in hits)))
-report(all(s.startswith("Sources/Platform/App/DeviceLink/") for s in swift_sources),
-       f"Swift only for HCG Device Link (Sources/Platform/App/DeviceLink): {swift_sources}")
+report(all(s.startswith(("Sources/Platform/App/DeviceLink/", "HCGConnectVerify/Sources/HCGConnectVerify/")) for s in swift_sources),
+       f"Swift only for HCG Device Link and HCG Connect verification: {swift_sources}")
 report(not any(s.startswith(("Sources/Platform/SpringBoard", "Sources/Platform/Preview", "Tweak", "Prefs", "PreviewHarness")) for s in sources),
        "no SpringBoard/preview/tweak/Settings-bundle files in the app target")
 mains = [s for s in sources if os.path.basename(s) == "main.m"]

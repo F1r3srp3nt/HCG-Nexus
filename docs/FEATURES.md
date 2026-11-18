@@ -29,7 +29,7 @@ Nothing below has run on a physical device. A section works in both builds unles
 | Tools (appearance, diagnostics, recents, reset, turn off, HCG Repo, import, restore) | all | turn off: n/a (said so) | Availability per build is host-tested; each tool reports success or failure |
 | HCG Products: installed / not installed / unable to determine / no iPhone app; account state separate | install check via SpringBoard | "unable to determine" (sandbox) | Host-tested; Sentinel links validated with Sentinel's own rules |
 | Connected Devices (HCG Device Link) | **not in the tweak**: an explanation only | real screen (pairing, devices, reports) | No mock data anywhere |
-| Account (HCG Connect sign-in) | "Sign-in is in the standalone app" | **Not configured**: no client issued; registration request ready | Foreign-client guard, strict permission check and token-free summary are host-tested (mutation-checked); see `HCG-CONNECT-REGISTRATION.md` |
+| Account (HCG Connect sign-in) | "Sign-in is in the standalone app" | **Not configured**: no client issued; registration request ready | Foreign-client guard, strict permission check and token-free summary are host-tested (mutation-checked). Every token response is signature-verified (ES256/JWKS, issuer, audience, expiry, nonce) before use; `swift test` rejection suite. See `HCG-CONNECT-REGISTRATION.md` |
 
 ## Earlier inventory (0.2.0)
 

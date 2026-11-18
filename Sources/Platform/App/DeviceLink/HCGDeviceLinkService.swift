@@ -65,6 +65,7 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
     private let secrets: LinkSecretStore
     private let recordFile: PairingRecordFile
     private let auth: HCGConnectAuth
+    private let connectTransport: HCGVerifiedConnectTransport
     private let session: HCGConnectSession
     private var account: Account
     private var link: Link = .notPaired
@@ -99,7 +100,12 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
         let configuration = HCGConnectConfiguration(contractVersion: HCGLinkService.contract,
                                                     clientId: HCGLinkService.infoString(bundle, "HCGConnectClientID"),
                                                     redirectUri: HCGLinkService.infoString(bundle, "HCGConnectRedirectURI"))
-        let connectAuth = HCGConnectAuth(configuration: configuration, expectedContract: HCGLinkService.contract)
+        // Every token response is verified (signature against HCG Connect's JWKS, issuer, audience,
+        // client, expiry, nonce) before the vendored client reads it: HCGVerifiedConnectTransport.
+        let transport = HCGVerifiedConnectTransport(configuration: configuration)
+        connectTransport = transport
+        let connectAuth = HCGConnectAuth(configuration: configuration, expectedContract: HCGLinkService.contract,
+                                         send: { request in try await transport.send(request) })
         auth = connectAuth
         session = HCGConnectSession(auth: connectAuth, store: SecretTokenStore(store: store))
         // Shared guard (Sources/Core/HCGAccount): Nexus's own client only, never another
@@ -110,6 +116,9 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
             account = .notConfigured(problem)
         } else if let problem = guardrail.problem {
             account = .notConfigured(problem)
+        } else if !transport.isVerifying {
+            // No trust anchor (issuer/JWKS) for the issued client: never sign in on unverified tokens.
+            account = .notConfigured("HCG Connect tokens cannot be verified with this configuration, so sign-in stays off.")
         } else {
             account = .signedOut
         }
@@ -572,6 +581,7 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
             return
         }
         do {
+            connectTransport.expectSignIn(nonce: attempt.nonce)
             let tokens = try await auth.complete(attempt, callback: url)
             try await session.signedIn(tokens)
             account = .signedIn(email: tokens.email)

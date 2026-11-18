@@ -59,6 +59,8 @@ jobs:
         run: swift --version
       - name: HCG Device Link client tests (unit + cross-language vectors)
         run: swift test --package-path HCGDeviceLink
+      - name: HCG Connect token verification tests (Linux, swift-crypto)
+        run: swift test --package-path HCGConnectVerify
 
   app:
     name: Standalone app (Xcode)
@@ -69,6 +71,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Vendored HCG Device Link client is unmodified
         run: cd HCGDeviceLink && shasum -a 256 -c VENDORED.sha256
+      - name: HCG Connect token verification tests (macOS, CryptoKit)
+        run: swift test --package-path HCGConnectVerify
       - name: Xcode, SDKs and supported deployment range
         run: |
           xcodebuild -version

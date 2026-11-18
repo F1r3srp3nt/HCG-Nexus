@@ -223,6 +223,10 @@
 			isa = PBXBuildFile;
 			fileRef = 1E711720A28482846A34FA39;
 		};
+		DB9E7CF0E7539B1C2CB32DCD /* HCGVerifiedConnectTransport.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 90A27DEE948A9EDEC3ACF4A3;
+		};
 		DBFEF11E6F8113142148F715 /* HCGLinkReportViewController.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 7A230D8035737B5788F9AE48;
@@ -238,6 +242,10 @@
 		DF42BF63CF25715B38A01C74 /* HCGConnectedDevicesViewController.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = A647D18F83B154FEDD1D1D94;
+		};
+		E569A85690435DBE763E27D3 /* HCGConnectTokenVerifier.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = A054B7D1100C17765B4FC755;
 		};
 		E76F5DD34E5E40BB0F3B5721 /* Network.framework in Frameworks */ = {
 			isa = PBXBuildFile;
@@ -750,6 +758,13 @@
 			path = Sources/Core/HCGIntegrations.m;
 			sourceTree = SOURCE_ROOT;
 		};
+		90A27DEE948A9EDEC3ACF4A3 /* HCGVerifiedConnectTransport.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			name = HCGVerifiedConnectTransport.swift;
+			path = Sources/Platform/App/DeviceLink/HCGVerifiedConnectTransport.swift;
+			sourceTree = SOURCE_ROOT;
+		};
 		9141D5B791C2D60021D9070C /* HCGAppRootViewController.m */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
@@ -783,6 +798,13 @@
 			lastKnownFileType = sourcecode.c.objc;
 			name = HCGNexusAppTests.m;
 			path = Tests/App/HCGNexusAppTests.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		A054B7D1100C17765B4FC755 /* HCGConnectTokenVerifier.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			name = HCGConnectTokenVerifier.swift;
+			path = HCGConnectVerify/Sources/HCGConnectVerify/HCGConnectTokenVerifier.swift;
 			sourceTree = SOURCE_ROOT;
 		};
 		A1811C38D20847BCBEE8F357 /* HCGIntegrations.h */ = {
@@ -1260,6 +1282,7 @@
 				0CDC47645BB142BD7B87374D,
 				EE7EEF54CC2BC3BBBF11736F,
 				C450CF0F26B6A01B5BA1EF78,
+				90A27DEE948A9EDEC3ACF4A3,
 			);
 			name = "Device Link (App)";
 			sourceTree = "<group>";
@@ -1448,6 +1471,8 @@
 				DBFEF11E6F8113142148F715,
 				AFEC655F706AE470EF7019EF,
 				CDE329ABF0ABF087E4711E45,
+				DB9E7CF0E7539B1C2CB32DCD,
+				E569A85690435DBE763E27D3,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

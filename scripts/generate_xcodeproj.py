@@ -35,7 +35,11 @@ DEPLOYMENT_TARGET = "14.0"
 MARKETING_VERSION = "0.3.1"
 
 # Directories whose sources form the app target, and files deliberately left out.
-APP_SOURCE_DIRS = ["App", "Sources/Core", "Sources/Panel", "Sources/Platform/App", "Sources/Platform/App/DeviceLink"]
+# HCG Connect token verification (Nexus-owned Swift package, compiled straight into the app; its
+# `swift test` suite runs in CI).
+CONNECT_VERIFY_DIR = "HCGConnectVerify/Sources/HCGConnectVerify"
+APP_SOURCE_DIRS = ["App", "Sources/Core", "Sources/Panel", "Sources/Platform/App", "Sources/Platform/App/DeviceLink",
+                   CONNECT_VERIFY_DIR]
 APP_EXCLUDED_FILES = {
     # Overlay-only (SpringBoard window, edge handle); not used by the app.
     "Sources/Panel/HCGOverlayController.m",
@@ -116,8 +120,8 @@ def build():
         if path.startswith(FORBIDDEN_PREFIXES):
             raise SystemExit(f"refusing to add {path} to the standalone app target")
     for path in swift_sources:
-        if not path.startswith(DEVICE_LINK_DIR + "/"):
-            raise SystemExit(f"Swift is only used for HCG Device Link ({DEVICE_LINK_DIR}): {path}")
+        if not path.startswith((DEVICE_LINK_DIR + "/", CONNECT_VERIFY_DIR + "/")):
+            raise SystemExit(f"Swift is only used for HCG Device Link and HCG Connect ({DEVICE_LINK_DIR}, {CONNECT_VERIFY_DIR}): {path}")
     if not os.path.isfile(os.path.join(ROOT, DEVICE_LINK_PACKAGE, "Package.swift")):
         raise SystemExit(f"{DEVICE_LINK_PACKAGE}/Package.swift is missing (vendor it with HCG-Server scripts/vendor-devicelink.sh)")
     if swift_sources and BRIDGING_HEADER not in app_headers:

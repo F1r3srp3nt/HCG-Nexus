@@ -1,6 +1,6 @@
 # HCG login (HCG Connect) — readiness and the registration HCG Nexus needs
 
-Status on 18 Nov 2026: **ready to test once HCG issues a client. Not configured today.**
+Status on 18 Nov 2026: **ready to test once HCG issues a client. Not configured today; sign-in stays off.**
 
 ## What exists
 
@@ -37,13 +37,37 @@ Sources: the main-site repository's auth contract and native-login handoffs, HCG
   yet: it needs an app-group container that the tweak can read, which is not provisioned. No token is ever
   forwarded to a deep link.
 
+## Token verification (implemented, 0.3.1~beta1)
+
+The vendored HCG Device Link client binds a sign-in by *decoding* the ID token and reads the account from the
+access token without checking signatures. Nexus does not rely on that: `HCGVerifiedConnectTransport` (app) wraps
+the client's network transport and verifies every successful token-endpoint response before the client reads it,
+with `HCGConnectVerify` (a Nexus-owned Swift package, compiled into the app). The rules are HCG-Server's
+(`internal/hcgconnect/verifier.go`):
+
+| Check | Rule |
+|---|---|
+| Algorithm | ES256 only (`none`, HS*, RS*, ES384 refused before any key lookup) |
+| Signing keys | Only from `{issuer}/.well-known/jwks.json` on the issuer's host (https); EC P-256, `use` sig, `alg` ES256; off-curve points refused; cached 10 min; an unknown `kid` re-fetches once; unreachable keys fail closed |
+| Issuer | exactly `https://qggdyzoydveafkmjgkpq.supabase.co/auth/v1` (the configured issuer) |
+| Times | `exp` required; `exp`, `nbf`, `iat` with 60 s leeway |
+| Subject | a UUID; the ID token and access token must name the same account |
+| ID token | `aud` contains Nexus's client; `azp` = client when present or when there are several audiences; `nonce` = this sign-in's nonce (refresh: the original nonce when present) |
+| Access token | `aud` contains `authenticated`, `role` = `authenticated`, `client_id` = Nexus's client |
+| Sign-in response | must contain both tokens |
+
+A failure becomes the client's "response did not match" error: nothing is stored. Without an issued client there
+is no trust anchor and every token response is refused; the Account screen stays *Not configured*.
+Tests: `HCGConnectVerify/Tests` (`swift test`, in CI on Linux with swift-crypto and on macOS with CryptoKit) cover
+each rejection above with real signatures.
+
 ## Not done yet (needs the client first)
 
 1. A real device sign-in (status `configured_untested` → tested), as required by the main-site team.
 2. Loading the organisation context from `/me` after sign-in. The Account screen says *Not loaded* until then;
    it never shows an invented organisation.
-3. Verifying the ID-token signature against the JWKS. Device Link's code currently decodes claims and checks
-   `aud`/`iss`/nonce, but does not verify the signature. This must be fixed before relying on profile claims.
+3. Checking token verification against real HCG Connect tokens. The code and its rejection tests exist
+   (below); it has only been tested with locally generated ES256 keys, because no Nexus client exists yet.
 
 ## Registration request (send to the HCG main-site team)
 
