@@ -6,6 +6,38 @@ substituted for one another. Only section 4 can show that the tweak works.
 Reproduce sections 1 and 3 with
 `THEOS=… HCG_ENV=rootless scripts/check.sh` (and again with `HCG_ENV=rootful`).
 
+## 0.3.0~beta1 — run #15: the redesign candidate (recorded 2026-11-18)
+
+**Status: not yet device-tested.** Checklist: `DEVICE-CHECKLIST.md`.
+
+| | |
+|---|---|
+| File | `com.hakmicapitalgroup.hcgnexus_0.3.0~beta1_iphoneos-arm64.deb` |
+| **SHA-256** | **`e4a92c2b3680b965052769cd641cce6ebe28aa0371a0e3e3c72a29f46c5ca341`** |
+| Built from | `77b0f3adb1d75ceb0c4c088fa8e9d0ab33573b57` on branch `claude/hcg-nexus-tweak-yb1ii2` (embedded build ID `77b0f3adb1`, config `rootless-release`) |
+| Workflow | *Build package* run **#15**, ID 44213585148, route `both`, layout `rootless`, 2026-11-18 01:09 UTC: https://github.com/F1r3srp3nt/HCG-Nexus/actions/runs/44213585148 |
+| Artifact | `hcg-nexus-rootless-deb`, ID 14386843705, zip SHA-256 `f156dc38fd04aea061dd4d38e66f71a5e2931983d8f1b78089126b22aaf585f6`, expires 2026-11-25 |
+| Distribution | HCG Repo Candidate, `https://repo.hakmicapitalgroup.com/repo/candidate/`: free public demo by a per-version exception. Production access is unchanged |
+
+**Jailbreak package (CI, `build-jailbreak-deb.sh --require-new-arm64e-abi`): passed.**
+* arm64 + arm64e slices with the versioned ptrauth ABI in the tweak and the Settings bundle; `%ctor` in every slice;
+  SpringBoard-only filter.
+* `ar` members `debian-binary`, `control.tar.gz`, `data.tar.gz` (gzip); root:wheel; dirs/binaries 0755, data 0644;
+  regular files only; nothing outside `/var/jb`; no doubled `var/jb/var/jb` prefix.
+* Branding installed at `/var/jb/Library/Application Support/HCGNexus/` (`hcg-logo.png`, `nexus-emblem.png`).
+* Tweak and Settings bundle share build `77b0f3adb1`; Settings bundle 0.3.0 = package base version.
+* `Depends: mobilesubstrate | ellekit, preferenceloader`; no maintainer scripts.
+
+**Host and Linux checks (CI lint job and locally):** `scripts/check.sh` passed, Core host tests 27,188 checks /
+0 failures (rootless and rootful), HCG Device Link client tests passed. App target compiled and linked against the
+iPhoneOS 14.5 and 16.5 SDKs on Linux.
+
+**Run #14 (`6d89605`) is not a candidate.** Its package verified, but 2 app tests failed: an inserted settings section
+shifted the About section's identifier, and HCG Products used a 25.7 pt unlabelled detail button. Both were fixed in
+`77b0f3a`, which also changes code in the tweak, so only run #15 is offered.
+
+<!-- APP-RESULTS -->
+
 ## 0.2.1~beta1 — run #13: the candidate package to install (recorded 2026-11-17)
 
 **Status: not yet device-tested.**
