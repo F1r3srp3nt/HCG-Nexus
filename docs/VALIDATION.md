@@ -6,7 +6,51 @@ substituted for one another. Only section 4 can show that the tweak works.
 Reproduce sections 1 and 3 with
 `THEOS=… HCG_ENV=rootless scripts/check.sh` (and again with `HCG_ENV=rootful`).
 
-## 0.3.0~beta1 — run #15: the redesign candidate (recorded 2026-11-18)
+## 0.3.1~beta1 — run #24: the combined candidate (recorded 2026-11-18)
+
+**One combined Nexus candidate** (owner decision): the redesign, Command Mode and the HCG Halo border interface.
+**Status: not yet device-tested.** Checklist: `DEVICE-CHECKLIST.md` (rows 1–16).
+
+| | |
+|---|---|
+| File | `com.hakmicapitalgroup.hcgnexus_0.3.1~beta1_iphoneos-arm64.deb` (1,143,570 bytes) |
+| **SHA-256** | **`b6750cf12d7ab4ebcf5542cef0496945211d8226152a4c45e57e40adaf6741c3`** |
+| Built from | `82412dd5d52086eb20b45170a203853654af8d6b` on `claude/nexus-combined-0.3.1` (embedded build `82412dd5d5`, `rootless-release`) |
+| Workflow | *Build package* run **#24**, ID 44225979728, route `both`, layout `rootless`: https://github.com/F1r3srp3nt/HCG-Nexus/actions/runs/44225979728 |
+| Artifact | `hcg-nexus-rootless-deb`, ID 14393735142, zip SHA-256 `83dee9f040b61db7b5ad59ea067bc40cecfbf30f6f71cb8999a0d594fe318de2`, expires 2026-11-25 |
+| Works with | HCG Halo 0.2.0~beta1 or later (border interface 1); either package works alone |
+| Distribution | HCG Repo Candidate, free public demo by a per-version exception; experimental; production access unchanged |
+
+**CI (all four jobs green on this commit):**
+* Lint + Core host tests: 27,674 checks, 0 failures (`scripts/check.sh`; also rootless and rootful locally).
+* HCG Device Link client tests (vendored copy unchanged, `VENDORED.sha256`).
+* HCG Connect token verification (`HCGConnectVerify`): 21/21 on Linux (swift-crypto) and 21/21 on macOS (CryptoKit).
+* Standalone app: 22/22 XCTests (sections, Settings rows in every mode, 44 pt labelled targets, Dynamic Type scaled
+  once, capped chrome with the Large Content Viewer, migration, account not configured, Connected Devices boundary);
+  launch check; screenshots of all seven sections, the largest text size and increased contrast
+  (`docs/screenshots/0.3.1-beta1/`); unsigned device build and archive.
+* Jailbreak package, `build-jailbreak-deb.sh --require-new-arm64e-abi`: passed.
+
+**Checked again here on the downloaded bytes (zip digest matched GitHub's):**
+* `scripts/inspect-package.py … rootless --require-new-arm64e-abi`: every check OK, no warnings. Includes gzip
+  members, root:wheel, arm64/arm64e (new ABI), shared build ID, Settings bundle 0.3.1 = package base version,
+  nothing outside `/var/jb`, branding (`hcg-logo.png` `424dbe64…3a07`, `nexus-emblem.png` `8e8582be…a86af`,
+  `hcg-nexus-banner.jpg` `1cb7c600…5a3b`).
+* `HaloBorder.plist` is installed at `/var/jb/Library/PreferenceBundles/HCGNexusPrefs.bundle/` and is **accepted by HCG
+  Halo 0.2.0~beta1's own validator** (`HaloNexusDefinition.m` from HCG-Jailbreak-Research `778c21a`, compiled on Linux
+  with GNUstep; only subscripts, one file read and property synthesis adapted for the older runtime): Nexus
+  0.3.1~beta1, corner radius 22 (continuous), outset 2, glow margin 36, six capabilities. The same build rejects an
+  older `nexusVersion`, a wrong schema, an integer for a boolean, a float interface version, an unknown key and
+  interface version 2.
+* `HCGNexus.dylib` exports `HCGNexusBorderInterface` (`+activeInterface`, `+interfaceVersion`, `borderHostView`,
+  `presentationProgress`, `+borderDefinitionPath`) and posts `com.hakmicapitalgroup.hcgnexus.border-event`.
+* The HCG Halo session ran Halo's panel preview against this code: 17/17 (attach via the installed definition,
+  open/close/reversal, Halo or Nexus off, 30 cycles, Command Mode).
+
+**Still needs the device:** everything in `DEVICE-CHECKLIST.md`; in particular SpringBoard loading on iOS 16.5,
+panel glass and blur, Halo drawing on the live panel, Command Mode, and recovery.
+
+## 0.3.0~beta1 — run #15: not shipped (superseded by the combined 0.3.1~beta1) (recorded 2026-11-18)
 
 **Status: not yet device-tested.** Checklist: `DEVICE-CHECKLIST.md`.
 
@@ -35,8 +79,6 @@ iPhoneOS 14.5 and 16.5 SDKs on Linux.
 **Run #14 (`6d89605`) is not a candidate.** Its package verified, but 2 app tests failed: an inserted settings section
 shifted the About section's identifier, and HCG Products used a 25.7 pt unlabelled detail button. Both were fixed in
 `77b0f3a`, which also changes code in the tweak, so only run #15 is offered.
-
-<!-- APP-RESULTS -->
 
 ## 0.2.1~beta1 — run #13: the candidate package to install (recorded 2026-11-17)
 
