@@ -3,6 +3,7 @@
 #import "HCGWorkspaceManagerViewController.h"
 #import "HCGWorkspaceDetailViewController.h"
 #import "HCGPanelSettingsViewController.h"
+#import "HCGCommandModeViewController.h"
 
 typedef NS_ENUM(NSInteger, HCGHomeSection) {
     HCGHomeSectionShortcuts,
@@ -22,6 +23,7 @@ static NSString *const kCell = @"HCGHomeCell";
     UILabel *_subtitle;
     UILabel *_previewBadge;
     UIButton *_closeButton;
+    UIButton *_commandButton;
     UIScrollView *_chipScroll;
     UIStackView *_chipStack;
     UISearchTextField *_search;
@@ -94,10 +96,24 @@ static NSString *const kCell = @"HCGHomeCell";
     [_closeButton.widthAnchor constraintEqualToConstant:44].active = YES;
     [_closeButton.heightAnchor constraintEqualToConstant:44].active = YES;
 
+    // Command Mode entry: device status, shortcuts and integration states.
+    _commandButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [_commandButton setImage:[HCGTheme symbolNamed:@"square.grid.2x2" pointSize:15] forState:UIControlStateNormal];
+    _commandButton.tintColor = [HCGTheme cyan];
+    _commandButton.backgroundColor = [HCGTheme raisedSurface];
+    _commandButton.layer.cornerRadius = 18;
+    _commandButton.layer.borderWidth = 1;
+    _commandButton.layer.borderColor = [HCGTheme separator].CGColor;
+    _commandButton.accessibilityLabel = @"Command Mode";
+    _commandButton.accessibilityHint = @"Shows device status, shortcuts and HCG integration states.";
+    [_commandButton addTarget:self action:@selector(openCommandMode) forControlEvents:UIControlEventTouchUpInside];
+    [_commandButton.widthAnchor constraintEqualToConstant:44].active = YES;
+    [_commandButton.heightAnchor constraintEqualToConstant:44].active = YES;
+
     UIStackView *titles = [[UIStackView alloc] initWithArrangedSubviews:@[ _wordmark, _subtitle ]];
     titles.axis = UILayoutConstraintAxisVertical;
     titles.spacing = 2;
-    UIStackView *header = [[UIStackView alloc] initWithArrangedSubviews:@[ titles, _previewBadge, _closeButton ]];
+    UIStackView *header = [[UIStackView alloc] initWithArrangedSubviews:@[ titles, _previewBadge, _commandButton, _closeButton ]];
     header.alignment = UIStackViewAlignmentCenter;
     header.spacing = 8;
     [titles setContentHuggingPriority:UILayoutPriorityDefaultLow forAxis:UILayoutConstraintAxisHorizontal];
@@ -320,6 +336,23 @@ static NSString *const kCell = @"HCGHomeCell";
     }
     [self.navigationController pushViewController:[[HCGWorkspaceDetailViewController alloc] initWithContext:_context workspaceIdentifier:active.identifier]
                                          animated:!UIAccessibilityIsReduceMotionEnabled()];
+}
+
+- (void)openCommandMode {
+    [_search resignFirstResponder];
+    if (_context.presentCommandMode) {
+        _context.presentCommandMode();
+        return;
+    }
+    if (self.presentedViewController) return;
+    HCGCommandModeViewController *commandMode = [[HCGCommandModeViewController alloc] initWithContext:_context];
+    commandMode.modalPresentationStyle = UIModalPresentationOverFullScreen;
+    commandMode.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+    BOOL animated = [HCGCommandModeStatus animatesTransitionsWithReduceMotion:UIAccessibilityIsReduceMotionEnabled()
+                                                            animationsEnabled:_context.model.settings.animationsEnabled];
+    [self presentViewController:commandMode animated:animated completion:^{
+        UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, [commandMode accessibilityFocusElement]);
+    }];
 }
 
 - (void)openSettings {

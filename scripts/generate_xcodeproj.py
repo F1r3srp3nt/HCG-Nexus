@@ -38,7 +38,7 @@ APP_EXCLUDED_FILES = {
 }
 FORBIDDEN_PREFIXES = ("Sources/Platform/SpringBoard", "Sources/Platform/Preview", "Tweak", "Prefs", "PreviewHarness")
 TEST_SOURCE_DIRS = ["Tests/App"]
-FRAMEWORKS = ["Foundation", "UIKit", "QuartzCore", "CoreGraphics"]
+FRAMEWORKS = ["Foundation", "UIKit", "QuartzCore", "CoreGraphics", "Network"]
 
 
 def oid(*parts):

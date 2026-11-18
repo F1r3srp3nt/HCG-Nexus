@@ -26,3 +26,4 @@
 #import "HCGOverlayPolicy.h"
 #import "HCGOverlayCoordinator.h"
 #import "HCGDiagnostics.h"
+#import "HCGCommandMode.h"

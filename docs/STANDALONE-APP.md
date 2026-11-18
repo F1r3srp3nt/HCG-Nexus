@@ -13,6 +13,7 @@ or `.ipa`, not a jailbreak `.deb`.
 | Link shortcuts (`https:`, `mailto:`, `tel:`, `sms:`, an app's documented URL scheme) | ✅ opened with `UIApplication openURL:`; the real success/failure is reported |
 | App shortcuts by bundle identifier | ❌ reported as **unavailable** — iOS has no public API for it |
 | HCG Terminal / News integrations | status only ("Not connected" / "Needs jailbreak package") |
+| Command Mode (grid button in the header): device status from public APIs, the active workspace's shortcuts, integration states | ✅ full screen over the app; integrations that are turned on read **Unavailable** (opening apps needs the jailbreak package) |
 | System-wide edge handle and overlay | ❌ jailbreak package only. Settings show **App mode** and do not offer handle controls |
 
 The header shows an **APP MODE** badge. Settings › App mode lists what this

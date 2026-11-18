@@ -6,6 +6,25 @@ substituted for one another. Only section 4 can show that the tweak works.
 Reproduce sections 1 and 3 with
 `THEOS=… HCG_ENV=rootless scripts/check.sh` (and again with `HCG_ENV=rootful`).
 
+## Command Mode (branch `claude/nexus-command-mode`, 2026-11-18)
+
+Linux container only (Ubuntu clang 18.1.3 + GNUstep). **No Theos toolchain,
+no Xcode run, no simulator and no device run** for this change. Version stays
+0.2.0: nothing in the docs requires a bump for an unreleased feature branch,
+and `control`/`HCG_NEXUS_VERSION` must move together when it is released.
+
+| Check | Result |
+|---|---|
+| `scripts/check.sh` (lint, Core portability, safety rules, plists, Xcode project matches generator, app-target boundaries, host tests) | **pass** — "All checks passed."; app-target compile/link step **SKIP** (no `$THEOS`) |
+| Core host tests (new `Tests/Host/CommandModeTests.m`: every Command Mode display state, nil/unrecognised/out-of-range data, battery/power/network/storage, presentation policy, no implied-activity wording) | **pass** — 27,456 checks, 0 failures (26,970 before this change) |
+| Mutation checks by hand: an unreported sign-in state mapped to Connected; "off" mapped to Disconnected | suite **fails** as expected (2 and 3 failures) |
+| `generate_xcodeproj.py --check` after regenerating (3 new app sources, Network.framework linked) | **pass** — 34 app sources |
+| `check_app_target.py` | **pass** — 34 sources, public APIs only |
+| Syntax check with host clang against public iPhoneOS SDK headers (`theos/sdks`, fetched into a scratch directory, not installed): tweak sources (Core + Panel + SpringBoard) for 16.5/iOS 15.0 and 14.5/iOS 14.0 with `-Wall -Werror`; app target for both SDKs with the flags of `compile-app-target.sh`; preview harness sources | **pass** — 0 diagnostics in every set. This is not a Theos or Xcode build: no Logos (`Tweak.x`), no Settings bundle (private Preferences headers), no packaging |
+| App target linked with `ld64.lld` against the 14.5 and 16.5 SDK stubs (compiler-rt `___isOSVersionAtLeast` / `___isPlatformVersionAtLeast` left to Xcode, as in `compile-app-target.sh`) | **pass** — `nw_path_*` resolve from Network.framework; no private-API strings |
+| `Tests/App/HCGNexusAppTests.m` › `testCommandModeShowsRealStatesInAppMode` | **not run** (needs Xcode); syntax-checked only, against a stub XCTest header |
+| Command Mode on the simulator, in the preview harness, or on the iPhone 13 Pro | **not done** — see `DEVICE-CHECKLIST.md` row 4b |
+
 ## 0.2.0 — first device release candidate (branch `claude/hcg-nexus-tweak-yb1ii2`, 2026-11-14)
 
 Linux only (Theos clang 11 + GNUstep). **No device run and no Xcode run for

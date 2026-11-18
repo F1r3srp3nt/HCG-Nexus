@@ -1,4 +1,5 @@
 #import <UIKit/UIKit.h>
+#import "HCGCommandMode.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -15,6 +16,11 @@ NS_ASSUME_NONNULL_BEGIN
 + (UIColor *)cyanSoft;          // translucent accent fill
 + (UIColor *)warning;
 + (UIColor *)success;
++ (UIColor *)critical;
+// Command Mode colour roles (Sources/Core/HCGCommandMode.h). Neutral values
+// use primary text; muted ones secondary text. Never the only signal: every
+// status also has a text label.
++ (UIColor *)colorForStatusRole:(HCGStatusColorRole)role;
 + (NSArray *)chromeGradientColors; // CGColorRefs for brushed-chrome strokes
 
 + (UIFont *)fontForTextStyle:(UIFontTextStyle)style weight:(UIFontWeight)weight;
