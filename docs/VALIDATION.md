@@ -6,6 +6,67 @@ substituted for one another. Only section 4 can show that the tweak works.
 Reproduce sections 1 and 3 with
 `THEOS=… HCG_ENV=rootless scripts/check.sh` (and again with `HCG_ENV=rootful`).
 
+## 0.3.2~beta1 — run #29: HCG Halo border switch + HCG Terminal states (recorded 2026-11-18)
+
+**Status: built and verified; not imported or published** (waits for the owner's explicit approval, together with
+HCG Halo 0.3.1~beta1). Not yet device-tested: `DEVICE-CHECKLIST.md` rows 17–22, HCG Halo rows N18–N23.
+
+| | |
+|---|---|
+| File | `com.hakmicapitalgroup.hcgnexus_0.3.2~beta1_iphoneos-arm64.deb` (1,197,154 bytes) |
+| **SHA-256** | **`e5e5f0f46b2023470d9d76070d7d666339735e9c31b4aa19b5eae3684a38ad56`** |
+| Built from | `cd81084a48b5…` on `claude/nexus-0.3.2-integrations` (build ID `cd81084a48`, `rootless-release`) |
+| Workflow | *Build package* run **#29**, ID 44389550508, route `both`, layout `rootless`: https://github.com/F1r3srp3nt/HCG-Nexus/actions/runs/44389550508 |
+| Artifact | `hcg-nexus-rootless-deb`, ID 14467701677, zip SHA-256 `9137184b05e2af663ae59b2f23bba89a929ab46c05e09921015e6e6ae269cb92`, expires 2026-11-25 |
+| HCG Repo request | HCG-repo `claude/candidates-nexus-0.3.2-halo-0.3.1`, `pending-imports/hcg-nexus-0.3.2-beta1-rootless.toml` (held) |
+
+### Compatibility
+
+| HCG Nexus | HCG Halo | Panel border | *Use HCG Halo border* in Nexus |
+|---|---|---|---|
+| **0.3.2~beta1** | **0.3.1~beta1** | yes | **switches it** (HCG Halo's `HaloNexusControl`, never the screen edge); states Not installed / Incompatible / Disabled / Ready / Active |
+| 0.3.2~beta1 | 0.3.0~beta1 or 0.2.0~beta1 | yes (set in HCG Halo › Border Target) | shows the true state; switch disabled ("switched in HCG Halo › Border Target") |
+| 0.3.2~beta1 | 0.1.0~beta1 | no | Incompatible |
+| 0.3.2~beta1 | none | no; Nexus keeps its own outline | Not installed |
+| 0.3.1~beta1 / 0.2.2~beta1 | 0.3.1~beta1 | yes (set in HCG Halo) | no switch in those Nexus builds |
+
+| HCG Nexus 0.3.2~beta1 with | Installed | Launch | Integration (saved-connection handoff) | Session |
+|---|---|---|---|---|
+| HCG Terminal 0.1.0 (standard or Unleashed) | yes, with version | Open HCG Terminal | not available ("no Nexus handoff yet") | not shared |
+| HCG Terminal **0.1.1** (HCG-Terminal `d591d49`, `HCGNexusHandoff` = 1) | yes, with version | Open HCG Terminal | *Open Saved Connection…* (`hcgterminal://connection?id=…`; the user taps Connect in Terminal) | not shared |
+| none | Not installed | — | — | — |
+
+HCG Terminal 0.1.1 is not an HCG Repo package: standard Terminal is distributed as an app, and HCG Terminal Unleashed's
+`.deb` requires iOS 17 (HCG-repo listing). Its CI (HCG-Terminal Apple builds run 44389174073, all 5 jobs green) builds and
+tests both variants but uploads no installable package.
+
+### Evidence
+
+**Simulator / CI (no device):**
+* Nexus run #29: lint + 27,820 Core host checks (HCG Halo states incl. missing/incompatible companions, disabled and
+  stopped HCG Halo, panel open/close; HCG Terminal states and link validation; mutation-checked), HCGConnectVerify 21/21
+  (Linux and macOS), 22/22 app XCTests, Xcode jailbreak build `--require-new-arm64e-abi`.
+* Re-checked here on the downloaded `.deb`: inspector all OK, no warnings; tweak and Settings bundle contain the HCG Halo
+  bridge, the `HaloNexusControl` call and the HCG Terminal handoff; `HaloBorder.plist` accepted by HCG Halo's validator.
+* HCG Halo × Nexus preview run 44388729789 (HCG Halo `1e232ab` + this Nexus `cd81084`), iOS Simulator, real Settings
+  bundles, 0 failures:
+  - Nexus alone: *Not installed*, switch disabled.
+  - HCG Halo off: *Disabled*; switch on gives panel only (`enabled`, target `nexus`) and *Ready*; switch off turns HCG
+    Halo off again.
+  - Screen edge on: on gives `both`, off gives `screen` (screen edge untouched); *Show Halo on* never written.
+  - Launch guard: switch refused with the reason, nothing written, *Disabled*.
+  - Fault: *Disabled*, never *Ready*.
+  - The panel preview (attach, open/close/reverse, Command Mode) and the surfaces preview also passed.
+* HCG Terminal run 44389174073: handoff route and model suites pass on macOS and the iOS Simulator; both builds declare
+  their own scheme and `HCGNexusHandoff=1`; Simulator `openurl` shows each scheme registered to the right app (iOS's
+  confirmation prompt is not tapped, so in-app handling there is covered by the unit tests only).
+
+**Phone (owner, iPhone 13 Pro, iOS 16.5, Dopamine), 18 Nov 2026, on 0.3.1~beta1 (before this build):**
+* The redesigned 0.3.1~beta1 panel runs (Overview, banner, workspace chips, Command Mode button).
+* HCG Halo draws its screen-edge light; the panel has only Nexus's own outline. Cause: HCG Halo's Border Target was
+  *Screen Edge* (its default), and 0.3.1~beta1 had no switch or status in Nexus. 0.3.2~beta1 + HCG Halo 0.3.1~beta1
+  address that; **not yet tried on the phone.**
+
 ## 0.3.1~beta1 — run #24: the combined candidate (recorded 2026-11-18)
 
 **One combined Nexus candidate** (owner decision): the redesign, Command Mode and the HCG Halo border interface.
