@@ -1,8 +1,8 @@
 Package: com.hakmicapitalgroup.hcgnexus
 Name: HCG Nexus
-Version: 0.2.1~beta1
+Version: 0.3.0~beta1
 Architecture: iphoneos-arm
-Description: HCG command panel behind a configurable cyan edge handle. Off after installation; enable it in Settings > HCG Nexus. Development build, not yet verified on a physical device.
+Description: HCG command panel behind a configurable cyan edge handle: Overview, Workspaces, Tools, HCG Products, Apps and Account. Off after installation; enable it in Settings > HCG Nexus. Candidate build, not yet verified on a physical device.
 Maintainer: Hakmi Capital Group
 Author: Hakmi Capital Group
 Section: Tweaks

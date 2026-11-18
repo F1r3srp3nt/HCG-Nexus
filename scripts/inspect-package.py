@@ -318,6 +318,10 @@ def main():
                 "Library/PreferenceBundles/HCGNexusPrefs.bundle/icon@2x.png",
                 "Library/PreferenceBundles/HCGNexusPrefs.bundle/icon@3x.png",
             ]
+            expected += [
+                "Library/Application Support/HCGNexus/hcg-logo.png",
+                "Library/Application Support/HCGNexus/nexus-emblem.png",
+            ]
             for rel in expected:
                 p = os.path.join(tmp, prefix + rel)
                 results.append(("OK" if os.path.exists(p) else "FAIL", f"/{prefix}{rel}"))
@@ -327,6 +331,9 @@ def main():
             upstream = re.split(r"[~+-]", pkg_version or "", maxsplit=1)[0]
             results.append(("OK" if bundle_version == upstream else "FAIL",
                             f"Settings bundle version {bundle_version} == package Version {pkg_version} (base {upstream})"))
+            nested = [os.path.relpath(os.path.join(r, d), tmp) for r, ds, _ in os.walk(tmp) for d in ds
+                      if os.path.relpath(os.path.join(r, d), tmp).startswith("var/jb/var/jb")]
+            results.append(("FAIL" if nested else "OK", f"no doubled install prefix (var/jb/var/jb): {nested[:3] or 'ok'}"))
             if scheme == "rootless":
                 stray = [d for d in os.listdir(tmp) if d not in ("DEBIAN", "var")]
                 results.append(("FAIL" if stray else "OK", f"nothing outside /var/jb: {stray or 'ok'}"))

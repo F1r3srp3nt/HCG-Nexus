@@ -12,6 +12,9 @@
 #import "HCGLinkTypes.h"
 #import "HCGConnectedDevicesViewController.h"
 #import "HCGLinkReportViewController.h"
+#import "HCGPanelHomeViewController.h"
+#import "HCGSections.h"
+#import "HCGAppAccountProvider.h"
 
 @interface HCGNexusAppTests : XCTestCase
 @end
@@ -247,6 +250,100 @@
     NSInteger local = (NSInteger)[headers indexOfObject:@"This device"];
     UITableViewCell *cell = [screen tableView:screen.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:local]];
     XCTAssertTrue([cell.accessibilityLabel containsString:@"this device"], @"the local device is labelled LOCAL");
+}
+
+#pragma mark - Layout 2 (redesign)
+
+- (HCGPanelContext *)appContextWithModel:(HCGNexusModel *)model {
+    HCGPanelContext *context = [[HCGPanelContext alloc] init];
+    context.mode = HCGPanelModeStandaloneApp;
+    context.model = model;
+    context.runner = [[HCGActionRunner alloc] initWithModel:model];
+    context.environmentName = @"tests";
+    return context;
+}
+
+static void HCGCollectButtons(UIView *view, NSMutableArray<UIButton *> *out) {
+    if ([view isKindOfClass:[UIButton class]] && !view.hidden && view.alpha > 0.01) [out addObject:(UIButton *)view];
+    for (UIView *sub in view.subviews) HCGCollectButtons(sub, out);
+}
+
+// Every section loads in a phone-sized window; every visible button is labelled for VoiceOver
+// and has at least a 44 pt touch target.
+- (void)testEverySectionLoadsWithLabelledTouchTargets {
+    HCGNexusModel *model = [self makeModel];
+    HCGPanelHomeViewController *home = [[HCGPanelHomeViewController alloc] initWithContext:[self appContextWithModel:model]];
+    UINavigationController *navigation = [[UINavigationController alloc] initWithRootViewController:home];
+    UIWindow *window = [[UIWindow alloc] initWithFrame:CGRectMake(0, 0, 390, 844)];
+    window.rootViewController = navigation;
+    [window makeKeyAndVisible];
+    for (NSInteger section = 0; section < HCGNexusSectionCount; section++) {
+        [home selectSection:section];
+        [window layoutIfNeeded];
+        XCTAssertEqual(home.selectedSection, section);
+        UIViewController *child = home.childViewControllers.lastObject;
+        XCTAssertNotNil(child, @"section %ld has content", (long)section);
+        if ([child isKindOfClass:[UITableViewController class]]) {
+            UITableView *table = ((UITableViewController *)child).tableView;
+            [table layoutIfNeeded];
+            XCTAssertGreaterThan(table.numberOfSections, 0, @"section %ld shows rows", (long)section);
+        }
+        NSMutableArray<UIButton *> *buttons = [NSMutableArray array];
+        HCGCollectButtons(home.view, buttons);
+        for (UIButton *button in buttons) {
+            if (button.window == nil || CGRectIsEmpty(button.frame)) continue;
+            NSString *label = button.accessibilityLabel ?: button.currentTitle;
+            XCTAssertTrue(label.length > 0, @"unlabelled button in section %ld", (long)section);
+            XCTAssertGreaterThanOrEqual(button.bounds.size.height, 43.5, @"%@ in section %ld is %.1f pt tall", label, (long)section, button.bounds.size.height);
+        }
+    }
+    window.hidden = YES;
+}
+
+- (void)testLargestAccessibilityTextSizeLaysOutEverySection {
+    HCGNexusModel *model = [self makeModel];
+    HCGPanelHomeViewController *home = [[HCGPanelHomeViewController alloc] initWithContext:[self appContextWithModel:model]];
+    UINavigationController *navigation = [[UINavigationController alloc] initWithRootViewController:home];
+    UIWindow *window = [[UIWindow alloc] initWithFrame:CGRectMake(0, 0, 375, 667)];
+    window.rootViewController = navigation;
+    UITraitCollection *huge = [UITraitCollection traitCollectionWithPreferredContentSizeCategory:UIContentSizeCategoryAccessibilityExtraExtraExtraLarge];
+    [navigation setOverrideTraitCollection:huge forChildViewController:home];
+    [window makeKeyAndVisible];
+    for (NSInteger section = 0; section < HCGNexusSectionCount; section++) {
+        [home selectSection:section];
+        [window layoutIfNeeded];
+        XCTAssertEqual(home.selectedSection, section);
+        XCTAssertGreaterThan(home.view.bounds.size.height, 0);
+    }
+    window.hidden = YES;
+}
+
+- (void)testMigrationGivesTheAppAnAppsList {
+    HCGNexusModel *model = [self makeModel];
+    XCTAssertGreaterThan(model.appLibrary.items.count, 0u, @"preset shortcuts appear under Apps");
+    XCTAssertEqual([HCGLayoutMigration layoutVersionInStore:_store], HCGCurrentLayoutVersion);
+    HCGNexusModel *again = [self makeModel];
+    XCTAssertEqual(again.lastMigrationOutcome, HCGLayoutMigrationAlreadyCurrent);
+}
+
+// With the shipped Info.plist (no client issued) the account is "Not configured", sign-in is
+// impossible, and the Device Link service is never even constructed for it.
+- (void)testAccountIsNotConfiguredWithoutAnIssuedClient {
+    __block NSUInteger serviceRequests = 0;
+    HCGAppAccountProvider *provider = [[HCGAppAccountProvider alloc] initWithServiceProvider:^id<HCGLinkServicing> {
+        serviceRequests++;
+        return nil;
+    }];
+    XCTAssertEqual([provider accountState], HCGAccountStateNotConfigured);
+    XCTAssertFalse([provider canSignIn]);
+    XCTAssertNil([provider accountDisplayName]);
+    XCTAssertNil([provider organisationNames], @"organisations are never invented");
+    XCTAssertTrue([provider accountDetail].length > 0);
+    [provider signInFromViewController:[[UIViewController alloc] init]];
+    XCTAssertEqual(serviceRequests, 0u, @"nothing is contacted without a client");
+    NSDictionary *summary = [provider scopedSummary];
+    XCTAssertEqualObjects(summary[HCGAccountSummaryState], @(HCGAccountStateNotConfigured));
+    for (NSString *key in summary) XCTAssertFalse([key.lowercaseString containsString:@"token"]);
 }
 
 @end

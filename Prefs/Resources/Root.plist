@@ -25,6 +25,48 @@
 		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>Lower opacity shows more of what is behind the panel. With blur off, Nexus keeps at least 60% opacity so text stays readable. Reduce Transparency in iOS Accessibility settings makes the panel opaque.</string>
+			<key>label</key>
+			<string>Panel glass</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>default</key>
+			<real>0.72</real>
+			<key>key</key>
+			<string>panelOpacity</string>
+			<key>max</key>
+			<real>1.0</real>
+			<key>min</key>
+			<real>0.35</real>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSegmentCell</string>
+			<key>default</key>
+			<integer>2</integer>
+			<key>key</key>
+			<string>panelBlur</string>
+			<key>validTitles</key>
+			<array>
+				<string>Off</string>
+				<string>Light</string>
+				<string>Standard</string>
+				<string>Strong</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<integer>0</integer>
+				<integer>1</integer>
+				<integer>2</integer>
+				<integer>3</integer>
+			</array>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
 			<key>label</key>
 			<string>Handle side</string>
 		</dict>

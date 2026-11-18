@@ -1,4 +1,6 @@
 // Swift bridging header for the HCGNexus app target (standalone app only).
 // Exposes the Objective-C side of HCG Device Link to HCGDeviceLinkService.swift.
-// Keep it to this one import: Swift in this app exists only for Device Link.
+// Swift in this app exists only for Device Link. HCGAccount.h adds the shared
+// client-configuration guard (a client issued to another HCG product is refused).
 #import "HCGLinkTypes.h"
+#import "HCGAccount.h"

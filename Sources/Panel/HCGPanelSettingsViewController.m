@@ -39,6 +39,7 @@ typedef NS_ENUM(NSInteger, HCGSettingsSection) {
     HCGSettingsSectionGeneral,
     HCGSettingsSectionHandle,
     HCGSettingsSectionMotion,
+    HCGSettingsSectionGlass,        // panel opacity and blur
     HCGSettingsSectionIntegrations,
     HCGSettingsSectionWorkspaces,
     HCGSettingsSectionMaintenance,
@@ -55,7 +56,7 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         return @[ @(HCGSettingsSectionAppMode), @(HCGSettingsSectionConnectedDevices), @(HCGSettingsSectionIntegrations),
                   @(HCGSettingsSectionWorkspaces), @(HCGSettingsSectionAbout), @(HCGSettingsSectionDiagnostics) ];
     }
-    return @[ @(HCGSettingsSectionGeneral), @(HCGSettingsSectionHandle), @(HCGSettingsSectionMotion), @(HCGSettingsSectionIntegrations),
+    return @[ @(HCGSettingsSectionGeneral), @(HCGSettingsSectionGlass), @(HCGSettingsSectionHandle), @(HCGSettingsSectionMotion), @(HCGSettingsSectionIntegrations),
               @(HCGSettingsSectionWorkspaces), @(HCGSettingsSectionMaintenance), @(HCGSettingsSectionAbout), @(HCGSettingsSectionDiagnostics) ];
 }
 
@@ -163,6 +164,14 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
     [self save:^(HCGSettings *s) { s.handleOpacity = slider.value; }];
 }
 
+- (void)panelOpacityChanged:(UISlider *)slider {
+    [self save:^(HCGSettings *s) { s.panelOpacity = slider.value; }];
+}
+
+- (void)panelBlurChanged:(UISegmentedControl *)control {
+    [self save:^(HCGSettings *s) { s.panelBlur = (HCGPanelBlur)control.selectedSegmentIndex; }];
+}
+
 - (void)keyboardZoneChanged:(UISwitch *)control {
     [self save:^(HCGSettings *s) { s.keyboardSafeZone = control.on; }];
 }
@@ -224,6 +233,7 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         case HCGSettingsSectionGeneral: return @"HCG Nexus";
         case HCGSettingsSectionHandle: return @"Edge handle";
         case HCGSettingsSectionMotion: return @"Motion & feedback";
+        case HCGSettingsSectionGlass: return @"Panel glass";
         case HCGSettingsSectionIntegrations: return @"HCG integrations";
         case HCGSettingsSectionWorkspaces: return @"Workspaces";
         case HCGSettingsSectionMaintenance: return @"Maintenance";
@@ -242,7 +252,10 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         case HCGSettingsSectionHandle:
             return @"The handle stays clear of the status bar, Notification and Control Centre pull zones and the home indicator. \"Keep above keyboard\" holds it in the upper part of the screen.";
         case HCGSettingsSectionMotion:
-            return @"Reduce Motion in iOS Accessibility settings always replaces sliding with a short fade.";
+            return @"Reduce Motion in iOS Accessibility settings always replaces sliding with a short fade and stops decorative animation.";
+        case HCGSettingsSectionGlass:
+            if ([HCGTheme reduceTransparency]) return @"Reduce Transparency is on in iOS Accessibility settings, so the panel is opaque and unblurred.";
+            return @"Lower opacity shows more of what is behind the panel. With blur off, Nexus keeps at least 60% opacity so text stays readable.";
         case HCGSettingsSectionIntegrations:
             if (self.context.isStandaloneApp) {
                 return @"In the standalone app, HCG integrations show their status only: opening another app by bundle identifier needs the jailbreak package. HCG Connect and ERP remain the authority for signed-in ecosystem access. Only Connected Devices signs in to HCG Connect, and keeps that sign-in in this app's Keychain.";
@@ -280,6 +293,7 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         case HCGSettingsSectionGeneral: return 1;
         case HCGSettingsSectionHandle: return 4;
         case HCGSettingsSectionMotion: return 2;
+        case HCGSettingsSectionGlass: return 2;
         case HCGSettingsSectionIntegrations: return self.context.isStandaloneApp ? (NSInteger)[self standaloneIntegrationIdentifiers].count : 3;
         case HCGSettingsSectionWorkspaces: return 2;
         case HCGSettingsSectionMaintenance: return 1;
@@ -356,6 +370,16 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
                 case 2: return [self controlCell:@"Visibility" control:[self sliderWithValue:(float)s.handleOpacity min:(float)[HCGSettings minimumHandleOpacity] action:@selector(opacityChanged:) label:@"Handle visibility"] stacked:YES];
                 default: return [self controlCell:@"Keep above keyboard" control:[self switchOn:s.keyboardSafeZone action:@selector(keyboardZoneChanged:) label:@"Keep handle above keyboard area"] stacked:NO];
             }
+        case HCGSettingsSectionGlass: {
+            if (indexPath.row == 0) {
+                UISlider *slider = [self sliderWithValue:(float)s.panelOpacity min:(float)[HCGSettings minimumPanelOpacity] action:@selector(panelOpacityChanged:) label:@"Panel opacity"];
+                slider.enabled = ![HCGTheme reduceTransparency];
+                return [self controlCell:@"Opacity" control:slider stacked:YES];
+            }
+            UISegmentedControl *blur = [self segmentsWithItems:@[ @"Off", @"Light", @"Standard", @"Strong" ] selected:s.panelBlur action:@selector(panelBlurChanged:) label:@"Panel blur"];
+            blur.enabled = ![HCGTheme reduceTransparency];
+            return [self controlCell:@"Blur" control:blur stacked:YES];
+        }
         case HCGSettingsSectionMotion:
             if (indexPath.row == 0) return [self controlCell:@"Animations" control:[self switchOn:s.animationsEnabled action:@selector(animationsChanged:) label:@"Animations"] stacked:NO];
             return [self controlCell:@"Haptics" control:[self switchOn:s.hapticsEnabled action:@selector(hapticsChanged:) label:@"Haptics"] stacked:NO];

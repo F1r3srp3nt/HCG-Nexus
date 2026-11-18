@@ -71,7 +71,8 @@ HCGNexus_FILES = Tweak/Tweak.x \
 	$(wildcard Sources/Platform/SpringBoard/*.m)
 HCGNexus_CFLAGS = -fobjc-arc -Wall -Werror \
 	-ISources/Core -ISources/Panel -ISources/Platform/SpringBoard \
-	-DHCG_PACKAGE_SCHEME=\"$(HCG_ENV)\" -DHCG_BUILD_ID=\"$(HCG_BUILD_ID)\" -DHCG_BUILD_CONFIG=\"$(HCG_BUILD_CONFIG)\"
+	-DHCG_PACKAGE_SCHEME=\"$(HCG_ENV)\" -DHCG_BUILD_ID=\"$(HCG_BUILD_ID)\" -DHCG_BUILD_CONFIG=\"$(HCG_BUILD_CONFIG)\" \
+	-DHCG_INSTALL_PREFIX=\"$(THEOS_PACKAGE_INSTALL_PREFIX)\"
 HCGNexus_FRAMEWORKS = UIKit QuartzCore CoreFoundation
 # No %hook is used, so generate runtime-only Logos code: the dylib does not
 # link CydiaSubstrate and works with whichever injector loads it.
@@ -81,3 +82,11 @@ include $(THEOS_MAKE_PATH)/tweak.mk
 
 SUBPROJECTS += Prefs
 include $(THEOS_MAKE_PATH)/aggregate.mk
+
+# Branding used by the panel (Resources/Branding/README.md). Bundled so it works offline;
+# a missing banner simply leaves its slot empty.
+# Theos relocates the staging tree under the rootless prefix itself, so no prefix here.
+HCG_BRANDING_DIR = $(THEOS_STAGING_DIR)/Library/Application Support/HCGNexus
+internal-stage::
+	$(ECHO_NOTHING)mkdir -p "$(HCG_BRANDING_DIR)"$(ECHO_END)
+	$(ECHO_NOTHING)for f in Resources/Branding/*.png Resources/Branding/*.jpg; do [ -f "$$f" ] && install -m 0644 "$$f" "$(HCG_BRANDING_DIR)/"; done; true$(ECHO_END)

@@ -14,6 +14,20 @@ typedef NS_ENUM(NSInteger, HCGPanelMode) {
 
 FOUNDATION_EXPORT NSString *HCGPanelModeName(HCGPanelMode mode);
 
+// HCG account and Connected Devices status, provided ONLY by the standalone app
+// (over HCG Device Link's HCG Connect session). The jailbreak tweak, Settings
+// bundle and preview have no provider: they never sign in or hold tokens.
+@protocol HCGAccountProviding <NSObject>
+- (HCGAccountState)accountState;
+- (nullable NSString *)accountDisplayName;        // from the signed-in session; nil otherwise
+- (nullable NSString *)accountDetail;             // why not configured / why the session ended
+- (nullable NSArray<NSString *> *)organisationNames; // nil: not loaded (requires /me after sign-in)
+- (NSString *)connectionSummary;                  // HCG Device Link connection, in words
+- (BOOL)canSignIn;
+- (void)signInFromViewController:(UIViewController *)presenter;
+- (void)signOut;
+@end
+
 // Everything a panel screen needs, passed down the navigation stack.
 @interface HCGPanelContext : NSObject
 @property (nonatomic) HCGPanelMode mode;
@@ -28,6 +42,15 @@ FOUNDATION_EXPORT NSString *HCGPanelModeName(HCGPanelMode mode);
 // Sources/Platform/App/DeviceLink). nil in the jailbreak package, the Settings
 // bundle and the preview harness, which never connect to HCG Server.
 @property (nonatomic, copy, nullable) UIViewController *_Nullable (^connectedDevicesScreen)(HCGPanelContext *context);
+// Standalone app only (see HCGAccountProviding). nil everywhere else.
+@property (nonatomic, strong, nullable) id<HCGAccountProviding> accountProvider;
+// Set by the panel home: a short success/failure message shown to the user.
+@property (nonatomic, copy, nullable) void (^showFeedback)(NSString *message, BOOL success);
+// Switches the home to another section (set by the panel home).
+@property (nonatomic, copy, nullable) void (^showSection)(NSInteger section);
+@property (nonatomic, readonly) HCGHost host;
+@property (nonatomic, readonly) HCGToolEnvironment toolEnvironment;
+- (void)feedback:(NSString *)message success:(BOOL)success;
 @property (nonatomic, readonly) BOOL insideOverlay;                  // closePanel != nil
 // YES only where the system-wide edge handle and overlay actually exist
 // (SpringBoard overlay, Settings bundle, preview simulation). NO in the

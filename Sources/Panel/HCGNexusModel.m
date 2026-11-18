@@ -14,6 +14,7 @@ NSNotificationName const HCGNexusModelDidChangeNotification = @"HCGNexusModelDid
         _launcher = launcher;
         _workspaceStore = [[HCGWorkspaceStore alloc] initWithStore:store];
         _recents = [[HCGRecents alloc] initWithStore:store];
+        _appLibrary = [[HCGAppLibrary alloc] initWithStore:store];
         _settings = [HCGSettings defaultSettings];
         [self reloadWithoutNotifying];
     }
@@ -29,6 +30,15 @@ NSNotificationName const HCGNexusModelDidChangeNotification = @"HCGNexusModelDid
     _settings = [HCGSettings settingsFromStore:_store];
     [_workspaceStore load];
     [_recents load];
+    [_appLibrary load];
+    NSUInteger imported = 0;
+    _lastMigrationOutcome = [HCGLayoutMigration migrateStore:_store workspaceStore:_workspaceStore library:_appLibrary imported:&imported];
+    if (_lastMigrationOutcome == HCGLayoutMigrationMigrated) {
+        _lastMigrationImported = imported;
+        [_workspaceStore load];
+        [_appLibrary load];
+        [_notifier postWorkspacesChanged];
+    }
 }
 
 - (void)notifyLocal {
@@ -70,6 +80,31 @@ NSNotificationName const HCGNexusModelDidChangeNotification = @"HCGNexusModelDid
     [_recents clear];
     [_notifier postWorkspacesChanged];
     [self notifyLocal];
+}
+
+- (void)appsDidChange {
+    [_notifier postWorkspacesChanged];
+    [self notifyLocal];
+}
+
+- (NSUInteger)importShortcutsFromWorkspaces {
+    [HCGLayoutMigration clearDeclinedInStore:_store];
+    NSUInteger added = [HCGLayoutMigration importShortcutsFromWorkspaces:_workspaceStore intoLibrary:_appLibrary];
+    [self reload];
+    [_notifier postWorkspacesChanged];
+    return added;
+}
+
+- (BOOL)restorePreviousLayout:(NSError **)error {
+    if (![HCGLayoutMigration restorePreviousLayoutInStore:_store error:error]) return NO;
+    _lastMigrationImported = 0;
+    [self reload];
+    [_notifier postWorkspacesChanged];
+    return YES;
+}
+
+- (BOOL)hasLayoutBackup {
+    return [HCGLayoutMigration hasBackupInStore:_store];
 }
 
 - (NSArray<HCGIntegrationStatus *> *)integrationStatuses {

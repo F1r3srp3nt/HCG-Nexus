@@ -120,6 +120,28 @@ jobs:
           else
             echo "::error::HCG Nexus is not running 8 s after launch (crash?)"; exit 1
           fi
+      - name: Screenshot every section (standard, largest text, increased contrast)
+        run: |
+          APP_ID=com.hakmicapitalgroup.hcgnexus.app
+          shot() { # section, file
+            xcrun simctl terminate "$SIM_UDID" "$APP_ID" >/dev/null 2>&1 || true
+            xcrun simctl launch "$SIM_UDID" "$APP_ID" -HCGNexusSection "$1" >/dev/null
+            sleep 4
+            xcrun simctl io "$SIM_UDID" screenshot "screenshots/$2.png"
+            xcrun simctl spawn "$SIM_UDID" launchctl list | grep -q "$APP_ID" || { echo "::error::crashed on section $1"; exit 1; }
+          }
+          i=0
+          for name in 1-overview 2-workspaces 3-tools 4-hcg-products 5-connected-devices 6-apps 7-account; do
+            shot "$i" "section-$name"; i=$((i+1))
+          done
+          xcrun simctl ui "$SIM_UDID" content_size accessibility-extra-extra-extra-large || true
+          shot 0 "a11y-overview-largest-text"
+          shot 5 "a11y-apps-largest-text"
+          xcrun simctl ui "$SIM_UDID" content_size large || true
+          xcrun simctl ui "$SIM_UDID" increase_contrast enabled || true
+          shot 0 "a11y-overview-increased-contrast"
+          xcrun simctl ui "$SIM_UDID" increase_contrast disabled || true
+          ls -l screenshots
       - name: Unsigned device build (Release)
         run: |
           xcodebuild -project HCGNexus.xcodeproj -scheme HCGNexus -configuration Release \

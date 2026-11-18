@@ -269,7 +269,10 @@
 }
 
 - (void)overlayApplySettings:(HCGSettings *)settings {
+    BOOL glassChanged = !_appliedSettings || fabs(_appliedSettings.panelOpacity - settings.panelOpacity) > 0.001 ||
+                        _appliedSettings.panelBlur != settings.panelBlur;
     _appliedSettings = [settings copy];
+    if (glassChanged && _panelHost) [self rebuildPanelBackground];
     _handle.illumination = settings.handleOpacity;
     _handle.onLeftEdge = settings.handleSide == HCGHandleSideLeft;
     [self layoutOverlay];
@@ -300,6 +303,8 @@
             self->_dimming.alpha = 1;
         };
         void (^done)(BOOL) = ^(BOOL finished) {
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            if (strongSelf && strongSelf->_coordinator.stateMachine.isPresented) [strongSelf->_home panelDidAppear];
             UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, [weakSelf panelAccessibilityFocus]);
             [weakSelf.coordinator panelTransitionFinished:generation];
         };
@@ -397,7 +402,7 @@
 
 - (void)rebuildPanelBackground {
     [_panelBackground removeFromSuperview];
-    _panelBackground = [HCGTheme makePanelBackgroundWithCornerRadius:22];
+    _panelBackground = [HCGTheme makePanelBackgroundWithCornerRadius:22 settings:_appliedSettings];
     _panelBackground.frame = _panelHost.bounds;
     _panelBackground.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [_panelHost insertSubview:_panelBackground atIndex:0];

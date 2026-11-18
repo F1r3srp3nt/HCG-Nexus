@@ -26,3 +26,8 @@
 #import "HCGOverlayPolicy.h"
 #import "HCGOverlayCoordinator.h"
 #import "HCGDiagnostics.h"
+#import "HCGAppLibrary.h"
+#import "HCGToolCatalog.h"
+#import "HCGProductCatalog.h"
+#import "HCGAccount.h"
+#import "HCGLayoutMigration.h"

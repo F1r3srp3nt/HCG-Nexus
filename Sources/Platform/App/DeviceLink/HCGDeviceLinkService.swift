@@ -102,7 +102,13 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
         let connectAuth = HCGConnectAuth(configuration: configuration, expectedContract: HCGLinkService.contract)
         auth = connectAuth
         session = HCGConnectSession(auth: connectAuth, store: SecretTokenStore(store: store))
+        // Shared guard (Sources/Core/HCGAccount): Nexus's own client only, never another
+        // HCG product's (Store, Executable Maker, HCG AI, ...), with the app's own redirect scheme.
+        let guardrail = HCGAccountConfiguration(clientID: HCGLinkService.infoString(bundle, "HCGConnectClientID"),
+                                                redirectURI: HCGLinkService.infoString(bundle, "HCGConnectRedirectURI"))
         if let problem = configuration.problem(expectedContract: HCGLinkService.contract) {
+            account = .notConfigured(problem)
+        } else if let problem = guardrail.problem {
             account = .notConfigured(problem)
         } else {
             account = .signedOut
