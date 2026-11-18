@@ -27,7 +27,34 @@ Sources inspected on 2026-11-12, at the default branches as shallow clones:
 * `Sources/Panel/HCGActionRunner.m`: turns a status into a launch or an
   actionable error.
 * Host tests: `testUnconfiguredIntegrationsAreNotConnected` and
-  `testConfiguredIntegrations` in `Tests/Host/ModelTests.m`.
+  `testConfiguredIntegrations` in `Tests/Host/ModelTests.m`; Command Mode
+  state mapping in `Tests/Host/CommandModeTests.m`.
+* `Sources/Core/HCGCommandMode.{h,m}`: integration status → Command Mode
+  display state (below).
+
+## Command Mode connection states
+
+Command Mode (`docs/FEATURES.md`) shows each offered integration with one of
+six states. The mapping is `+[HCGCommandModeStatus displayForIntegrationStatus:]`
+in `Sources/Core/HCGCommandMode.m`, host-tested in
+`Tests/Host/CommandModeTests.m`. It only reads `HCGIntegrationStatus`; it never
+probes a service.
+
+| Display state | Produced when | Possible today? |
+|---|---|---|
+| **Unknown** | no status, unrecognised identifier, installation cannot be checked, or reachability / sign-in not reported | yes (e.g. no install probe) |
+| **Unavailable** | no phone-reachable contract (Server, Executable Maker), app not installed, or this build cannot open apps (standalone app) | yes |
+| **Off** | the integration exists but is not turned on in HCG Nexus settings | yes |
+| **Disconnected** | turned on, but its service reports *unreachable* | **no** — no contract publishes reachability |
+| **Signed out** | turned on and reachable, but the session is *signed out* | **no** — Nexus holds no session; HCG Connect is the authority |
+| **Connected** | turned on, app installed, and reachability/sign-in either reported fine or not applicable (Terminal/News: Nexus opens the app; it shows no session or sync) | yes |
+
+`HCGIntegrationStatus` carries the facts this needs: `recognized`,
+`contractAvailable`, `configured`, `reachability` and `session`. HCG Terminal
+and HCG News set reachability and session to *NotApplicable*; everything else
+leaves them at their default, *Unknown*. When an HCG Connect-authorised status
+contract exists, filling in those two fields is all Command Mode needs to show
+*Disconnected* or *Signed out*.
 
 ## What would unlock more
 

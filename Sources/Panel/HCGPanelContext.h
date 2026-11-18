@@ -24,6 +24,10 @@ FOUNDATION_EXPORT NSString *HCGPanelModeName(HCGPanelMode mode);
 @property (nonatomic, copy, nullable) void (^closePanel)(void);       // animated close
 @property (nonatomic, copy, nullable) void (^closePanelImmediately)(void);
 @property (nonatomic, copy, nullable) NSDictionary *_Nonnull (^diagnosticsProvider)(void);
+// Shows Command Mode inside the host (SpringBoard overlay / preview harness:
+// on the rotated overlay canvas). When nil, the home screen presents it full
+// screen itself (standalone app).
+@property (nonatomic, copy, nullable) void (^presentCommandMode)(void);
 @property (nonatomic, readonly) BOOL insideOverlay;                  // closePanel != nil
 // YES only where the system-wide edge handle and overlay actually exist
 // (SpringBoard overlay, Settings bundle, preview simulation). NO in the

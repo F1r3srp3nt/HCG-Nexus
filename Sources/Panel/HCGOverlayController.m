@@ -4,6 +4,7 @@
 #import "HCGPanelContext.h"
 #import "HCGActionRunner.h"
 #import "HCGPanelHomeViewController.h"
+#import "HCGCommandModeViewController.h"
 
 #pragma mark - Pass-through views
 
@@ -81,6 +82,7 @@
     UIView *_panelBackground;
     UINavigationController *_navigation;
     HCGPanelHomeViewController *_home;
+    HCGCommandModeViewController *_commandMode; // non-nil only while Command Mode is on screen
     HCGPanelContext *_context;
     HCGActionRunner *_runner;
     HCGSettings *_appliedSettings;
@@ -225,6 +227,7 @@
     _context.closePanel = ^{ [weakSelf.coordinator requestClose]; };
     _context.closePanelImmediately = ^{ [weakSelf.coordinator requestCloseImmediately]; };
     _context.diagnosticsProvider = ^NSDictionary *{ return [weakSelf diagnostics] ?: @{}; };
+    _context.presentCommandMode = ^{ [weakSelf presentCommandMode]; };
 
     _home = [[HCGPanelHomeViewController alloc] initWithContext:_context];
     _navigation = [[UINavigationController alloc] initWithRootViewController:_home];
@@ -262,6 +265,7 @@
     _handle.accessibilityElementsHidden = !visible;
     if (!visible) {
         _handle.highlighted = NO;
+        [self removeCommandModeRestoringPanel:NO];
         [self endTextInput];
     } else {
         [self layoutOverlay];
@@ -314,6 +318,7 @@
         return;
     }
 
+    [self removeCommandModeRestoringPanel:NO];
     [self endTextInput];
     void (^changes)(void) = ^{
         self->_panelHost.transform = offscreen;
@@ -343,6 +348,7 @@
 }
 
 - (void)finishClosing {
+    [self removeCommandModeRestoringPanel:NO];
     if (_navigation.presentedViewController) [_navigation dismissViewControllerAnimated:NO completion:nil];
     _panelHost.hidden = YES;
     _panelHost.alpha = 0;
@@ -356,6 +362,88 @@
 
 - (id)panelAccessibilityFocus {
     return [_home accessibilityFocusElement] ?: _panelHost;
+}
+
+#pragma mark Command Mode
+
+// Command Mode lives on the overlay canvas above the panel, so it follows the
+// canvas's manual rotation and is torn down by every close path (lock, cover
+// sheet, disable, outside close, a launched shortcut) through finishClosing.
+// Its own 30% scrim replaces the panel dimming while it is shown, so what is
+// behind it is dimmed once, not twice.
+- (void)presentCommandMode {
+    if (_commandMode || !_canvas || !_coordinator.stateMachine.isPresented || _panelHost.hidden) return;
+    [self endTextInput];
+    HCGCommandModeViewController *commandMode = [[HCGCommandModeViewController alloc] initWithContext:_context];
+    commandMode.usesHostContentInsets = YES;
+    __weak typeof(self) weakSelf = self;
+    commandMode.dismissHandler = ^{ [weakSelf dismissCommandMode]; };
+    [_container addChildViewController:commandMode];
+    commandMode.view.frame = _canvas.bounds;
+    commandMode.view.autoresizingMask = UIViewAutoresizingNone;
+    [_canvas addSubview:commandMode.view];
+    [commandMode didMoveToParentViewController:_container];
+    _commandMode = commandMode;
+    [self layoutOverlay];
+    [commandMode startUpdates];
+
+    _panelHost.accessibilityElementsHidden = YES;
+    BOOL animated = [HCGCommandModeStatus animatesTransitionsWithReduceMotion:_coordinator.reduceMotion
+                                                            animationsEnabled:_appliedSettings.animationsEnabled];
+    void (^changes)(void) = ^{
+        commandMode.view.alpha = 1;
+        self->_panelHost.alpha = 0;
+        self->_dimming.alpha = 0;
+    };
+    if (animated) {
+        commandMode.view.alpha = 0;
+        [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState animations:changes completion:nil];
+    } else {
+        changes();
+    }
+    UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, [commandMode accessibilityFocusElement]);
+}
+
+- (void)dismissCommandMode {
+    if (!_commandMode) return;
+    HCGCommandModeViewController *commandMode = _commandMode;
+    BOOL animated = [HCGCommandModeStatus animatesTransitionsWithReduceMotion:_coordinator.reduceMotion
+                                                            animationsEnabled:_appliedSettings.animationsEnabled];
+    __weak typeof(self) weakSelf = self;
+    void (^changes)(void) = ^{
+        commandMode.view.alpha = 0;
+        self->_panelHost.alpha = 1;
+        self->_dimming.alpha = 1;
+    };
+    void (^done)(BOOL) = ^(BOOL finished) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf && strongSelf->_commandMode == commandMode) [strongSelf removeCommandModeRestoringPanel:YES];
+    };
+    if (animated) {
+        [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState animations:changes completion:done];
+    } else {
+        changes();
+        done(YES);
+    }
+}
+
+// Immediate removal. restorePanel is NO on close paths, where the panel and
+// dimming are being hidden anyway.
+- (void)removeCommandModeRestoringPanel:(BOOL)restorePanel {
+    HCGCommandModeViewController *commandMode = _commandMode;
+    if (!commandMode) return;
+    _commandMode = nil;
+    [commandMode.view.layer removeAllAnimations];
+    [commandMode stopUpdates];
+    [commandMode willMoveToParentViewController:nil];
+    [commandMode.view removeFromSuperview];
+    [commandMode removeFromParentViewController];
+    _panelHost.accessibilityElementsHidden = NO;
+    if (restorePanel) {
+        _panelHost.alpha = 1;
+        _dimming.alpha = 1;
+        UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, [self panelAccessibilityFocus]);
+    }
 }
 
 #pragma mark Gestures
@@ -434,6 +522,10 @@
     _canvas.center = CGPointMake(CGRectGetMidX(bounds), CGRectGetMidY(bounds));
     _canvas.transform = CGAffineTransformMakeRotation(angle);
     _dimming.frame = _canvas.bounds;
+    if (_commandMode) {
+        _commandMode.view.frame = _canvas.bounds;
+        _commandMode.hostContentInsets = UIEdgeInsetsMake(insets.top, insets.left, insets.bottom, insets.right);
+    }
 
     HCGHandleLayoutInput input;
     input.canvasWidth = width;

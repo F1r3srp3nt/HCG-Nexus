@@ -21,6 +21,11 @@ static NSString *const kNotConnected = @"Not connected";
 @synthesize headline = _headline;
 @synthesize detail = _detail;
 @synthesize launchBundleIdentifier = _launchBundleIdentifier;
+@synthesize recognized = _recognized;
+@synthesize contractAvailable = _contractAvailable;
+@synthesize configured = _configured;
+@synthesize reachability = _reachability;
+@synthesize session = _session;
 
 - (BOOL)canLaunch {
     return (self.state == HCGIntegrationStateReady || self.state == HCGIntegrationStateUnverified)
@@ -63,6 +68,11 @@ static NSString *const kNotConnected = @"Not connected";
     status.state = HCGIntegrationStateNotConnected;
     status.headline = kNotConnected;
     status.detail = @"";
+    status.recognized = [[self allIdentifiers] containsObject:identifier];
+    status.contractAvailable = NO;
+    status.configured = NO;
+    status.reachability = HCGIntegrationReachabilityUnknown;
+    status.session = HCGIntegrationSessionUnknown;
     return status;
 }
 
@@ -95,6 +105,14 @@ static NSString *const kNotConnected = @"Not connected";
 + (HCGIntegrationStatus *)statusForIdentifier:(NSString *)identifier settings:(HCGSettings *)settings probe:(id<HCGAppInstallationProbe>)probe {
     HCGIntegrationStatus *status = [self baseStatusForIdentifier:identifier];
 
+    if ([identifier isEqualToString:HCGIntegrationTerminal] || [identifier isEqualToString:HCGIntegrationNews]) {
+        // App-launch integrations: Nexus opens the app. There is no service
+        // for Nexus to reach and no Nexus-held session to sign in to.
+        status.contractAvailable = YES;
+        status.reachability = HCGIntegrationReachabilityNotApplicable;
+        status.session = HCGIntegrationSessionNotApplicable;
+    }
+
     if ([identifier isEqualToString:HCGIntegrationTerminal]) {
         NSString *bundle = nil;
         if (settings.terminalVariant == HCGTerminalVariantStandard) bundle = HCGTerminalBundleIdentifier;
@@ -103,6 +121,7 @@ static NSString *const kNotConnected = @"Not connected";
             status.detail = @"Choose HCG Terminal or HCG Terminal Unleashed in HCG Nexus settings. Nexus can open the app; HCG Terminal publishes no deep links or status interface.";
             return status;
         }
+        status.configured = YES;
         [self applyAppBundle:bundle toStatus:status probe:probe
                  openingNote:@"Opens the app. HCG Terminal publishes no deep links, so sessions and build history stay inside the app."];
         return status;
@@ -113,6 +132,7 @@ static NSString *const kNotConnected = @"Not connected";
             status.detail = @"Turn on HCG News in HCG Nexus settings to open the app from the panel. Headlines are unavailable: the HCG News content API is not deployed.";
             return status;
         }
+        status.configured = YES;
         [self applyAppBundle:HCGNewsBundleIdentifier toStatus:status probe:probe
                  openingNote:@"Opens the app. No headlines are shown because the HCG News content API is still a proposal."];
         return status;
