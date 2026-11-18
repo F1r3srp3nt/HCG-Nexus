@@ -112,8 +112,9 @@ static NSString *HCGHaloString(NSDictionary *d, NSString *key) {
                 canSwitch:NO note:@"Turn HCG Halo back on in its own settings."];
     }
     if ([engine isEqualToString:@"fault"]) {
-        return [self make:HCGHaloBorderStateDisabled detail:@"HCG Halo stopped after an error and removed its border." on:on
-                canSwitch:NO note:@"See HCG Halo's status page; a respring restarts it."];
+        // HCG Halo's own switch would accept a change here, but nothing draws until HCG Halo is restarted.
+        return [self make:HCGHaloBorderStateDisabled detail:@"HCG Halo stopped after an error, so nothing is drawn." on:on
+                canSwitch:NO note:@"In Settings › HCG Halo, turn Enable off and on again."];
     }
     if ([engine isEqualToString:@"incompatible"]) {
         return [self make:HCGHaloBorderStateIncompatible detail:@"HCG Halo reports this iOS version is not supported." on:on

@@ -106,7 +106,14 @@ static void testHaloDisabledStates(void) {
         HCGHaloBorderStatus *s = [HCGHaloBorderStatus statusWithFacts:f];
         HCG_CHECK_EQ_INT(s.state, HCGHaloBorderStateDisabled);
         HCG_CHECK(!s.canSwitch, "%s: not switchable", [engine UTF8String]);
+        HCG_CHECK(s.switchNote.length > 0, "%s: says how to recover", [engine UTF8String]);
     }
+    // Fault: never Ready, and the remedy HCG Halo needs (Enable off and on).
+    HCGHaloBorderFacts *fault = ReadyFacts();
+    fault.haloStatus = HaloStatus(@"fault", @"off", nil);
+    HCGHaloBorderStatus *faulted = [HCGHaloBorderStatus statusWithFacts:fault];
+    HCG_CHECK_EQ_INT(faulted.state, HCGHaloBorderStateDisabled);
+    HCG_CHECK([faulted.switchNote rangeOfString:@"Enable off and on"].location != NSNotFound, "fault remedy: %s", [faulted.switchNote UTF8String]);
 
     // Halo 0.2.0~beta1 (no switch API): state is still truthful, the switch points to Halo's settings.
     HCGHaloBorderFacts *older = ReadyFacts();
