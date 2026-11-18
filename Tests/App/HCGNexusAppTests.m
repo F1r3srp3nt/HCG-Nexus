@@ -381,7 +381,7 @@ static void HCGCollectButtons(UIView *view, NSMutableArray<UIButton *> *out) {
     window.hidden = YES;
 }
 
-// Dynamic Type is applied exactly once: at every size our font matches the system font of the same style.
+// Dynamic Type is applied exactly once: at every size our font stays within 20% of the system font of the same style.
 - (void)testDynamicTypeScalesOnce {
     NSArray<UIContentSizeCategory> *sizes = @[ UIContentSizeCategoryExtraSmall, UIContentSizeCategoryLarge,
                                                UIContentSizeCategoryExtraExtraExtraLarge,
@@ -393,7 +393,10 @@ static void HCGCollectButtons(UIView *view, NSMutableArray<UIButton *> *out) {
         for (UIFontTextStyle style in styles) {
             CGFloat ours = [HCGTheme fontForTextStyle:style weight:UIFontWeightRegular compatibleWithTraitCollection:traits].pointSize;
             CGFloat system = [UIFont preferredFontForTextStyle:style compatibleWithTraitCollection:traits].pointSize;
-            XCTAssertEqualWithAccuracy(ours, system, 0.5, @"%@ at %@", style, size);
+            // UIFontMetrics (needed for live updates) follows Apple's scaling curve, which differs slightly from
+            // the system's size table (e.g. body at the largest size: 48 vs 53 pt). Scaling twice drew ~3x.
+            XCTAssertGreaterThanOrEqual(ours, system * 0.8, @"%@ at %@: %.0f vs %.0f", style, size, ours, system);
+            XCTAssertLessThanOrEqual(ours, system * 1.2, @"%@ at %@: %.0f vs %.0f", style, size, ours, system);
         }
     }
     XCTAssertEqualWithAccuracy([HCGTheme defaultPointSizeForTextStyle:UIFontTextStyleBody], 17.0, 0.01);
