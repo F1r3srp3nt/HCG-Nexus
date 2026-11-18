@@ -75,6 +75,19 @@ gmake package FINALPACKAGE=1 HCG_ENV=rootless   # same package, plain Theos (GNU
 scripts/check.sh                   # add THEOS=… to also compile/link the app target
 ```
 
+## Optional HCG Halo panel border (0.3.0~beta1)
+
+The jailbreak package publishes a versioned, declarative **border definition**
+(`<jbroot>/Library/PreferenceBundles/HCGNexusPrefs.bundle/HaloBorder.plist`) and a
+small in-process **border interface** (live panel host view and open/close,
+geometry and workspace events). With **HCG Halo 0.2.0~beta1** or later
+installed and set to *HCG Nexus Panel*, Halo draws its animated border around
+the live panel. Nexus draws nothing itself and never requires Halo. Settings ›
+HCG Nexus › Appearance › **Halo border** opens Halo's own border page. The
+contract, the exact location and the test matrix are in
+[`docs/HALO-BORDER.md`](docs/HALO-BORDER.md). Preview evidence only so far; not
+yet device-tested.
+
 ## Implemented in the jailbreak package (milestone 1)
 
 * **Edge handle.** Right or left side, adjustable position and visibility.
