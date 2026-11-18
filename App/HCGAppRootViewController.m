@@ -3,6 +3,8 @@
 #import "HCGPanelHomeViewController.h"
 #import "HCGAppPlatform.h"
 #import "HCGTheme.h"
+#import "HCGConnectedDevicesViewController.h"
+#import "HCGAppAccountProvider.h"
 
 @implementation HCGAppRootViewController {
     HCGNexusModel *_model;
@@ -24,6 +26,15 @@
         _context.diagnosticsProvider = ^NSDictionary *{
             return [weakSelf diagnostics] ?: @{};
         };
+        // HCG Device Link (standalone app only). The service is created when the
+        // screen is first opened, never at launch.
+        _context.connectedDevicesScreen = ^UIViewController *(HCGPanelContext *context) {
+            return [[HCGConnectedDevicesViewController alloc] initWithContext:context service:HCGSharedLinkService()];
+        };
+        // HCG sign-in lives only in this app (Device Link's HCG Connect session; PKCE + Keychain).
+        _context.accountProvider = [[HCGAppAccountProvider alloc] initWithServiceProvider:^id<HCGLinkServicing> {
+            return HCGSharedLinkService();
+        }];
     }
     return self;
 }
@@ -65,6 +76,9 @@
     [self rebuildPanelBackground];
 
     HCGPanelHomeViewController *home = [[HCGPanelHomeViewController alloc] initWithContext:_context];
+    // `-HCGNexusSection <n>` (launch argument) opens a section directly: used for CI screenshots.
+    id section = [[NSUserDefaults standardUserDefaults] objectForKey:@"HCGNexusSection"];
+    if ([section respondsToSelector:@selector(integerValue)]) [home selectSection:[section integerValue]];
     _navigation = [[UINavigationController alloc] initWithRootViewController:home];
     _navigation.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
     _navigation.view.backgroundColor = [UIColor clearColor];
@@ -110,6 +124,7 @@
 }
 
 - (void)modelDidChange {
+    [self rebuildPanelBackground]; // panel opacity / blur may have changed
     UIViewController *root = _navigation.viewControllers.firstObject;
     if ([root isKindOfClass:[HCGPanelHomeViewController class]]) [(HCGPanelHomeViewController *)root reloadContent];
 }
@@ -120,7 +135,7 @@
 
 - (void)rebuildPanelBackground {
     [_panelBackground removeFromSuperview];
-    _panelBackground = [HCGTheme makePanelBackgroundWithCornerRadius:22];
+    _panelBackground = [HCGTheme makePanelBackgroundWithCornerRadius:22 settings:_model.settings];
     _panelBackground.frame = _panel.bounds;
     _panelBackground.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [_panel insertSubview:_panelBackground atIndex:0];

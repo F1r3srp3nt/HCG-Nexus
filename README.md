@@ -1,22 +1,24 @@
 # HCG Nexus
 
 An HCG command panel with searchable shortcuts, workspaces, recent actions,
-HCG integration status and settings. It uses obsidian surfaces,
+HCG integration status, settings and a Command Mode status view. It uses obsidian surfaces,
 brushed-chrome hairlines and restrained cyan light. It ships in two
 separately built forms:
 
 | Route | What you get | Build | Docs |
 |---|---|---|---|
-| **1. Standalone app** | iPhone/iPad app (sandboxed). Workspaces, shortcuts, search, recents; **link** shortcuts open via iOS. Shows an **APP MODE** badge; no system-wide overlay. | `HCGNexus.xcodeproj`, scheme **HCGNexus** (Xcode, or HCG Executable Maker → IPA) | [`docs/STANDALONE-APP.md`](docs/STANDALONE-APP.md) |
+| **1. Standalone app** | iPhone/iPad app (sandboxed). Workspaces, shortcuts, search, recents; **link** shortcuts open via iOS. **Connected Devices** (HCG Device Link) pairs with your HCG Server and shows shared reports. Shows an **APP MODE** badge; no system-wide overlay. | `HCGNexus.xcodeproj`, scheme **HCGNexus** (Xcode, or HCG Executable Maker → IPA) | [`docs/STANDALONE-APP.md`](docs/STANDALONE-APP.md) |
 | **2. Jailbreak package** | System-wide cyan edge handle over any app, opening apps by bundle ID, Settings › HCG Nexus. | Theos `.deb` via `scripts/build-jailbreak-deb.sh` on a Mac (or the manual *Build package* workflow) | [`docs/INSTALL-AND-RECOVERY.md`](docs/INSTALL-AND-RECOVERY.md) |
 
 Both routes share `Sources/Core` and `Sources/Panel`. They never share data:
 the app keeps its own sandboxed store, separate from the tweak's preferences
 and the preview harness.
 
-> **Status:** 0.2.0, first device release candidate. What works and how it
-> was verified: [`docs/FEATURES.md`](docs/FEATURES.md). First run on the
-> phone: [`docs/DEVICE-CHECKLIST.md`](docs/DEVICE-CHECKLIST.md).
+> **Status:** 0.3.1~beta1: the redesign + Command Mode + the optional HCG Halo border interface. It has a smoked-glass panel and seven sections: Overview,
+> Workspaces, Tools, HCG Products, Connected Devices, Apps and Account. What works and how it was verified:
+> [`docs/FEATURES.md`](docs/FEATURES.md). Device checks: [`docs/DEVICE-CHECKLIST.md`](docs/DEVICE-CHECKLIST.md).
+> HCG login readiness: [`docs/HCG-CONNECT-REGISTRATION.md`](docs/HCG-CONNECT-REGISTRATION.md).
+> Branding provenance and the missing banner: [`Resources/Branding/README.md`](Resources/Branding/README.md).
 > * **Jailbreak package:** confirmed target **iPhone 13 Pro · iOS 16.5 ·
 >   Dopamine (rootless) · ElleKit · Sileo**. Its Xcode-built rootless package
 >   passes the strict arm64e ABI check.
@@ -37,10 +39,16 @@ Makefile, control, HCGNexus.plist   Theos tweak (filter: com.apple.springboard o
 Tweak/Tweak.x              %ctor only; installs no hooks (activation path: docs/RUNTIME.md)
 Sources/
   Core/                    Foundation-only, host-tested: actions, workspaces + presets, store,
-                           settings, recents, search, integrations, geometry, state machine, policy
+                           settings, recents, search, integrations, geometry, state machine, policy,
+                           Command Mode status mapping
   Panel/                   shared UIKit screens: theme, home, workspaces, shortcut editor, settings,
-                           action runner, model façade (+ overlay controller/edge handle: tweak only)
+                           Command Mode + device status monitor, action runner, model façade
+                           (+ overlay controller/edge handle: tweak only)
   Platform/App/            standalone app: UserDefaults store, UIApplication link launcher (public APIs)
+  Platform/App/DeviceLink/ standalone app only: Connected Devices (HCG Device Link): Swift facade,
+                           Objective-C screens (docs/CONNECTED_DEVICES.md)
+HCGDeviceLink/             vendored HCG Device Link Swift client from HCG-Server (unmodified;
+                           VENDORED.sha256); linked into the app target only
   Platform/SpringBoard/    tweak: bootstrap, CFPreferences + Darwin notifier, LaunchServices launcher,
                            lock monitor, overlay window
   Platform/Preview/        preview harness: simulated launcher and store
@@ -58,7 +66,7 @@ scripts/
   inspect-app.py           built .app: Info.plist, icons, platform, no private APIs
 .github/workflows/build-package.yml   MANUAL ONLY: app (simulator, tests, unsigned device) + jailbreak .deb
 docs/                      FEATURES, DEVICE-CHECKLIST, INSTALL-AND-RECOVERY, STANDALONE-APP, COMPATIBILITY,
-                           RUNTIME, ENVIRONMENT, INTEGRATIONS, VALIDATION, ICONS
+                           RUNTIME, ENVIRONMENT, INTEGRATIONS, CONNECTED_DEVICES, VALIDATION, ICONS
 ```
 
 ## Quick start
@@ -74,6 +82,19 @@ gmake package FINALPACKAGE=1 HCG_ENV=rootless   # same package, plain Theos (GNU
 # Checks (Linux or Mac)
 scripts/check.sh                   # add THEOS=… to also compile/link the app target
 ```
+
+## Optional HCG Halo panel border (since 0.3.1~beta1)
+
+The jailbreak package publishes a versioned, declarative **border definition**
+(`<jbroot>/Library/PreferenceBundles/HCGNexusPrefs.bundle/HaloBorder.plist`) and a
+small in-process **border interface** (live panel host view and open/close,
+geometry and workspace events). With **HCG Halo 0.2.0~beta1** or later
+installed and set to *HCG Nexus Panel*, Halo draws its animated border around
+the live panel. Nexus draws nothing itself and never requires Halo. Settings ›
+HCG Nexus › Appearance › **Halo border** opens Halo's own border page. The
+contract, the exact location and the test matrix are in
+[`docs/HALO-BORDER.md`](docs/HALO-BORDER.md). Preview evidence only so far; not
+yet device-tested.
 
 ## Implemented in the jailbreak package (milestone 1)
 
@@ -104,8 +125,17 @@ scripts/check.sh                   # add THEOS=… to also compile/link the app 
   * Terminal and News open their apps once enabled.
   * Server and Executable Maker are not offered: they have no
     phone-reachable contract yet.
-  * No credentials are stored and no schemes are invented.
+  * No credentials are stored and no schemes are invented. The standalone
+    app's Connected Devices is the one exception: it keeps its own HCG Connect
+    sign-in in the Keychain.
   * See [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md).
+* **Command Mode** (both routes; grid button in the panel header). A
+  translucent status view over a light 30% dim: battery, Low Power Mode,
+  network path, storage and time from public iOS APIs ("Unavailable" when iOS
+  gives no value), the active workspace's shortcuts, and HCG integration
+  states (Unknown / Unavailable / Off / Disconnected / Signed out /
+  Connected). Static decoration only; no network requests. See
+  [`docs/FEATURES.md`](docs/FEATURES.md#command-mode-both-routes-branch-claudenexus-command-mode).
 * **Settings.** Available in the panel and in the Settings app:
   * enable switch
   * handle side, position, visibility and keyboard zone

@@ -35,26 +35,14 @@ NSString *HCGBuildDescription(void) {
     return [NSString stringWithFormat:@"%@ (build %s, %s)", HCG_NEXUS_VERSION, HCG_BUILD_ID, HCG_BUILD_CONFIG];
 }
 
-typedef NS_ENUM(NSInteger, HCGSettingsSection) {
-    HCGSettingsSectionGeneral,
-    HCGSettingsSectionHandle,
-    HCGSettingsSectionMotion,
-    HCGSettingsSectionIntegrations,
-    HCGSettingsSectionWorkspaces,
-    HCGSettingsSectionMaintenance,
-    HCGSettingsSectionDiagnostics,
-    HCGSettingsSectionAppMode,      // standalone app only: what this build can do
-    HCGSettingsSectionAbout,        // HCG Repo product page (opens in Safari)
-};
-
 // Sections shown for a mode. The standalone app never shows the enable switch,
 // handle or motion controls: there is no system-wide overlay to control.
 NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
     if (mode == HCGPanelModeStandaloneApp) {
-        return @[ @(HCGSettingsSectionAppMode), @(HCGSettingsSectionIntegrations), @(HCGSettingsSectionWorkspaces), @(HCGSettingsSectionAbout),
-                  @(HCGSettingsSectionDiagnostics) ];
+        return @[ @(HCGSettingsSectionAppMode), @(HCGSettingsSectionConnectedDevices), @(HCGSettingsSectionGlass), @(HCGSettingsSectionIntegrations),
+                  @(HCGSettingsSectionWorkspaces), @(HCGSettingsSectionAbout), @(HCGSettingsSectionDiagnostics) ];
     }
-    return @[ @(HCGSettingsSectionGeneral), @(HCGSettingsSectionHandle), @(HCGSettingsSectionMotion), @(HCGSettingsSectionIntegrations),
+    return @[ @(HCGSettingsSectionGeneral), @(HCGSettingsSectionGlass), @(HCGSettingsSectionHandle), @(HCGSettingsSectionMotion), @(HCGSettingsSectionIntegrations),
               @(HCGSettingsSectionWorkspaces), @(HCGSettingsSectionMaintenance), @(HCGSettingsSectionAbout), @(HCGSettingsSectionDiagnostics) ];
 }
 
@@ -162,6 +150,14 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
     [self save:^(HCGSettings *s) { s.handleOpacity = slider.value; }];
 }
 
+- (void)panelOpacityChanged:(UISlider *)slider {
+    [self save:^(HCGSettings *s) { s.panelOpacity = slider.value; }];
+}
+
+- (void)panelBlurChanged:(UISegmentedControl *)control {
+    [self save:^(HCGSettings *s) { s.panelBlur = (HCGPanelBlur)control.selectedSegmentIndex; }];
+}
+
 - (void)keyboardZoneChanged:(UISwitch *)control {
     [self save:^(HCGSettings *s) { s.keyboardSafeZone = control.on; }];
 }
@@ -180,6 +176,10 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
 
 - (void)newsChanged:(UISwitch *)control {
     [self save:^(HCGSettings *s) { s.newsConnected = control.on; }];
+}
+
+- (void)sentinelChanged:(UISwitch *)control {
+    [self save:^(HCGSettings *s) { s.sentinelConnected = control.on; }];
 }
 
 - (UISlider *)sliderWithValue:(float)value min:(float)min action:(SEL)action label:(NSString *)label {
@@ -219,12 +219,14 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         case HCGSettingsSectionGeneral: return @"HCG Nexus";
         case HCGSettingsSectionHandle: return @"Edge handle";
         case HCGSettingsSectionMotion: return @"Motion & feedback";
+        case HCGSettingsSectionGlass: return @"Panel glass";
         case HCGSettingsSectionIntegrations: return @"HCG integrations";
         case HCGSettingsSectionWorkspaces: return @"Workspaces";
         case HCGSettingsSectionMaintenance: return @"Maintenance";
         case HCGSettingsSectionDiagnostics: return @"Diagnostics";
         case HCGSettingsSectionAppMode: return @"App mode";
         case HCGSettingsSectionAbout: return @"About";
+        case HCGSettingsSectionConnectedDevices: return @"Connected devices";
     }
     return nil;
 }
@@ -236,12 +238,17 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         case HCGSettingsSectionHandle:
             return @"The handle stays clear of the status bar, Notification and Control Centre pull zones and the home indicator. \"Keep above keyboard\" holds it in the upper part of the screen.";
         case HCGSettingsSectionMotion:
-            return @"Reduce Motion in iOS Accessibility settings always replaces sliding with a short fade.";
+            return @"Reduce Motion in iOS Accessibility settings always replaces sliding with a short fade and stops decorative animation.";
+        case HCGSettingsSectionGlass:
+            if ([HCGTheme reduceTransparency]) return @"Reduce Transparency is on in iOS Accessibility settings, so the panel is opaque and unblurred.";
+            return @"Lower opacity shows more of what is behind the panel. With blur off, Nexus keeps at least 60% opacity so text stays readable.";
         case HCGSettingsSectionIntegrations:
             if (self.context.isStandaloneApp) {
-                return @"In the standalone app, HCG integrations show their status only: opening another app by bundle identifier needs the jailbreak package. HCG Connect and ERP remain the authority for signed-in ecosystem access; Nexus stores no HCG credentials.";
+                return @"In the standalone app, HCG integrations show their status only: opening another app by bundle identifier needs the jailbreak package. HCG Connect and ERP remain the authority for signed-in ecosystem access. Only Connected Devices signs in to HCG Connect, and keeps that sign-in in this app's Keychain.";
             }
             return @"Opens the selected HCG app; neither app publishes deep links, so Nexus opens it at its start screen. HCG Connect and ERP remain the authority for signed-in ecosystem access; Nexus stores no HCG credentials.";
+        case HCGSettingsSectionConnectedDevices:
+            return @"Pair this app with an HCG Server you own (HCG Device Link) to see your other HCG devices and read the reports they share. HCG Connect identifies you and HCG decides what your account may do. Nothing is contacted until you act, and only while that screen is open.";
         case HCGSettingsSectionAppMode:
             return @"This is the sandboxed iPhone/iPad app. It keeps its own workspaces, separate from the jailbreak package and the preview harness. Ordinary app signing does not remove the iOS sandbox, so the system-wide edge handle and bundle-ID app launching are only available through the jailbreak package.";
         case HCGSettingsSectionDiagnostics:
@@ -272,12 +279,14 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         case HCGSettingsSectionGeneral: return 1;
         case HCGSettingsSectionHandle: return 4;
         case HCGSettingsSectionMotion: return 2;
-        case HCGSettingsSectionIntegrations: return self.context.isStandaloneApp ? (NSInteger)[self standaloneIntegrationIdentifiers].count : 2;
+        case HCGSettingsSectionGlass: return 2;
+        case HCGSettingsSectionIntegrations: return self.context.isStandaloneApp ? (NSInteger)[self standaloneIntegrationIdentifiers].count : 3;
         case HCGSettingsSectionWorkspaces: return 2;
         case HCGSettingsSectionMaintenance: return 1;
         case HCGSettingsSectionDiagnostics: return (NSInteger)_diagnostics.count;
         case HCGSettingsSectionAppMode: return (NSInteger)[self appModeRows].count;
         case HCGSettingsSectionAbout: return 1;
+        case HCGSettingsSectionConnectedDevices: return 1;
     }
     return 0;
 }
@@ -332,7 +341,7 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         NSArray *ids = [self standaloneIntegrationIdentifiers];
         return row >= 0 && (NSUInteger)row < ids.count ? ids[(NSUInteger)row] : nil;
     }
-    return nil; // overlay modes: rows 0-1 are the Terminal and News controls
+    return nil; // overlay modes: rows 0-2 are the Terminal, News and Sentinel controls
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -347,6 +356,16 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
                 case 2: return [self controlCell:@"Visibility" control:[self sliderWithValue:(float)s.handleOpacity min:(float)[HCGSettings minimumHandleOpacity] action:@selector(opacityChanged:) label:@"Handle visibility"] stacked:YES];
                 default: return [self controlCell:@"Keep above keyboard" control:[self switchOn:s.keyboardSafeZone action:@selector(keyboardZoneChanged:) label:@"Keep handle above keyboard area"] stacked:NO];
             }
+        case HCGSettingsSectionGlass: {
+            if (indexPath.row == 0) {
+                UISlider *slider = [self sliderWithValue:(float)s.panelOpacity min:(float)[HCGSettings minimumPanelOpacity] action:@selector(panelOpacityChanged:) label:@"Panel opacity"];
+                slider.enabled = ![HCGTheme reduceTransparency];
+                return [self controlCell:@"Opacity" control:slider stacked:YES];
+            }
+            UISegmentedControl *blur = [self segmentsWithItems:@[ @"Off", @"Light", @"Standard", @"Strong" ] selected:s.panelBlur action:@selector(panelBlurChanged:) label:@"Panel blur"];
+            blur.enabled = ![HCGTheme reduceTransparency];
+            return [self controlCell:@"Blur" control:blur stacked:YES];
+        }
         case HCGSettingsSectionMotion:
             if (indexPath.row == 0) return [self controlCell:@"Animations" control:[self switchOn:s.animationsEnabled action:@selector(animationsChanged:) label:@"Animations"] stacked:NO];
             return [self controlCell:@"Haptics" control:[self switchOn:s.hapticsEnabled action:@selector(hapticsChanged:) label:@"Haptics"] stacked:NO];
@@ -356,6 +375,9 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
             }
             if (!self.context.isStandaloneApp && indexPath.row == 1) {
                 return [self controlCell:@"HCG News" control:[self switchOn:s.newsConnected action:@selector(newsChanged:) label:@"Open HCG News from the panel"] stacked:NO];
+            }
+            if (!self.context.isStandaloneApp && indexPath.row == 2) {
+                return [self controlCell:@"HCG Sentinel" control:[self switchOn:s.sentinelConnected action:@selector(sentinelChanged:) label:@"Open HCG Sentinel from the panel"] stacked:NO];
             }
             return [self statusCellForIntegration:[self integrationIdentifierForRow:indexPath.row]];
         }
@@ -396,6 +418,19 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
             cell.selectionStyle = UITableViewCellSelectionStyleNone;
             return cell;
         }
+        case HCGSettingsSectionConnectedDevices: {
+            UITableViewCell *cell = [self styledCellWithStyle:UITableViewCellStyleSubtitle identifier:@"devices"];
+            cell.textLabel.text = @"Connected Devices";
+            cell.imageView.image = [HCGTheme symbolNamed:@"link" pointSize:17];
+            if (self.context.connectedDevicesScreen) {
+                cell.detailTextLabel.text = @"HCG Device Link: pair with HCG Server, paired devices, shared reports";
+                cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+            } else {
+                cell.detailTextLabel.text = @"Not available in this build";
+                cell.selectionStyle = UITableViewCellSelectionStyleNone;
+            }
+            return cell;
+        }
         case HCGSettingsSectionDiagnostics: {
             UITableViewCell *cell = [self styledCellWithStyle:UITableViewCellStyleSubtitle identifier:@"diag"];
             NSArray<NSString *> *row = _diagnostics[(NSUInteger)indexPath.row];
@@ -426,6 +461,11 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         case HCGSettingsSectionAbout:
             [self openRepoPage];
             break;
+        case HCGSettingsSectionConnectedDevices: {
+            UIViewController *screen = self.context.connectedDevicesScreen ? self.context.connectedDevicesScreen(self.context) : nil;
+            if (screen) [self.navigationController pushViewController:screen animated:!UIAccessibilityIsReduceMotionEnabled()];
+            break;
+        }
         case HCGSettingsSectionIntegrations:
             if ([self integrationIdentifierForRow:indexPath.row]) [self tableView:tableView accessoryButtonTappedForRowWithIndexPath:indexPath];
             break;

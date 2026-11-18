@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  HCG Nexus border definition for HCG Halo — declarative data only (docs/HALO-BORDER.md).
+  Installed at <jbroot>/Library/PreferenceBundles/HCGNexusPrefs.bundle/HaloBorder.plist.
+  It describes the integration; the live panel geometry always comes from the running
+  panel (HCGNexusBorderInterface.borderHostView), never from this file.
+  scripts/check_halo_border.py validates it; nexusVersion must equal the package Version.
+-->
+<plist version="1.0">
+<dict>
+	<key>schema</key>
+	<string>com.hakmicapitalgroup.hcgnexus.halo-border</string>
+	<key>schemaVersion</key>
+	<integer>1</integer>
+	<key>interfaceVersion</key>
+	<integer>1</integer>
+	<key>interfaceClass</key>
+	<string>HCGNexusBorderInterface</string>
+	<key>nexusVersion</key>
+	<string>0.3.1~beta1</string>
+	<key>shape</key>
+	<dict>
+		<key>kind</key>
+		<string>rounded-rect</string>
+		<key>cornerRadius</key>
+		<real>22</real>
+		<key>cornerCurve</key>
+		<string>continuous</string>
+	</dict>
+	<key>anchors</key>
+	<dict>
+		<key>host</key>
+		<string>panel</string>
+		<key>outset</key>
+		<real>2</real>
+		<key>glowMargin</key>
+		<real>36</real>
+		<key>clipInterior</key>
+		<true/>
+	</dict>
+	<key>capabilities</key>
+	<array>
+		<string>live-geometry</string>
+		<string>open-close-events</string>
+		<string>presentation-progress</string>
+		<string>workspace-events</string>
+		<string>orientation</string>
+		<string>keyboard-resize</string>
+	</array>
+	<key>style</key>
+	<dict>
+		<key>defaultPreset</key>
+		<string>builtin.nexus-signature</string>
+	</dict>
+</dict>
+</plist>

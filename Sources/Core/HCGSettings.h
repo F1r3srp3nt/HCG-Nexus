@@ -8,6 +8,16 @@ typedef NS_ENUM(NSInteger, HCGHandleSide) {
     HCGHandleSideLeft = 1,
 };
 
+// Background blur behind the panel. Discrete levels map to real system
+// materials (no simulated partial blur). Reduce Transparency always wins: the
+// panel is then opaque and unblurred whatever is stored here.
+typedef NS_ENUM(NSInteger, HCGPanelBlur) {
+    HCGPanelBlurOff = 0,
+    HCGPanelBlurLight = 1,
+    HCGPanelBlurStandard = 2,
+    HCGPanelBlurStrong = 3,
+};
+
 typedef NS_ENUM(NSInteger, HCGTerminalVariant) {
     HCGTerminalVariantNone = 0,
     HCGTerminalVariantStandard = 1,
@@ -24,6 +34,9 @@ FOUNDATION_EXPORT NSString *const HCGSettingAnimations;
 FOUNDATION_EXPORT NSString *const HCGSettingHaptics;
 FOUNDATION_EXPORT NSString *const HCGSettingTerminalVariant;
 FOUNDATION_EXPORT NSString *const HCGSettingNewsConnected;
+FOUNDATION_EXPORT NSString *const HCGSettingSentinelConnected;
+FOUNDATION_EXPORT NSString *const HCGSettingPanelOpacity;
+FOUNDATION_EXPORT NSString *const HCGSettingPanelBlur;
 
 // Value object. All setters clamp to valid ranges.
 @interface HCGSettings : NSObject <NSCopying> {
@@ -36,6 +49,9 @@ FOUNDATION_EXPORT NSString *const HCGSettingNewsConnected;
     BOOL _hapticsEnabled;
     HCGTerminalVariant _terminalVariant;
     BOOL _newsConnected;
+    BOOL _sentinelConnected;
+    double _panelOpacity;
+    HCGPanelBlur _panelBlur;
 }
 // Defaults to NO: HCG Nexus starts disabled after installation.
 @property (nonatomic) BOOL enabled;
@@ -47,9 +63,18 @@ FOUNDATION_EXPORT NSString *const HCGSettingNewsConnected;
 @property (nonatomic) BOOL hapticsEnabled;
 @property (nonatomic) HCGTerminalVariant terminalVariant;
 @property (nonatomic) BOOL newsConnected;
+@property (nonatomic) BOOL sentinelConnected;
+// Smoked-glass tint over the blur, 0.35 (most transparent) … 1.0 (opaque).
+@property (nonatomic) double panelOpacity;
+@property (nonatomic) HCGPanelBlur panelBlur;
 
 + (instancetype)defaultSettings;
 + (double)minimumHandleOpacity;
++ (double)minimumPanelOpacity;
+// The tint actually drawn: with blur off, never below 0.6 so text stays
+// readable over a busy wallpaper; Reduce Transparency forces 1.0.
+- (double)effectivePanelOpacityWithReduceTransparency:(BOOL)reduceTransparency;
+- (HCGPanelBlur)effectivePanelBlurWithReduceTransparency:(BOOL)reduceTransparency;
 
 // Strict, typed, clamped read of a stored dictionary. Unknown keys are ignored
 // and wrongly typed values fall back to defaults.

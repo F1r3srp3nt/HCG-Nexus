@@ -10,12 +10,40 @@ static NSString *const kID = @"id";
 static NSString *const kName = @"name";
 static NSString *const kPreset = @"preset";
 static NSString *const kActions = @"actions";
+static NSString *const kQuickActions = @"quickActions";
+static NSString *const kTools = @"tools";
+
+const NSUInteger HCGWorkspaceMaxQuickActions = 4;
+
+// Strings only, de-duplicated, order kept, capped. Anything else is dropped.
+static NSArray *HCGCleanIdentifierList(id value, NSUInteger limit) {
+    NSMutableArray *out = [[NSMutableArray alloc] init];
+    if (![value isKindOfClass:[NSArray class]]) return out;
+    NSUInteger i;
+    for (i = 0; i < [value count] && out.count < limit; i++) {
+        id item = [value objectAtIndex:i];
+        if ([item isKindOfClass:[NSString class]] && [item length] > 0 && [item length] <= 200 && ![out containsObject:item]) {
+            [out addObject:item];
+        }
+    }
+    return out;
+}
 
 @implementation HCGWorkspace
 
 @synthesize identifier = _identifier;
 @synthesize name = _name;
 @synthesize preset = _preset;
+@synthesize quickActionIdentifiers = _quickActionIdentifiers;
+@synthesize toolIdentifiers = _toolIdentifiers;
+
+- (void)setQuickActionIdentifiers:(NSArray *)identifiers {
+    _quickActionIdentifiers = [HCGCleanIdentifierList(identifiers, HCGWorkspaceMaxQuickActions) copy];
+}
+
+- (void)setToolIdentifiers:(NSArray *)identifiers {
+    _toolIdentifiers = [HCGCleanIdentifierList(identifiers, 64) copy];
+}
 
 - (instancetype)init {
     return [self initWithName:@"Workspace" preset:HCGPresetCustom];
@@ -27,6 +55,8 @@ static NSString *const kActions = @"actions";
         self.name = name;
         self.preset = preset ?: HCGPresetCustom;
         _mutableActions = [[NSMutableArray alloc] init];
+        _quickActionIdentifiers = [[NSArray alloc] init];
+        _toolIdentifiers = [[NSArray alloc] init];
     }
     return self;
 }
@@ -39,6 +69,8 @@ static NSString *const kActions = @"actions";
         HCGAction *action = [[_mutableActions objectAtIndex:i] copy];
         [copy appendAction:action];
     }
+    copy.quickActionIdentifiers = self.quickActionIdentifiers;
+    copy.toolIdentifiers = self.toolIdentifiers;
     return copy;
 }
 
@@ -110,6 +142,10 @@ static NSString *const kActions = @"actions";
         }
     }
     if (droppedActions) *droppedActions = dropped;
+    // Optional (layout 2). Missing or malformed lists read as empty; older
+    // builds ignore these keys, so a downgrade keeps working.
+    workspace.quickActionIdentifiers = [dictionary objectForKey:kQuickActions];
+    workspace.toolIdentifiers = [dictionary objectForKey:kTools];
     return workspace;
 }
 
@@ -124,6 +160,8 @@ static NSString *const kActions = @"actions";
     [dict setObject:self.name forKey:kName];
     [dict setObject:self.preset forKey:kPreset];
     [dict setObject:actions forKey:kActions];
+    [dict setObject:self.quickActionIdentifiers forKey:kQuickActions];
+    [dict setObject:self.toolIdentifiers forKey:kTools];
     return dict;
 }
 

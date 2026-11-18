@@ -20,6 +20,26 @@ NSString *HCGPanelModeName(HCGPanelMode mode) {
 - (BOOL)isStandaloneApp {
     return self.mode == HCGPanelModeStandaloneApp;
 }
+- (HCGHost)host {
+    switch (self.mode) {
+        case HCGPanelModeOverlay: return HCGHostOverlay;
+        case HCGPanelModeSettingsApp: return HCGHostSettingsApp;
+        case HCGPanelModeStandaloneApp: return HCGHostStandaloneApp;
+        case HCGPanelModePreview: return HCGHostPreview;
+    }
+    return HCGHostOverlay;
+}
+- (HCGToolEnvironment)toolEnvironment {
+    HCGToolEnvironment env;
+    env.host = self.host;
+    env.hasLauncher = self.model.launcher != nil;
+    env.layoutBackupExists = [self.model hasLayoutBackup];
+    return env;
+}
+- (void)feedback:(NSString *)message success:(BOOL)success {
+    if (self.showFeedback) self.showFeedback(message, success);
+    else UIAccessibilityPostNotification(UIAccessibilityAnnouncementNotification, message);
+}
 @end
 
 void HCGPresentError(UIViewController *presenter, NSError *error, UIAlertAction *extraAction) {

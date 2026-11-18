@@ -9,10 +9,16 @@ NSString *const HCGSettingAnimations = @"animationsEnabled";
 NSString *const HCGSettingHaptics = @"hapticsEnabled";
 NSString *const HCGSettingTerminalVariant = @"terminalVariant";
 NSString *const HCGSettingNewsConnected = @"newsConnected";
+NSString *const HCGSettingSentinelConnected = @"sentinelConnected";
+NSString *const HCGSettingPanelOpacity = @"panelOpacity";
+NSString *const HCGSettingPanelBlur = @"panelBlur";
 
 static const double kDefaultPosition = 0.35;
 static const double kDefaultOpacity = 0.7;
 static const double kMinOpacity = 0.25;
+static const double kDefaultPanelOpacity = 0.72;
+static const double kMinPanelOpacity = 0.35;
+static const double kMinUnblurredPanelOpacity = 0.6;
 
 static double HCGClamp(double value, double lo, double hi) {
     if (value != value) return lo; // NaN
@@ -50,6 +56,13 @@ static NSInteger HCGReadInteger(id<HCGKeyValueStore> store, NSString *key, NSInt
 @synthesize hapticsEnabled = _hapticsEnabled;
 @synthesize terminalVariant = _terminalVariant;
 @synthesize newsConnected = _newsConnected;
+@synthesize sentinelConnected = _sentinelConnected;
+@synthesize panelOpacity = _panelOpacity;
+@synthesize panelBlur = _panelBlur;
+
++ (double)minimumPanelOpacity {
+    return kMinPanelOpacity;
+}
 
 + (double)minimumHandleOpacity {
     return kMinOpacity;
@@ -60,6 +73,7 @@ static NSInteger HCGReadInteger(id<HCGKeyValueStore> store, NSString *key, NSInt
         _enabled = NO;
         _terminalVariant = HCGTerminalVariantNone;
         _newsConnected = NO;
+        _sentinelConnected = NO;
         [self resetPreservingEnabledAndIntegrations];
     }
     return self;
@@ -76,6 +90,27 @@ static NSInteger HCGReadInteger(id<HCGKeyValueStore> store, NSString *key, NSInt
     _keyboardSafeZone = YES;
     _animationsEnabled = YES;
     _hapticsEnabled = YES;
+    _panelOpacity = kDefaultPanelOpacity;
+    _panelBlur = HCGPanelBlurStandard;
+}
+
+- (void)setPanelOpacity:(double)panelOpacity {
+    _panelOpacity = HCGClamp(panelOpacity, kMinPanelOpacity, 1.0);
+}
+
+- (void)setPanelBlur:(HCGPanelBlur)panelBlur {
+    if (panelBlur < HCGPanelBlurOff || panelBlur > HCGPanelBlurStrong) panelBlur = HCGPanelBlurStandard;
+    _panelBlur = panelBlur;
+}
+
+- (double)effectivePanelOpacityWithReduceTransparency:(BOOL)reduceTransparency {
+    if (reduceTransparency) return 1.0;
+    if (_panelBlur == HCGPanelBlurOff && _panelOpacity < kMinUnblurredPanelOpacity) return kMinUnblurredPanelOpacity;
+    return _panelOpacity;
+}
+
+- (HCGPanelBlur)effectivePanelBlurWithReduceTransparency:(BOOL)reduceTransparency {
+    return reduceTransparency ? HCGPanelBlurOff : _panelBlur;
 }
 
 - (void)setHandleSide:(HCGHandleSide)handleSide {
@@ -108,6 +143,9 @@ static NSInteger HCGReadInteger(id<HCGKeyValueStore> store, NSString *key, NSInt
     copy.hapticsEnabled = self.hapticsEnabled;
     copy.terminalVariant = self.terminalVariant;
     copy.newsConnected = self.newsConnected;
+    copy.sentinelConnected = self.sentinelConnected;
+    copy.panelOpacity = self.panelOpacity;
+    copy.panelBlur = self.panelBlur;
     return copy;
 }
 
@@ -131,6 +169,9 @@ static NSInteger HCGReadInteger(id<HCGKeyValueStore> store, NSString *key, NSInt
     settings.hapticsEnabled = HCGReadBool(store, HCGSettingHaptics, YES);
     settings.terminalVariant = (HCGTerminalVariant)HCGReadInteger(store, HCGSettingTerminalVariant, HCGTerminalVariantNone);
     settings.newsConnected = HCGReadBool(store, HCGSettingNewsConnected, NO);
+    settings.sentinelConnected = HCGReadBool(store, HCGSettingSentinelConnected, NO);
+    settings.panelOpacity = HCGReadDouble(store, HCGSettingPanelOpacity, kDefaultPanelOpacity);
+    settings.panelBlur = (HCGPanelBlur)HCGReadInteger(store, HCGSettingPanelBlur, HCGPanelBlurStandard);
     return settings;
 }
 
@@ -145,6 +186,9 @@ static NSInteger HCGReadInteger(id<HCGKeyValueStore> store, NSString *key, NSInt
     [dict setObject:[NSNumber numberWithBool:self.hapticsEnabled] forKey:HCGSettingHaptics];
     [dict setObject:[NSNumber numberWithInteger:self.terminalVariant] forKey:HCGSettingTerminalVariant];
     [dict setObject:[NSNumber numberWithBool:self.newsConnected] forKey:HCGSettingNewsConnected];
+    [dict setObject:[NSNumber numberWithBool:self.sentinelConnected] forKey:HCGSettingSentinelConnected];
+    [dict setObject:[NSNumber numberWithDouble:self.panelOpacity] forKey:HCGSettingPanelOpacity];
+    [dict setObject:[NSNumber numberWithInteger:self.panelBlur] forKey:HCGSettingPanelBlur];
     return dict;
 }
 

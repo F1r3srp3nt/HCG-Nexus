@@ -11,16 +11,25 @@ FOUNDATION_EXPORT NSString *const HCGPresetStudio;
 FOUNDATION_EXPORT NSString *const HCGPresetInfrastructure;
 FOUNDATION_EXPORT NSString *const HCGPresetCustom;
 
+FOUNDATION_EXPORT const NSUInteger HCGWorkspaceMaxQuickActions;
+
 @interface HCGWorkspace : NSObject <NSCopying> {
     NSString *_identifier;
     NSString *_name;
     NSString *_preset;
     NSMutableArray *_mutableActions;
+    NSArray *_quickActionIdentifiers;
+    NSArray *_toolIdentifiers;
 }
 @property (nonatomic, copy) NSString *identifier;
 @property (nonatomic, copy) NSString *name;
 @property (nonatomic, copy) NSString *preset;
 @property (nonatomic, readonly) NSArray<HCGAction *> *actions;
+// Overview quick actions for this workspace: identifiers of App Library items
+// (at most HCGWorkspaceMaxQuickActions, no duplicates, order kept).
+@property (nonatomic, copy) NSArray<NSString *> *quickActionIdentifiers;
+// Tools pinned for this workspace (HCGToolCatalog identifiers, no duplicates).
+@property (nonatomic, copy) NSArray<NSString *> *toolIdentifiers;
 
 - (instancetype)initWithName:(NSString *)name preset:(NSString *)preset;
 

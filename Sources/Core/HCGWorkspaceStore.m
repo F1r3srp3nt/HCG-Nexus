@@ -274,4 +274,26 @@ static NSError *NotFound(void) {
     return [self persistOrFail:error];
 }
 
+#pragma mark - Layout 2
+
+- (BOOL)setQuickActionIdentifiers:(NSArray *)identifiers forWorkspace:(NSString *)identifier error:(NSError **)error {
+    HCGWorkspace *workspace = [self workspaceWithIdentifier:identifier];
+    if (!workspace) {
+        if (error) *error = NotFound();
+        return NO;
+    }
+    workspace.quickActionIdentifiers = identifiers;
+    return [self persistOrFail:error];
+}
+
+- (BOOL)setToolIdentifiers:(NSArray *)identifiers forWorkspace:(NSString *)identifier error:(NSError **)error {
+    HCGWorkspace *workspace = [self workspaceWithIdentifier:identifier];
+    if (!workspace) {
+        if (error) *error = NotFound();
+        return NO;
+    }
+    workspace.toolIdentifiers = identifiers;
+    return [self persistOrFail:error];
+}
+
 @end

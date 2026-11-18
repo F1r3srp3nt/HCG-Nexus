@@ -1,181 +1,289 @@
 #import "HCGPanelHomeViewController.h"
 #import "HCGTheme.h"
+#import "HCGBranding.h"
+#import "HCGSections.h"
+#import "HCGOverviewViewController.h"
 #import "HCGWorkspaceManagerViewController.h"
-#import "HCGWorkspaceDetailViewController.h"
-#import "HCGPanelSettingsViewController.h"
-
-typedef NS_ENUM(NSInteger, HCGHomeSection) {
-    HCGHomeSectionShortcuts,
-    HCGHomeSectionRecents,
-    HCGHomeSectionIntegrations,
-    HCGHomeSectionEmpty,
-};
-
-static NSString *const kCell = @"HCGHomeCell";
-
-@interface HCGPanelHomeViewController () <UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate>
-@end
+#import "HCGToolsViewController.h"
+#import "HCGProductsViewController.h"
+#import "HCGDevicesInfoViewController.h"
+#import "HCGAppsViewController.h"
+#import "HCGAccountViewController.h"
+#import "HCGCommandModeViewController.h"
 
 @implementation HCGPanelHomeViewController {
     HCGPanelContext *_context;
-    UILabel *_wordmark;
-    UILabel *_subtitle;
-    UILabel *_previewBadge;
+    UIView *_brand;
+    UILabel *_badge;
     UIButton *_closeButton;
-    UIScrollView *_chipScroll;
-    UIStackView *_chipStack;
-    UISearchTextField *_search;
-    UITableView *_table;
-    UIStackView *_footer;
-    NSArray<NSNumber *> *_sections;
-    NSArray<HCGSearchResult *> *_results;
-    NSArray<HCGRecentEntry *> *_recents;
-    NSArray<HCGIntegrationStatus *> *_integrations;
+    UIButton *_commandButton;
+    UIScrollView *_barScroll;
+    UIStackView *_bar;
+    UIView *_content;
     UILabel *_toast;
+    NSMutableDictionary<NSNumber *, UIViewController *> *_sections;
+    UIViewController *_current;
+    NSInteger _selected;
+    NSUInteger _toastGeneration;
+    BOOL _panelVisible;
 }
+
+@synthesize selectedSection = _selected;
 
 - (instancetype)initWithContext:(HCGPanelContext *)context {
     if ((self = [super initWithNibName:nil bundle:nil])) {
         _context = context;
-        _sections = @[];
-        _results = @[];
-        _recents = @[];
-        _integrations = @[];
+        _sections = [NSMutableDictionary dictionary];
+        _selected = HCGNexusSectionOverview;
+        __weak typeof(self) weakSelf = self;
+        context.showFeedback = ^(NSString *message, BOOL success) { [weakSelf showToast:message success:success]; };
+        context.showSection = ^(NSInteger section) { [weakSelf selectSection:section]; };
     }
     return self;
 }
 
+#pragma mark View
+
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.view.backgroundColor = [UIColor clearColor];
+    self.view.backgroundColor = [UIColor clearColor]; // the host draws the glass panel behind
+    self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
     self.title = @"HCG Nexus";
+    // Shows the full-size title of capped chrome (section bar, header buttons, chips) on a long press at
+    // accessibility text sizes; covers every section, which are child views of this one.
+    [self.view addInteraction:[[UILargeContentViewerInteraction alloc] init]];
 
-    _wordmark = [[UILabel alloc] init];
-    _wordmark.attributedText = [HCGTheme wordmarkWithSize:20];
-    _wordmark.accessibilityLabel = @"HCG Nexus";
-    _wordmark.accessibilityTraits = UIAccessibilityTraitHeader;
-    _wordmark.adjustsFontSizeToFitWidth = YES;
-    _wordmark.minimumScaleFactor = 0.7;
+    UIStackView *header = [self makeHeader];
+    _barScroll = [self makeSectionBar];
+    _content = [[UIView alloc] init];
+    _content.clipsToBounds = YES;
 
-    _subtitle = [[UILabel alloc] init];
-    _subtitle.font = [HCGTheme fontForTextStyle:UIFontTextStyleCaption1 weight:UIFontWeightMedium];
-    _subtitle.adjustsFontForContentSizeCategory = YES;
-    _subtitle.textColor = [HCGTheme secondaryText];
-
-    // Mode badge: makes it obvious when this is not the system-wide overlay.
-    _previewBadge = [[UILabel alloc] init];
-    _previewBadge.font = [UIFont monospacedSystemFontOfSize:10 weight:UIFontWeightBold];
-    _previewBadge.layer.cornerRadius = 4;
-    _previewBadge.clipsToBounds = YES;
-    _previewBadge.hidden = YES;
-    if (_context.mode == HCGPanelModePreview) {
-        _previewBadge.text = @"  PREVIEW · NOT INJECTED  ";
-        _previewBadge.textColor = [HCGTheme obsidian];
-        _previewBadge.backgroundColor = [HCGTheme warning];
-        _previewBadge.accessibilityLabel = @"Preview harness. Not injected into SpringBoard.";
-        _previewBadge.hidden = NO;
-    } else if (_context.mode == HCGPanelModeStandaloneApp) {
-        _previewBadge.text = @"  APP MODE  ";
-        _previewBadge.textColor = [HCGTheme obsidian];
-        _previewBadge.backgroundColor = [HCGTheme cyan];
-        _previewBadge.accessibilityLabel = @"Standalone app mode. Opens links. The system-wide edge handle needs the jailbreak package.";
-        _previewBadge.hidden = NO;
-    }
-    [_previewBadge setContentCompressionResistancePriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
-
-    _closeButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [_closeButton setImage:[HCGTheme symbolNamed:@"xmark" pointSize:15] forState:UIControlStateNormal];
-    _closeButton.tintColor = [HCGTheme primaryText];
-    _closeButton.backgroundColor = [HCGTheme raisedSurface];
-    _closeButton.layer.cornerRadius = 18;
-    _closeButton.accessibilityLabel = @"Close HCG Nexus";
-    _closeButton.hidden = !_context.insideOverlay;
-    [_closeButton addTarget:self action:@selector(closeTapped) forControlEvents:UIControlEventTouchUpInside];
-    [_closeButton.widthAnchor constraintEqualToConstant:44].active = YES;
-    [_closeButton.heightAnchor constraintEqualToConstant:44].active = YES;
-
-    UIStackView *titles = [[UIStackView alloc] initWithArrangedSubviews:@[ _wordmark, _subtitle ]];
-    titles.axis = UILayoutConstraintAxisVertical;
-    titles.spacing = 2;
-    UIStackView *header = [[UIStackView alloc] initWithArrangedSubviews:@[ titles, _previewBadge, _closeButton ]];
-    header.alignment = UIStackViewAlignmentCenter;
-    header.spacing = 8;
-    [titles setContentHuggingPriority:UILayoutPriorityDefaultLow forAxis:UILayoutConstraintAxisHorizontal];
-
-    _chipStack = [[UIStackView alloc] init];
-    _chipStack.spacing = 8;
-    _chipScroll = [[UIScrollView alloc] init];
-    _chipScroll.showsHorizontalScrollIndicator = NO;
-    _chipStack.translatesAutoresizingMaskIntoConstraints = NO;
-    [_chipScroll addSubview:_chipStack];
-    [NSLayoutConstraint activateConstraints:@[
-        [_chipStack.leadingAnchor constraintEqualToAnchor:_chipScroll.contentLayoutGuide.leadingAnchor],
-        [_chipStack.trailingAnchor constraintEqualToAnchor:_chipScroll.contentLayoutGuide.trailingAnchor],
-        [_chipStack.topAnchor constraintEqualToAnchor:_chipScroll.contentLayoutGuide.topAnchor],
-        [_chipStack.bottomAnchor constraintEqualToAnchor:_chipScroll.contentLayoutGuide.bottomAnchor],
-        [_chipStack.heightAnchor constraintEqualToAnchor:_chipScroll.frameLayoutGuide.heightAnchor],
-        [_chipScroll.heightAnchor constraintGreaterThanOrEqualToConstant:44],
-    ]];
-
-    _search = [[UISearchTextField alloc] init];
-    _search.placeholder = @"Search shortcuts";
-    _search.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Search shortcuts"
-                                                                    attributes:@{ NSForegroundColorAttributeName : [HCGTheme secondaryText] }];
-    _search.textColor = [HCGTheme primaryText];
-    _search.backgroundColor = [HCGTheme raisedSurface];
-    _search.tintColor = [HCGTheme cyan];
-    _search.font = [HCGTheme fontForTextStyle:UIFontTextStyleBody weight:UIFontWeightRegular];
-    _search.adjustsFontForContentSizeCategory = YES;
-    _search.returnKeyType = UIReturnKeySearch;
-    _search.autocorrectionType = UITextAutocorrectionTypeNo;
-    _search.delegate = self;
-    _search.accessibilityLabel = @"Search shortcuts in all workspaces";
-    [_search addTarget:self action:@selector(searchChanged) forControlEvents:UIControlEventEditingChanged];
-    [_search.heightAnchor constraintGreaterThanOrEqualToConstant:40].active = YES;
-
-    _table = [[UITableView alloc] initWithFrame:CGRectZero style:UITableViewStyleInsetGrouped];
-    [HCGTheme styleTableView:_table];
-    _table.dataSource = self;
-    _table.delegate = self;
-
-    UIButton *workspaces = [self footerButton:@"Workspaces" symbol:@"square.stack.3d.up" action:@selector(openWorkspaces)];
-    UIButton *edit = [self footerButton:@"Shortcuts" symbol:@"slider.horizontal.3" action:@selector(editActiveWorkspace)];
-    UIButton *settings = [self footerButton:@"Settings" symbol:@"gearshape" action:@selector(openSettings)];
-    _footer = [[UIStackView alloc] initWithArrangedSubviews:@[ workspaces, edit, settings ]];
-    _footer.distribution = UIStackViewDistributionFillEqually;
-    _footer.spacing = 8;
+    UIStackView *stack = [[UIStackView alloc] initWithArrangedSubviews:@[ header, _barScroll, _content ]];
+    stack.axis = UILayoutConstraintAxisVertical;
+    stack.spacing = 6;
+    stack.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.view addSubview:stack];
 
     _toast = [[UILabel alloc] init];
     _toast.numberOfLines = 0;
     _toast.textAlignment = NSTextAlignmentCenter;
-    _toast.font = [HCGTheme fontForTextStyle:UIFontTextStyleFootnote weight:UIFontWeightMedium];
+    _toast.font = [HCGTheme fontForTextStyle:UIFontTextStyleFootnote weight:UIFontWeightSemibold];
     _toast.adjustsFontForContentSizeCategory = YES;
     _toast.textColor = [HCGTheme primaryText];
-    _toast.backgroundColor = [HCGTheme cyanSoft];
-    _toast.layer.cornerRadius = 10;
+    _toast.layer.cornerRadius = 12;
+    _toast.layer.cornerCurve = kCACornerCurveContinuous;
+    _toast.layer.borderWidth = 1;
     _toast.clipsToBounds = YES;
-    _toast.hidden = YES;
+    _toast.alpha = 0;
+    _toast.translatesAutoresizingMaskIntoConstraints = NO;
+    [self.view addSubview:_toast];
 
-    UIStackView *stack = [[UIStackView alloc] initWithArrangedSubviews:@[ header, _chipScroll, _search, _toast, _table, _footer ]];
-    stack.axis = UILayoutConstraintAxisVertical;
-    stack.spacing = 10;
-    stack.translatesAutoresizingMaskIntoConstraints = NO;
-    [stack setCustomSpacing:4 afterView:_table];
-    [self.view addSubview:stack];
     UILayoutGuide *guide = self.view.layoutMarginsGuide;
-    self.view.directionalLayoutMargins = NSDirectionalEdgeInsetsMake(14, 14, 12, 14);
+    self.view.directionalLayoutMargins = NSDirectionalEdgeInsetsMake(12, 12, 10, 12);
     self.viewRespectsSystemMinimumLayoutMargins = NO;
     [NSLayoutConstraint activateConstraints:@[
         [stack.leadingAnchor constraintEqualToAnchor:guide.leadingAnchor],
         [stack.trailingAnchor constraintEqualToAnchor:guide.trailingAnchor],
         [stack.topAnchor constraintEqualToAnchor:guide.topAnchor],
         [stack.bottomAnchor constraintEqualToAnchor:guide.bottomAnchor],
+        [_toast.leadingAnchor constraintEqualToAnchor:guide.leadingAnchor constant:8],
+        [_toast.trailingAnchor constraintEqualToAnchor:guide.trailingAnchor constant:-8],
+        [_toast.bottomAnchor constraintEqualToAnchor:guide.bottomAnchor constant:-8],
+        [_toast.heightAnchor constraintGreaterThanOrEqualToConstant:40],
     ]];
-
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reloadContent)
-                                                 name:UIContentSizeCategoryDidChangeNotification object:nil];
-    [self reloadContent];
+    [self showSection:_selected];
 }
+
+- (UIStackView *)makeHeader {
+    UIImage *logo = [HCGBranding hcgLogo];
+    UIView *mark;
+    if (logo) {
+        // Official chrome HCG logo, sized to the header (no wasted space), then the product name.
+        UIImageView *logoView = [[UIImageView alloc] initWithImage:logo];
+        logoView.contentMode = UIViewContentModeScaleAspectFit;
+        logoView.isAccessibilityElement = NO;
+        CGFloat ratio = logo.size.height > 0 ? logo.size.width / logo.size.height : 2.2;
+        [logoView.heightAnchor constraintEqualToConstant:30].active = YES;
+        [logoView.widthAnchor constraintEqualToConstant:30 * ratio].active = YES;
+        UILabel *nexus = [[UILabel alloc] init];
+        nexus.attributedText = [[NSAttributedString alloc] initWithString:@"NEXUS" attributes:@{
+            NSFontAttributeName : [UIFont systemFontOfSize:17 weight:UIFontWeightLight],
+            NSForegroundColorAttributeName : [HCGTheme primaryText],
+            NSKernAttributeName : @(4.0),
+        }];
+        nexus.isAccessibilityElement = NO;
+        UIStackView *row = [[UIStackView alloc] initWithArrangedSubviews:@[ logoView, nexus ]];
+        row.alignment = UIStackViewAlignmentCenter;
+        row.spacing = 8;
+        mark = row;
+    } else {
+        UILabel *wordmark = [[UILabel alloc] init];
+        wordmark.attributedText = [HCGTheme wordmarkWithSize:20];
+        wordmark.isAccessibilityElement = NO;
+        mark = wordmark;
+    }
+    mark.isAccessibilityElement = YES;
+    mark.accessibilityLabel = @"HCG Nexus";
+    mark.accessibilityTraits = UIAccessibilityTraitHeader;
+    _brand = mark;
+
+    _badge = [[UILabel alloc] init];
+    _badge.font = [UIFont monospacedSystemFontOfSize:10 weight:UIFontWeightBold];
+    _badge.layer.cornerRadius = 5;
+    _badge.clipsToBounds = YES;
+    _badge.textColor = [HCGTheme obsidian];
+    _badge.hidden = YES;
+    if (_context.mode == HCGPanelModePreview) {
+        _badge.text = @"  PREVIEW · NOT INJECTED  ";
+        _badge.backgroundColor = [HCGTheme warning];
+        _badge.accessibilityLabel = @"Preview harness. Not injected into SpringBoard.";
+        _badge.hidden = NO;
+    } else if (_context.mode == HCGPanelModeStandaloneApp) {
+        _badge.text = @"  APP MODE  ";
+        _badge.backgroundColor = [HCGTheme cyan];
+        _badge.accessibilityLabel = @"Standalone app mode. The system-wide edge handle needs the jailbreak package.";
+        _badge.hidden = NO;
+    }
+    [_badge setContentCompressionResistancePriority:UILayoutPriorityRequired forAxis:UILayoutConstraintAxisHorizontal];
+
+    _closeButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [_closeButton setImage:[HCGTheme symbolNamed:@"xmark" pointSize:14] forState:UIControlStateNormal];
+    _closeButton.tintColor = [HCGTheme primaryText];
+    [HCGTheme styleCard:_closeButton cornerRadius:22];
+    _closeButton.accessibilityLabel = @"Close HCG Nexus";
+    _closeButton.hidden = !_context.insideOverlay;
+    [_closeButton addTarget:self action:@selector(closeTapped) forControlEvents:UIControlEventTouchUpInside];
+    [_closeButton.widthAnchor constraintEqualToConstant:44].active = YES;
+    [_closeButton.heightAnchor constraintEqualToConstant:44].active = YES;
+
+    UIView *spacer = [[UIView alloc] init];
+    [spacer setContentHuggingPriority:UILayoutPriorityDefaultLow forAxis:UILayoutConstraintAxisHorizontal];
+    // Command Mode entry: device status, shortcuts and integration states.
+    _commandButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [_commandButton setImage:[HCGTheme symbolNamed:@"square.grid.2x2" pointSize:14] forState:UIControlStateNormal];
+    _commandButton.tintColor = [HCGTheme cyan];
+    [HCGTheme styleCard:_commandButton cornerRadius:22];
+    _commandButton.accessibilityLabel = @"Command Mode";
+    _commandButton.accessibilityHint = @"Shows device status, shortcuts and HCG integration states.";
+    [HCGTheme enableLargeContentViewerForButton:_commandButton title:@"Command Mode"];
+    [_commandButton addTarget:self action:@selector(openCommandMode) forControlEvents:UIControlEventTouchUpInside];
+    [_commandButton.widthAnchor constraintEqualToConstant:44].active = YES;
+    [_commandButton.heightAnchor constraintEqualToConstant:44].active = YES;
+
+    UIStackView *header = [[UIStackView alloc] initWithArrangedSubviews:@[ mark, spacer, _badge, _commandButton, _closeButton ]];
+    header.alignment = UIStackViewAlignmentCenter;
+    header.spacing = 8;
+    [header.heightAnchor constraintGreaterThanOrEqualToConstant:44].active = YES;
+    return header;
+}
+
+- (UIScrollView *)makeSectionBar {
+    UIScrollView *scroll = [[UIScrollView alloc] init];
+    scroll.showsHorizontalScrollIndicator = NO;
+    _bar = [[UIStackView alloc] init];
+    _bar.spacing = 4;
+    _bar.translatesAutoresizingMaskIntoConstraints = NO;
+    _bar.accessibilityContainerType = UIAccessibilityContainerTypeSemanticGroup;
+    _bar.accessibilityLabel = @"Sections";
+    [scroll addSubview:_bar];
+    [NSLayoutConstraint activateConstraints:@[
+        [_bar.leadingAnchor constraintEqualToAnchor:scroll.contentLayoutGuide.leadingAnchor],
+        [_bar.trailingAnchor constraintEqualToAnchor:scroll.contentLayoutGuide.trailingAnchor],
+        [_bar.topAnchor constraintEqualToAnchor:scroll.contentLayoutGuide.topAnchor],
+        [_bar.bottomAnchor constraintEqualToAnchor:scroll.contentLayoutGuide.bottomAnchor],
+        [_bar.heightAnchor constraintEqualToAnchor:scroll.frameLayoutGuide.heightAnchor],
+        [scroll.heightAnchor constraintEqualToConstant:52],
+    ]];
+    for (NSInteger section = 0; section < HCGNexusSectionCount; section++) {
+        UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
+        [button setTitle:HCGSectionTitle((HCGNexusSection)section) forState:UIControlStateNormal];
+        [button setImage:[HCGTheme symbolNamed:HCGSectionSymbol((HCGNexusSection)section) pointSize:13] forState:UIControlStateNormal];
+        button.titleLabel.font = [HCGTheme fontForTextStyle:UIFontTextStyleFootnote weight:UIFontWeightSemibold
+                                           maximumPointSize:HCGSectionBarMaximumPointSize];
+        button.titleLabel.adjustsFontForContentSizeCategory = YES;
+        [HCGTheme enableLargeContentViewerForButton:button title:HCGSectionTitle((HCGNexusSection)section)];
+        button.layer.cornerRadius = 12;
+        button.layer.cornerCurve = kCACornerCurveContinuous;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+        button.contentEdgeInsets = UIEdgeInsetsMake(8, 10, 8, 14);
+        button.titleEdgeInsets = UIEdgeInsetsMake(0, 4, 0, -4);
+#pragma clang diagnostic pop
+        [button.heightAnchor constraintGreaterThanOrEqualToConstant:44].active = YES;
+        button.tag = section;
+        [button addTarget:self action:@selector(sectionTapped:) forControlEvents:UIControlEventTouchUpInside];
+        [_bar addArrangedSubview:button];
+    }
+    return scroll;
+}
+
+- (void)styleSectionBar {
+    for (UIButton *button in _bar.arrangedSubviews) {
+        BOOL selected = button.tag == _selected;
+        button.tintColor = selected ? [HCGTheme cyan] : [HCGTheme secondaryText];
+        button.backgroundColor = selected ? [HCGTheme cyanSoft] : [UIColor clearColor];
+        button.layer.borderWidth = selected ? 1 : 0;
+        button.layer.borderColor = [HCGTheme cyan].CGColor;
+        button.accessibilityTraits = UIAccessibilityTraitButton | (selected ? UIAccessibilityTraitSelected : 0);
+        if (selected) [_barScroll scrollRectToVisible:CGRectInset(button.frame, -24, 0) animated:!UIAccessibilityIsReduceMotionEnabled()];
+    }
+}
+
+#pragma mark Sections
+
+- (UIViewController *)makeSection:(NSInteger)section {
+    switch (section) {
+        case HCGNexusSectionOverview: return [[HCGOverviewViewController alloc] initWithContext:_context];
+        case HCGNexusSectionWorkspaces: return [[HCGWorkspaceManagerViewController alloc] initWithContext:_context];
+        case HCGNexusSectionTools: return [[HCGToolsViewController alloc] initWithContext:_context];
+        case HCGNexusSectionProducts: return [[HCGProductsViewController alloc] initWithContext:_context];
+        case HCGNexusSectionDevices: {
+            UIViewController *real = _context.connectedDevicesScreen ? _context.connectedDevicesScreen(_context) : nil;
+            return real ?: [[HCGDevicesInfoViewController alloc] initWithContext:_context];
+        }
+        case HCGNexusSectionApps: return [[HCGAppsViewController alloc] initWithContext:_context];
+        case HCGNexusSectionAccount: return [[HCGAccountViewController alloc] initWithContext:_context];
+    }
+    return [[HCGOverviewViewController alloc] initWithContext:_context];
+}
+
+- (void)sectionTapped:(UIButton *)button {
+    [self selectSection:button.tag];
+}
+
+- (void)selectSection:(NSInteger)section {
+    if (section < 0 || section >= HCGNexusSectionCount) return;
+    if (self.navigationController.topViewController != self) [self.navigationController popToViewController:self animated:NO];
+    _selected = section;
+    if (self.isViewLoaded) [self showSection:section];
+}
+
+- (void)showSection:(NSInteger)section {
+    UIViewController *next = _sections[@(section)];
+    if (!next) {
+        next = [self makeSection:section];
+        _sections[@(section)] = next;
+    }
+    if (next != _current) {
+        if ([_current isKindOfClass:[HCGOverviewViewController class]]) [(HCGOverviewViewController *)_current panelDidDisappear];
+        [_current willMoveToParentViewController:nil];
+        [_current.view removeFromSuperview];
+        [_current removeFromParentViewController];
+        [self addChildViewController:next];
+        next.view.frame = _content.bounds;
+        next.view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        next.view.backgroundColor = [UIColor clearColor];
+        if ([next isKindOfClass:[UITableViewController class]]) ((UITableViewController *)next).tableView.backgroundColor = [UIColor clearColor];
+        [_content addSubview:next.view];
+        [next didMoveToParentViewController:self];
+        _current = next;
+        if (_panelVisible && [next isKindOfClass:[HCGOverviewViewController class]]) [(HCGOverviewViewController *)next panelDidAppear];
+    }
+    [self styleSectionBar];
+    UIAccessibilityPostNotification(UIAccessibilityLayoutChangedNotification, nil);
+}
+
+#pragma mark Lifecycle
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -188,335 +296,75 @@ static NSString *const kCell = @"HCGHomeCell";
     [self.navigationController setNavigationBarHidden:NO animated:animated];
 }
 
-- (UIButton *)footerButton:(NSString *)title symbol:(NSString *)symbol action:(SEL)action {
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
-    [button setTitle:title forState:UIControlStateNormal];
-    [button setImage:[HCGTheme symbolNamed:symbol pointSize:13] forState:UIControlStateNormal];
-    button.titleLabel.font = [HCGTheme fontForTextStyle:UIFontTextStyleFootnote weight:UIFontWeightSemibold];
-    button.titleLabel.adjustsFontForContentSizeCategory = YES;
-    button.titleLabel.adjustsFontSizeToFitWidth = YES;
-    button.titleLabel.minimumScaleFactor = 0.7;
-    button.tintColor = [HCGTheme cyan];
-    button.backgroundColor = [HCGTheme raisedSurface];
-    button.layer.cornerRadius = 12;
-    button.layer.borderWidth = 1;
-    button.layer.borderColor = [HCGTheme separator].CGColor;
-    [button.heightAnchor constraintGreaterThanOrEqualToConstant:44].active = YES;
-    [button addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
-    return button;
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    if (!_context.insideOverlay) [self panelDidAppear]; // the app and Settings have no open/close events
 }
 
-#pragma mark Content
-
-- (id)accessibilityFocusElement {
-    return _wordmark;
+- (void)panelDidAppear {
+    _panelVisible = YES;
+    if ([_current isKindOfClass:[HCGOverviewViewController class]]) [(HCGOverviewViewController *)_current panelDidAppear];
 }
 
-- (void)resetTransientState {
-    _search.text = @"";
-    _toast.hidden = YES;
-    [_table setContentOffset:CGPointZero animated:NO];
+- (void)panelDidDisappear {
+    _panelVisible = NO;
+    if ([_current isKindOfClass:[HCGOverviewViewController class]]) [(HCGOverviewViewController *)_current panelDidDisappear];
 }
 
 - (void)reloadContent {
     if (!self.isViewLoaded) return;
-    HCGNexusModel *model = _context.model;
-    HCGWorkspace *active = model.workspaceStore.activeWorkspace;
-    _subtitle.text = active ? [NSString stringWithFormat:@"%@ workspace", active.name] : @"No workspace";
-    [self rebuildChipsWithActive:active];
-
-    _results = [HCGSearch resultsForQuery:_search.text inWorkspaces:model.workspaceStore.workspaces activeWorkspace:active];
-    BOOL searching = _search.text.length > 0;
-    _recents = searching ? @[] : model.recents.entries;
-    _integrations = searching ? @[] : [model integrationStatuses];
-
-    NSMutableArray *sections = [NSMutableArray array];
-    if (model.workspaceStore.workspaces.count == 0 || (_results.count == 0 && !searching)) {
-        [sections addObject:@(HCGHomeSectionEmpty)];
-    }
-    if (_results.count > 0 || searching) [sections addObject:@(HCGHomeSectionShortcuts)];
-    if (_recents.count > 0) [sections addObject:@(HCGHomeSectionRecents)];
-    if (_integrations.count > 0) [sections addObject:@(HCGHomeSectionIntegrations)];
-    _sections = sections;
-    [_table reloadData];
+    if ([_current respondsToSelector:@selector(modelDidChange)]) [(id)_current modelDidChange];
 }
 
-- (void)rebuildChipsWithActive:(HCGWorkspace *)active {
-    for (UIView *view in _chipStack.arrangedSubviews) {
-        [_chipStack removeArrangedSubview:view];
-        [view removeFromSuperview];
-    }
-    NSArray<HCGWorkspace *> *workspaces = _context.model.workspaceStore.workspaces;
-    for (NSUInteger i = 0; i < workspaces.count; i++) {
-        HCGWorkspace *workspace = workspaces[i];
-        BOOL selected = [workspace.identifier isEqualToString:active.identifier];
-        UIButton *chip = [UIButton buttonWithType:UIButtonTypeSystem];
-        [chip setTitle:workspace.name forState:UIControlStateNormal];
-        [chip setImage:[HCGTheme symbolNamed:[HCGWorkspacePresets symbolNameForPreset:workspace.preset] pointSize:12] forState:UIControlStateNormal];
-        chip.titleLabel.font = [HCGTheme fontForTextStyle:UIFontTextStyleSubheadline weight:selected ? UIFontWeightSemibold : UIFontWeightRegular];
-        chip.titleLabel.adjustsFontForContentSizeCategory = YES;
-        chip.tintColor = selected ? [HCGTheme cyan] : [HCGTheme secondaryText];
-        chip.backgroundColor = selected ? [HCGTheme cyanSoft] : [HCGTheme raisedSurface];
-        chip.layer.cornerRadius = 14;
-        chip.layer.borderWidth = 1;
-        chip.layer.borderColor = (selected ? [HCGTheme cyan] : [HCGTheme separator]).CGColor;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
-        // Still honoured when no UIButtonConfiguration is set; needed for iOS 14.
-        chip.contentEdgeInsets = UIEdgeInsetsMake(8, 12, 8, 18);
-        chip.titleEdgeInsets = UIEdgeInsetsMake(0, 6, 0, -6);
-#pragma clang diagnostic pop
-        chip.tag = (NSInteger)i;
-        chip.accessibilityLabel = [NSString stringWithFormat:@"%@ workspace", workspace.name];
-        chip.accessibilityTraits = UIAccessibilityTraitButton | (selected ? UIAccessibilityTraitSelected : 0);
-        [chip addTarget:self action:@selector(chipTapped:) forControlEvents:UIControlEventTouchUpInside];
-        [_chipStack addArrangedSubview:chip];
-    }
+- (void)resetTransientState {
+    [self panelDidDisappear];
+    _toast.alpha = 0;
+    [self.view endEditing:YES];
 }
 
-- (void)chipTapped:(UIButton *)chip {
-    NSArray<HCGWorkspace *> *workspaces = _context.model.workspaceStore.workspaces;
-    if (chip.tag < 0 || (NSUInteger)chip.tag >= workspaces.count) return;
-    NSError *error = nil;
-    if (![_context.model.workspaceStore setActiveWorkspace:workspaces[chip.tag].identifier error:&error]) {
-        HCGPresentError(self, error, nil);
-        return;
-    }
-    [_context.model workspacesDidChange];
-    [self reloadContent];
+- (id)accessibilityFocusElement {
+    return _brand;
 }
-
-- (void)searchChanged {
-    [self reloadContent];
-}
-
-- (BOOL)textFieldShouldReturn:(UITextField *)textField {
-    [textField resignFirstResponder];
-    return YES;
-}
-
-- (void)showToast:(NSString *)message {
-    _toast.text = [NSString stringWithFormat:@"  %@  ", message];
-    _toast.hidden = NO;
-    UIAccessibilityPostNotification(UIAccessibilityAnnouncementNotification, message);
-}
-
-#pragma mark Navigation
 
 - (void)closeTapped {
     if (_context.closePanel) _context.closePanel();
 }
 
-- (void)openWorkspaces {
-    [self.navigationController pushViewController:[[HCGWorkspaceManagerViewController alloc] initWithContext:_context]
-                                         animated:!UIAccessibilityIsReduceMotionEnabled()];
-}
-
-- (void)editActiveWorkspace {
-    HCGWorkspace *active = _context.model.workspaceStore.activeWorkspace;
-    if (!active) {
-        [self openWorkspaces];
+- (void)openCommandMode {
+    [self.view endEditing:YES];
+    if (_context.presentCommandMode) {
+        _context.presentCommandMode();
         return;
     }
-    [self.navigationController pushViewController:[[HCGWorkspaceDetailViewController alloc] initWithContext:_context workspaceIdentifier:active.identifier]
-                                         animated:!UIAccessibilityIsReduceMotionEnabled()];
+    if (self.presentedViewController) return;
+    HCGCommandModeViewController *commandMode = [[HCGCommandModeViewController alloc] initWithContext:_context];
+    commandMode.modalPresentationStyle = UIModalPresentationOverFullScreen;
+    commandMode.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+    BOOL animated = [HCGCommandModeStatus animatesTransitionsWithReduceMotion:UIAccessibilityIsReduceMotionEnabled()
+                                                            animationsEnabled:_context.model.settings.animationsEnabled];
+    [self presentViewController:commandMode animated:animated completion:^{
+        UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, [commandMode accessibilityFocusElement]);
+    }];
 }
 
-- (void)openSettings {
-    [self.navigationController pushViewController:[[HCGPanelSettingsViewController alloc] initWithContext:_context]
-                                         animated:!UIAccessibilityIsReduceMotionEnabled()];
-}
+#pragma mark Feedback
 
-#pragma mark Running actions
-
-- (void)runAction:(HCGAction *)action {
+- (void)showToast:(NSString *)message success:(BOOL)success {
+    if (!self.isViewLoaded || message.length == 0) return;
+    _toast.text = [NSString stringWithFormat:@"  %@  ", message];
+    _toast.backgroundColor = [HCGTheme reduceTransparency] ? [HCGTheme raisedSurface] : [[HCGTheme obsidian] colorWithAlphaComponent:0.92];
+    _toast.layer.borderColor = (success ? [HCGTheme cyan] : [HCGTheme warning]).CGColor;
+    [self.view bringSubviewToFront:_toast];
+    NSUInteger generation = ++_toastGeneration;
+    BOOL motion = [HCGTheme decorativeMotionAllowedWithSettings:_context.model.settings];
+    [UIView animateWithDuration:motion ? 0.2 : 0 animations:^{ self->_toast.alpha = 1; }];
+    UIAccessibilityPostNotification(UIAccessibilityAnnouncementNotification, message);
     __weak typeof(self) weakSelf = self;
-    [_context.runner runAction:action completion:^(NSError *error, NSString *summary) {
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         __strong typeof(weakSelf) strongSelf = weakSelf;
-        if (!strongSelf) return;
-        [strongSelf reloadContent];
-        if (error) {
-            [strongSelf presentActionError:error];
-            return;
-        }
-        if (strongSelf->_context.isPreview || strongSelf->_context.isStandaloneApp) {
-            [strongSelf showToast:summary];
-        } else if (strongSelf->_context.closePanelImmediately) {
-            strongSelf->_context.closePanelImmediately();
-        }
-    }];
-}
-
-- (void)presentActionError:(NSError *)error {
-    __weak typeof(self) weakSelf = self;
-    UIAlertAction *extra = nil;
-    if (error.code == HCGErrorIntegrationNotConnected) {
-        extra = [UIAlertAction actionWithTitle:@"Integration Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
-            [weakSelf openSettings];
-        }];
-    } else if (error.code == HCGErrorAppNotInstalled || error.code == HCGErrorNoHandlerForURL || error.code == HCGErrorInvalidTarget ||
-               (error.code == HCGErrorLauncherUnavailable && _context.isStandaloneApp)) {
-        extra = [UIAlertAction actionWithTitle:@"Edit Shortcuts" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
-            [weakSelf editActiveWorkspace];
-        }];
-    }
-    HCGPresentError(self, error, extra);
-}
-
-#pragma mark Table
-
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return (NSInteger)_sections.count;
-}
-
-- (HCGHomeSection)sectionAt:(NSInteger)index {
-    return (HCGHomeSection)_sections[(NSUInteger)index].integerValue;
-}
-
-- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    switch ([self sectionAt:section]) {
-        case HCGHomeSectionShortcuts: return _search.text.length ? @"Results" : @"Shortcuts";
-        case HCGHomeSectionRecents: return @"Recent";
-        case HCGHomeSectionIntegrations: return @"HCG Integrations";
-        case HCGHomeSectionEmpty: return nil;
-    }
-    return nil;
-}
-
-- (void)tableView:(UITableView *)tableView willDisplayHeaderView:(UIView *)view forSection:(NSInteger)section {
-    if ([view isKindOfClass:[UITableViewHeaderFooterView class]]) {
-        UITableViewHeaderFooterView *header = (UITableViewHeaderFooterView *)view;
-        header.textLabel.textColor = [HCGTheme secondaryText];
-        header.textLabel.font = [HCGTheme fontForTextStyle:UIFontTextStyleCaption1 weight:UIFontWeightSemibold];
-    }
-}
-
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    switch ([self sectionAt:section]) {
-        case HCGHomeSectionShortcuts: return MAX(1, (NSInteger)_results.count);
-        case HCGHomeSectionRecents: return (NSInteger)_recents.count;
-        case HCGHomeSectionIntegrations: return (NSInteger)_integrations.count;
-        case HCGHomeSectionEmpty: return 1;
-    }
-    return 0;
-}
-
-- (NSString *)subtitleForAction:(HCGAction *)action {
-    switch (action.kind) {
-        case HCGActionKindApp:
-            if (_context.model.launcher && ![_context.model.launcher canLaunchApplicationsByBundleIdentifier]) {
-                return [NSString stringWithFormat:@"App · needs jailbreak package · %@", action.target];
-            }
-            return action.target;
-        case HCGActionKindURL: return action.target;
-        case HCGActionKindIntegration: {
-            HCGIntegrationStatus *status = [_context.model statusForIntegration:action.target];
-            return [NSString stringWithFormat:@"HCG integration · %@", status.headline];
-        }
-    }
-    return @"";
-}
-
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:kCell];
-    if (!cell) cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:kCell];
-    [HCGTheme styleCell:cell];
-    cell.accessoryType = UITableViewCellAccessoryNone;
-    cell.imageView.tintColor = [HCGTheme cyan];
-    cell.selectionStyle = UITableViewCellSelectionStyleDefault;
-
-    switch ([self sectionAt:indexPath.section]) {
-        case HCGHomeSectionShortcuts: {
-            if (_results.count == 0) {
-                cell.textLabel.text = @"No matching shortcuts";
-                cell.detailTextLabel.text = @"Try another name, or add one under Shortcuts.";
-                cell.imageView.image = [HCGTheme symbolNamed:@"magnifyingglass" pointSize:17];
-                cell.selectionStyle = UITableViewCellSelectionStyleNone;
-                break;
-            }
-            HCGSearchResult *result = _results[(NSUInteger)indexPath.row];
-            cell.textLabel.text = result.action.title;
-            NSString *detail = [self subtitleForAction:result.action];
-            if (_search.text.length) detail = [NSString stringWithFormat:@"%@ · %@", result.workspace.name, detail];
-            cell.detailTextLabel.text = detail;
-            cell.imageView.image = [HCGTheme symbolNamed:result.action.symbolName pointSize:18];
-            cell.accessibilityHint = @"Opens this shortcut.";
-            break;
-        }
-        case HCGHomeSectionRecents: {
-            HCGRecentEntry *entry = _recents[(NSUInteger)indexPath.row];
-            NSRelativeDateTimeFormatter *formatter = [[NSRelativeDateTimeFormatter alloc] init];
-            NSString *when = [formatter localizedStringForDate:entry.date relativeToDate:[NSDate date]];
-            cell.textLabel.text = entry.action.title;
-            cell.detailTextLabel.text = entry.succeeded ? when : [NSString stringWithFormat:@"%@ · %@", when, entry.message ?: @"Failed"];
-            cell.imageView.image = [HCGTheme symbolNamed:entry.succeeded ? @"clock.arrow.circlepath" : @"exclamationmark.triangle" pointSize:17];
-            cell.imageView.tintColor = entry.succeeded ? [HCGTheme secondaryText] : [HCGTheme warning];
-            cell.accessibilityHint = @"Runs this action again.";
-            break;
-        }
-        case HCGHomeSectionIntegrations: {
-            HCGIntegrationStatus *status = _integrations[(NSUInteger)indexPath.row];
-            cell.textLabel.text = status.displayName;
-            cell.detailTextLabel.text = status.headline;
-            cell.imageView.image = [HCGTheme symbolNamed:status.symbolName pointSize:17];
-            BOOL ready = status.state == HCGIntegrationStateReady || status.state == HCGIntegrationStateUnverified;
-            cell.detailTextLabel.textColor = ready ? [HCGTheme success] : [HCGTheme secondaryText];
-            cell.imageView.tintColor = ready ? [HCGTheme cyan] : [HCGTheme secondaryText];
-            cell.accessoryType = UITableViewCellAccessoryDetailButton;
-            cell.accessibilityHint = status.canLaunch ? @"Opens the app." : @"Shows connection details.";
-            break;
-        }
-        case HCGHomeSectionEmpty: {
-            BOOL none = _context.model.workspaceStore.workspaces.count == 0;
-            cell.textLabel.text = none ? @"No workspaces yet" : @"This workspace is empty";
-            cell.detailTextLabel.text = none ? @"Create one from a preset under Workspaces." : @"Add app or link shortcuts under Shortcuts.";
-            cell.imageView.image = [HCGTheme symbolNamed:@"plus.square.dashed" pointSize:18];
-            break;
-        }
-    }
-    return cell;
-}
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    switch ([self sectionAt:indexPath.section]) {
-        case HCGHomeSectionShortcuts:
-            if (_results.count > 0) [self runAction:_results[(NSUInteger)indexPath.row].action];
-            break;
-        case HCGHomeSectionRecents:
-            [self runAction:_recents[(NSUInteger)indexPath.row].action];
-            break;
-        case HCGHomeSectionIntegrations: {
-            HCGIntegrationStatus *status = _integrations[(NSUInteger)indexPath.row];
-            if (status.canLaunch) {
-                HCGAction *action = [HCGAction actionWithKind:HCGActionKindIntegration title:status.displayName target:status.identifier symbol:status.symbolName];
-                action.identifier = [@"integration." stringByAppendingString:status.identifier];
-                [self runAction:action];
-            } else {
-                [self showIntegrationDetail:status];
-            }
-            break;
-        }
-        case HCGHomeSectionEmpty:
-            if (_context.model.workspaceStore.workspaces.count == 0) [self openWorkspaces];
-            else [self editActiveWorkspace];
-            break;
-    }
-}
-
-- (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
-    if ([self sectionAt:indexPath.section] == HCGHomeSectionIntegrations) {
-        [self showIntegrationDetail:_integrations[(NSUInteger)indexPath.row]];
-    }
-}
-
-- (void)showIntegrationDetail:(HCGIntegrationStatus *)status {
-    NSError *info = HCGMakeError(HCGErrorIntegrationNotConnected, [NSString stringWithFormat:@"%@: %@", status.displayName, status.headline], status.detail);
-    __weak typeof(self) weakSelf = self;
-    UIAlertAction *settings = [UIAlertAction actionWithTitle:@"Integration Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction *a) {
-        [weakSelf openSettings];
-    }];
-    HCGPresentError(self, info, settings);
+        if (!strongSelf || generation != strongSelf->_toastGeneration) return;
+        [UIView animateWithDuration:motion ? 0.25 : 0 animations:^{ strongSelf->_toast.alpha = 0; }];
+    });
 }
 
 @end

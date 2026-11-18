@@ -4,6 +4,8 @@
 #import "HCGPanelContext.h"
 #import "HCGActionRunner.h"
 #import "HCGPanelHomeViewController.h"
+#import "HCGCommandModeViewController.h"
+#import "HCGNexusBorderInterface.h"
 
 #pragma mark - Pass-through views
 
@@ -81,6 +83,7 @@
     UIView *_panelBackground;
     UINavigationController *_navigation;
     HCGPanelHomeViewController *_home;
+    HCGCommandModeViewController *_commandMode; // non-nil only while Command Mode is on screen
     HCGPanelContext *_context;
     HCGActionRunner *_runner;
     HCGSettings *_appliedSettings;
@@ -88,6 +91,11 @@
     BOOL _panExceededThreshold;
     UIImpactFeedbackGenerator *_haptics;
     NSUInteger _layoutPasses;
+    // Border interface for HCG Halo (docs/HALO-BORDER.md). Nexus draws nothing here.
+    HCGBorderHostView *_borderHost;
+    HCGNexusBorderInterface *_borderInterface;
+    CGSize _borderHostSize;
+    NSString *_activeWorkspaceIdentifier;
 }
 
 - (instancetype)initWithModel:(HCGNexusModel *)model environment:(id<HCGOverlayEnvironment>)environment {
@@ -110,6 +118,9 @@
 
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+    if (_borderInterface && [HCGNexusBorderInterface activeInterface] == _borderInterface) {
+        [HCGNexusBorderInterface setActiveInterface:nil];
+    }
 }
 
 #pragma mark Public
@@ -129,6 +140,12 @@
 - (void)modelDidChange:(NSNotification *)note {
     [self applyModelSettings];
     if (_coordinator.stateMachine.isPresented) [_home reloadContent];
+    NSString *active = _model.workspaceStore.activeWorkspace.identifier;
+    BOOL changed = !(active == _activeWorkspaceIdentifier || [active isEqualToString:_activeWorkspaceIdentifier]);
+    _activeWorkspaceIdentifier = [active copy];
+    if (changed && _borderInterface && _coordinator.stateMachine.isPresented && !_panelHost.hidden) {
+        [_borderInterface noteEvent:HCGNexusBorderEventWorkspaceChanged];
+    }
 }
 
 - (void)accessibilityChanged:(NSNotification *)note {
@@ -225,6 +242,7 @@
     _context.closePanel = ^{ [weakSelf.coordinator requestClose]; };
     _context.closePanelImmediately = ^{ [weakSelf.coordinator requestCloseImmediately]; };
     _context.diagnosticsProvider = ^NSDictionary *{ return [weakSelf diagnostics] ?: @{}; };
+    _context.presentCommandMode = ^{ [weakSelf presentCommandMode]; };
 
     _home = [[HCGPanelHomeViewController alloc] initWithContext:_context];
     _navigation = [[UINavigationController alloc] initWithRootViewController:_home];
@@ -245,6 +263,12 @@
     [_panelHost addSubview:_navigation.view];
     [_navigation didMoveToParentViewController:_container];
 
+    // Above the content, never interactive, never clipping: HCG Halo (if
+    // installed) adds its border here. Without Halo it stays empty.
+    _borderHost = [[HCGBorderHostView alloc] initWithFrame:_panelHost.bounds];
+    [_panelHost addSubview:_borderHost];
+    _activeWorkspaceIdentifier = [_model.workspaceStore.activeWorkspace.identifier copy];
+
     _haptics = [[UIImpactFeedbackGenerator alloc] initWithStyle:UIImpactFeedbackStyleLight];
 
     NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
@@ -254,6 +278,9 @@
 
     [env overlayInstallContainerViewController:_container];
     [self layoutOverlay];
+
+    _borderInterface = [[HCGNexusBorderInterface alloc] initWithBorderHostView:_borderHost panelView:_panelHost cornerRadius:22];
+    [HCGNexusBorderInterface setActiveInterface:_borderInterface];
 }
 
 - (void)overlaySetVisible:(BOOL)visible {
@@ -262,6 +289,7 @@
     _handle.accessibilityElementsHidden = !visible;
     if (!visible) {
         _handle.highlighted = NO;
+        [self removeCommandModeRestoringPanel:NO];
         [self endTextInput];
     } else {
         [self layoutOverlay];
@@ -269,7 +297,10 @@
 }
 
 - (void)overlayApplySettings:(HCGSettings *)settings {
+    BOOL glassChanged = !_appliedSettings || fabs(_appliedSettings.panelOpacity - settings.panelOpacity) > 0.001 ||
+                        _appliedSettings.panelBlur != settings.panelBlur;
     _appliedSettings = [settings copy];
+    if (glassChanged && _panelHost) [self rebuildPanelBackground];
     _handle.illumination = settings.handleOpacity;
     _handle.onLeftEdge = settings.handleSide == HCGHandleSideLeft;
     [self layoutOverlay];
@@ -284,6 +315,9 @@
         ? CGAffineTransformScale(CGAffineTransformMakeTranslation(direction * 48.0, 0), 0.97, 0.97)
         : CGAffineTransformIdentity;
     __weak typeof(self) weakSelf = self;
+
+    [_borderInterface noteTransition:(opening ? HCGNexusBorderEventWillOpen : HCGNexusBorderEventWillClose)
+                          generation:generation duration:duration reducedMotion:crossfade];
 
     if (opening) {
         [_home reloadContent];
@@ -300,8 +334,14 @@
             self->_dimming.alpha = 1;
         };
         void (^done)(BOOL) = ^(BOOL finished) {
-            UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, [weakSelf panelAccessibilityFocus]);
-            [weakSelf.coordinator panelTransitionFinished:generation];
+            __strong typeof(weakSelf) strongSelf = weakSelf;
+            if (!strongSelf) return;
+            if (strongSelf->_coordinator.stateMachine.isPresented) [strongSelf->_home panelDidAppear];
+            UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, [strongSelf panelAccessibilityFocus]);
+            if (generation == strongSelf->_coordinator.stateMachine.generation && !strongSelf->_panelHost.hidden) {
+                [strongSelf->_borderInterface noteTransition:HCGNexusBorderEventDidOpen generation:generation duration:duration reducedMotion:crossfade];
+            }
+            [strongSelf.coordinator panelTransitionFinished:generation];
         };
         if (duration > 0) {
             [UIView animateWithDuration:duration delay:0 usingSpringWithDamping:(animated ? 0.86 : 1.0) initialSpringVelocity:0
@@ -314,6 +354,7 @@
         return;
     }
 
+    [self removeCommandModeRestoringPanel:NO];
     [self endTextInput];
     void (^changes)(void) = ^{
         self->_panelHost.transform = offscreen;
@@ -343,6 +384,7 @@
 }
 
 - (void)finishClosing {
+    [self removeCommandModeRestoringPanel:NO];
     if (_navigation.presentedViewController) [_navigation dismissViewControllerAnimated:NO completion:nil];
     _panelHost.hidden = YES;
     _panelHost.alpha = 0;
@@ -351,11 +393,94 @@
     _dimming.alpha = 0;
     [_navigation popToRootViewControllerAnimated:NO];
     [_home resetTransientState];
+    [_borderInterface noteTransition:HCGNexusBorderEventDidClose generation:_coordinator.stateMachine.generation duration:0 reducedMotion:_coordinator.reduceMotion];
     if (!_handle.hidden) UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, _handle);
 }
 
 - (id)panelAccessibilityFocus {
     return [_home accessibilityFocusElement] ?: _panelHost;
+}
+
+#pragma mark Command Mode
+
+// Command Mode lives on the overlay canvas above the panel, so it follows the
+// canvas's manual rotation and is torn down by every close path (lock, cover
+// sheet, disable, outside close, a launched shortcut) through finishClosing.
+// Its own 30% scrim replaces the panel dimming while it is shown, so what is
+// behind it is dimmed once, not twice.
+- (void)presentCommandMode {
+    if (_commandMode || !_canvas || !_coordinator.stateMachine.isPresented || _panelHost.hidden) return;
+    [self endTextInput];
+    HCGCommandModeViewController *commandMode = [[HCGCommandModeViewController alloc] initWithContext:_context];
+    commandMode.usesHostContentInsets = YES;
+    __weak typeof(self) weakSelf = self;
+    commandMode.dismissHandler = ^{ [weakSelf dismissCommandMode]; };
+    [_container addChildViewController:commandMode];
+    commandMode.view.frame = _canvas.bounds;
+    commandMode.view.autoresizingMask = UIViewAutoresizingNone;
+    [_canvas addSubview:commandMode.view];
+    [commandMode didMoveToParentViewController:_container];
+    _commandMode = commandMode;
+    [self layoutOverlay];
+    [commandMode startUpdates];
+
+    _panelHost.accessibilityElementsHidden = YES;
+    BOOL animated = [HCGCommandModeStatus animatesTransitionsWithReduceMotion:_coordinator.reduceMotion
+                                                            animationsEnabled:_appliedSettings.animationsEnabled];
+    void (^changes)(void) = ^{
+        commandMode.view.alpha = 1;
+        self->_panelHost.alpha = 0;
+        self->_dimming.alpha = 0;
+    };
+    if (animated) {
+        commandMode.view.alpha = 0;
+        [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState animations:changes completion:nil];
+    } else {
+        changes();
+    }
+    UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, [commandMode accessibilityFocusElement]);
+}
+
+- (void)dismissCommandMode {
+    if (!_commandMode) return;
+    HCGCommandModeViewController *commandMode = _commandMode;
+    BOOL animated = [HCGCommandModeStatus animatesTransitionsWithReduceMotion:_coordinator.reduceMotion
+                                                            animationsEnabled:_appliedSettings.animationsEnabled];
+    __weak typeof(self) weakSelf = self;
+    void (^changes)(void) = ^{
+        commandMode.view.alpha = 0;
+        self->_panelHost.alpha = 1;
+        self->_dimming.alpha = 1;
+    };
+    void (^done)(BOOL) = ^(BOOL finished) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (strongSelf && strongSelf->_commandMode == commandMode) [strongSelf removeCommandModeRestoringPanel:YES];
+    };
+    if (animated) {
+        [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionBeginFromCurrentState animations:changes completion:done];
+    } else {
+        changes();
+        done(YES);
+    }
+}
+
+// Immediate removal. restorePanel is NO on close paths, where the panel and
+// dimming are being hidden anyway.
+- (void)removeCommandModeRestoringPanel:(BOOL)restorePanel {
+    HCGCommandModeViewController *commandMode = _commandMode;
+    if (!commandMode) return;
+    _commandMode = nil;
+    [commandMode.view.layer removeAllAnimations];
+    [commandMode stopUpdates];
+    [commandMode willMoveToParentViewController:nil];
+    [commandMode.view removeFromSuperview];
+    [commandMode removeFromParentViewController];
+    _panelHost.accessibilityElementsHidden = NO;
+    if (restorePanel) {
+        _panelHost.alpha = 1;
+        _dimming.alpha = 1;
+        UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, [self panelAccessibilityFocus]);
+    }
 }
 
 #pragma mark Gestures
@@ -397,7 +522,7 @@
 
 - (void)rebuildPanelBackground {
     [_panelBackground removeFromSuperview];
-    _panelBackground = [HCGTheme makePanelBackgroundWithCornerRadius:22];
+    _panelBackground = [HCGTheme makePanelBackgroundWithCornerRadius:22 settings:_appliedSettings];
     _panelBackground.frame = _panelHost.bounds;
     _panelBackground.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     [_panelHost insertSubview:_panelBackground atIndex:0];
@@ -434,6 +559,10 @@
     _canvas.center = CGPointMake(CGRectGetMidX(bounds), CGRectGetMidY(bounds));
     _canvas.transform = CGAffineTransformMakeRotation(angle);
     _dimming.frame = _canvas.bounds;
+    if (_commandMode) {
+        _commandMode.view.frame = _canvas.bounds;
+        _commandMode.hostContentInsets = UIEdgeInsetsMake(insets.top, insets.left, insets.bottom, insets.right);
+    }
 
     HCGHandleLayoutInput input;
     input.canvasWidth = width;
@@ -455,9 +584,14 @@
         _panelHost.layer.shadowPath = [UIBezierPath bezierPathWithRoundedRect:_panelHost.bounds cornerRadius:22].CGPath;
         _navigation.view.frame = _panelHost.bounds;
         _panelBackground.frame = _panelHost.bounds;
+        _borderHost.frame = _panelHost.bounds;
         _panelHost.transform = saved;
     }
     [CATransaction commit];
+    if (_borderHost && !CGSizeEqualToSize(_borderHost.bounds.size, _borderHostSize)) {
+        _borderHostSize = _borderHost.bounds.size;
+        [_borderInterface noteEvent:HCGNexusBorderEventGeometry];
+    }
 }
 
 #pragma mark Keyboard & text input

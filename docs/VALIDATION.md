@@ -6,6 +6,201 @@ substituted for one another. Only section 4 can show that the tweak works.
 Reproduce sections 1 and 3 with
 `THEOS=… HCG_ENV=rootless scripts/check.sh` (and again with `HCG_ENV=rootful`).
 
+## 0.3.1~beta1 — run #24: the combined candidate (recorded 2026-11-18)
+
+**One combined Nexus candidate** (owner decision): the redesign, Command Mode and the HCG Halo border interface.
+**Status: not yet device-tested.** Checklist: `DEVICE-CHECKLIST.md` (rows 1–16).
+
+| | |
+|---|---|
+| File | `com.hakmicapitalgroup.hcgnexus_0.3.1~beta1_iphoneos-arm64.deb` (1,143,570 bytes) |
+| **SHA-256** | **`b6750cf12d7ab4ebcf5542cef0496945211d8226152a4c45e57e40adaf6741c3`** |
+| Built from | `82412dd5d52086eb20b45170a203853654af8d6b` on `claude/nexus-combined-0.3.1` (embedded build `82412dd5d5`, `rootless-release`) |
+| Workflow | *Build package* run **#24**, ID 44225979728, route `both`, layout `rootless`: https://github.com/F1r3srp3nt/HCG-Nexus/actions/runs/44225979728 |
+| Artifact | `hcg-nexus-rootless-deb`, ID 14393735142, zip SHA-256 `83dee9f040b61db7b5ad59ea067bc40cecfbf30f6f71cb8999a0d594fe318de2`, expires 2026-11-25 |
+| Works with | HCG Halo 0.2.0~beta1 or later (border interface 1); either package works alone |
+| Distribution | HCG Repo Candidate, free public demo by a per-version exception; experimental; production access unchanged |
+
+**CI (all four jobs green on this commit):**
+* Lint + Core host tests: 27,674 checks, 0 failures (`scripts/check.sh`; also rootless and rootful locally).
+* HCG Device Link client tests (vendored copy unchanged, `VENDORED.sha256`).
+* HCG Connect token verification (`HCGConnectVerify`): 21/21 on Linux (swift-crypto) and 21/21 on macOS (CryptoKit).
+* Standalone app: 22/22 XCTests (sections, Settings rows in every mode, 44 pt labelled targets, Dynamic Type scaled
+  once, capped chrome with the Large Content Viewer, migration, account not configured, Connected Devices boundary);
+  launch check; screenshots of all seven sections, the largest text size and increased contrast
+  (`docs/screenshots/0.3.1-beta1/`); unsigned device build and archive.
+* Jailbreak package, `build-jailbreak-deb.sh --require-new-arm64e-abi`: passed.
+
+**Checked again here on the downloaded bytes (zip digest matched GitHub's):**
+* `scripts/inspect-package.py … rootless --require-new-arm64e-abi`: every check OK, no warnings. Includes gzip
+  members, root:wheel, arm64/arm64e (new ABI), shared build ID, Settings bundle 0.3.1 = package base version,
+  nothing outside `/var/jb`, branding (`hcg-logo.png` `424dbe64…3a07`, `nexus-emblem.png` `8e8582be…a86af`,
+  `hcg-nexus-banner.jpg` `1cb7c600…5a3b`).
+* `HaloBorder.plist` is installed at `/var/jb/Library/PreferenceBundles/HCGNexusPrefs.bundle/` and is **accepted by HCG
+  Halo 0.2.0~beta1's own validator** (`HaloNexusDefinition.m` from HCG-Jailbreak-Research `778c21a`, compiled on Linux
+  with GNUstep; only subscripts, one file read and property synthesis adapted for the older runtime): Nexus
+  0.3.1~beta1, corner radius 22 (continuous), outset 2, glow margin 36, six capabilities. The same build rejects an
+  older `nexusVersion`, a wrong schema, an integer for a boolean, a float interface version, an unknown key and
+  interface version 2.
+* `HCGNexus.dylib` exports `HCGNexusBorderInterface` (`+activeInterface`, `+interfaceVersion`, `borderHostView`,
+  `presentationProgress`, `+borderDefinitionPath`) and posts `com.hakmicapitalgroup.hcgnexus.border-event`.
+* The HCG Halo session ran Halo's panel preview against this code: 17/17 (attach via the installed definition,
+  open/close/reversal, Halo or Nexus off, 30 cycles, Command Mode).
+
+**Still needs the device:** everything in `DEVICE-CHECKLIST.md`; in particular SpringBoard loading on iOS 16.5,
+panel glass and blur, Halo drawing on the live panel, Command Mode, and recovery.
+
+## 0.3.0~beta1 — run #15: not shipped (superseded by the combined 0.3.1~beta1) (recorded 2026-11-18)
+
+**Status: not yet device-tested.** Checklist: `DEVICE-CHECKLIST.md`.
+
+| | |
+|---|---|
+| File | `com.hakmicapitalgroup.hcgnexus_0.3.0~beta1_iphoneos-arm64.deb` |
+| **SHA-256** | **`e4a92c2b3680b965052769cd641cce6ebe28aa0371a0e3e3c72a29f46c5ca341`** |
+| Built from | `77b0f3adb1d75ceb0c4c088fa8e9d0ab33573b57` on branch `claude/hcg-nexus-tweak-yb1ii2` (embedded build ID `77b0f3adb1`, config `rootless-release`) |
+| Workflow | *Build package* run **#15**, ID 44213585148, route `both`, layout `rootless`, 2026-11-18 01:09 UTC: https://github.com/F1r3srp3nt/HCG-Nexus/actions/runs/44213585148 |
+| Artifact | `hcg-nexus-rootless-deb`, ID 14386843705, zip SHA-256 `f156dc38fd04aea061dd4d38e66f71a5e2931983d8f1b78089126b22aaf585f6`, expires 2026-11-25 |
+| Distribution | HCG Repo Candidate, `https://repo.hakmicapitalgroup.com/repo/candidate/`: free public demo by a per-version exception. Production access is unchanged |
+
+**Jailbreak package (CI, `build-jailbreak-deb.sh --require-new-arm64e-abi`): passed.**
+* arm64 + arm64e slices with the versioned ptrauth ABI in the tweak and the Settings bundle; `%ctor` in every slice;
+  SpringBoard-only filter.
+* `ar` members `debian-binary`, `control.tar.gz`, `data.tar.gz` (gzip); root:wheel; dirs/binaries 0755, data 0644;
+  regular files only; nothing outside `/var/jb`; no doubled `var/jb/var/jb` prefix.
+* Branding installed at `/var/jb/Library/Application Support/HCGNexus/` (`hcg-logo.png`, `nexus-emblem.png`).
+* Tweak and Settings bundle share build `77b0f3adb1`; Settings bundle 0.3.0 = package base version.
+* `Depends: mobilesubstrate | ellekit, preferenceloader`; no maintainer scripts.
+
+**Host and Linux checks (CI lint job and locally):** `scripts/check.sh` passed, Core host tests 27,188 checks /
+0 failures (rootless and rootful), HCG Device Link client tests passed. App target compiled and linked against the
+iPhoneOS 14.5 and 16.5 SDKs on Linux.
+
+**Run #14 (`6d89605`) is not a candidate.** Its package verified, but 2 app tests failed: an inserted settings section
+shifted the About section's identifier, and HCG Products used a 25.7 pt unlabelled detail button. Both were fixed in
+`77b0f3a`, which also changes code in the tweak, so only run #15 is offered.
+
+## 0.2.1~beta1 — run #13: the candidate package to install (recorded 2026-11-17)
+
+**Status: not yet device-tested.**
+
+| | |
+|---|---|
+| File | `com.hakmicapitalgroup.hcgnexus_0.2.1~beta1_iphoneos-arm64.deb` (450,270 bytes) |
+| **SHA-256** | **`948465eaa30fd8cf1bc9fd98141362fe08c4e24ab0b23d788a39fa65d8ac17af`** |
+| Built from | `58e2dbd81e6cca1bf3589d864403b05ebb8d966e` on branch `claude/nexus-0.2.1-beta1` (embedded build ID `58e2dbd81e`, config `rootless-release`) |
+| Workflow | *Build package* run **#13**, ID 44019802883, route `jailbreak`, layout `rootless`, 2026-11-17 04:49–04:51 UTC |
+| Artifact | `hcg-nexus-rootless-deb`, ID 14300601854, zip SHA-256 `d3ac321bfb14068271491ab556573a9d570b72466e8047e3d8f210cb5b2d5235`, expires 2026-11-24 |
+| Distribution | HCG Repo Candidate, `https://repo.hakmicapitalgroup.com/repo/candidate/`. HCG Nexus is paid; this exact version is free there by an owner-approved exception |
+
+**Why a new version instead of run #10's 0.2.0**
+* **Packaging.** Run #10's data member is `data.tar.lzma`: legacy lzma-alone, properties `0x5d`, 64 MiB dictionary, no
+  stored size. That is the same header as the HCG Vortex beta whose unpack crashed on a device with `dpkg-deb … Bus
+  error: 10` (cause unconfirmed). This build is gzip (`data.tar.gz`, `control.tar.gz`). `scripts/inspect-package.py`
+  now refuses lzma-alone, and it flags run #10.
+* **Version.** HCG Repo already records 0.2.0 as run #9 (`19871569…`), and recorded versions are immutable there.
+
+**Same code as run #10.** Compared with `1341669`, the only source changes are `HCG_NEXUS_VERSION` and the Settings
+bundle's `CFBundleShortVersionString`. Packaging changed in `Makefile` (gzip) and `control` (Version).
+Docs/tests/scripts from `be03ee0` do not affect the binaries.
+
+**Checks on this exact file (downloaded through the GitHub API; zip digest matched GitHub's record):**
+* CI: lint + 26,960 host checks passed. `build-jailbreak-deb.sh --require-new-arm64e-abi` passed.
+* This repository's `scripts/inspect-package.py … rootless --require-new-arm64e-abi` passed:
+  - arm64 and arm64e slices (versioned ptrauth ABI v0) in both binaries;
+  - the initializer is present;
+  - shared build `58e2dbd81e`;
+  - root:wheel ownership, 0755/0644 permissions;
+  - `ar` members `debian-binary`, `control.tar.gz`, `data.tar.gz` (gzip magic checked);
+  - Settings bundle version 0.2.1 matches the package's base version.
+* HCG Repo `hcgrepo inspect`: passed. Its one warning, `firmware-undeclared`, notes the binaries need iOS 15.0+ and
+  the package declares no firmware range.
+* HCG Repo trial import, build and offline verification of both sources passed:
+  - the stable index is unchanged and still empty;
+  - the candidate index lists this file with this SHA-256;
+  - 0.2.0 appears nowhere in the output.
+
+## 0.2.0 — run #10: verified, not offered for installation (recorded 2026-11-16)
+
+> Superseded for device testing by 0.2.1~beta1 above, because of its lzma packaging.
+
+This is the only package to use for the device test:
+
+| | |
+|---|---|
+| File | `com.hakmicapitalgroup.hcgnexus_0.2.0_iphoneos-arm64.deb` (236,034 bytes) |
+| **SHA-256** | **`799734e7949b30bf90f2790f602e0043bac3a23e7bd43898f811f2bde3addc2e`** |
+| Built from | `main` @ `13416698ea72f814e9960c09ff17115c3f00cb4c` (clean tree; embedded build ID `13416698ea`, config `rootless-release`) |
+| Workflow | *Build package* run **#10**, ID 43557670545, manual dispatch on `main`, route `both`, layout `rootless`, 2026-11-14 04:38–05:08 UTC: https://github.com/F1r3srp3nt/HCG-Nexus/actions/runs/43557670545 |
+| Toolchain | macOS runner, Xcode clang, Theos (latest at build time), iPhoneOS16.5 SDK, deployment target 15.0 |
+| Artifact | `hcg-nexus-rootless-deb`, ID **14099414356**, zip SHA-256 `dd84f6bc3dcde26e6d92204b6f162e7f6cd1aab2c61d49dbcc962e8f51a18e54`, GitHub expiry **2026-11-21 05:07 UTC** |
+| Other artifacts of run #10 (not for the phone) | `hcg-nexus-app` (standalone app, ID 14099492161); `hcg-nexus-preview-SIMULATION-rootless-deb` (preview simulation, ID 14099364406) |
+
+Checks on this exact file:
+
+* **CI (run #10), all three jobs passed.**
+  - Lint + 26,960 host checks passed.
+  - Standalone app job passed: simulator build, unit tests, simulator launch, unsigned device build and archive.
+  - Jailbreak job passed. `scripts/build-jailbreak-deb.sh --require-new-arm64e-abi` confirmed:
+    - tweak and Prefs have arm64 slices and arm64e slices with the versioned ptrauth ABI (v0);
+    - the initializer is present in every slice;
+    - tweak and Settings share build `13416698ea`;
+    - payload installs as root:wheel, dirs/binaries 0755, data 0644;
+    - everything is under `/var/jb`, with no maintainer scripts;
+    - the filter is SpringBoard only;
+    - PreferenceLoader wiring is correct and the version is 0.2.0.
+* **Independent re-check (2026-11-16).**
+  - The artifact was downloaded again through the GitHub API. The zip digest matched GitHub's recorded digest, and the `.deb` SHA-256 matched the CI log.
+  - `scripts/inspect-package.py … rootless --require-new-arm64e-abi` passed on the downloaded file.
+* **Install helper.** `Tests/Device/test-install-local.sh` passes 14/14 against this file. It covers: accepted; wrong model, iOS or architecture refused; no `/var/jb` refused; missing dependencies refused with no download; modified file refused; run #9's file refused.
+
+### Run #9 and run #10 are not byte-identical: what differs
+
+| | Run #9 | Run #10 |
+|---|---|---|
+| Commit | `907b1df` (branch) | `1341669` (main) |
+| `.deb` SHA-256 | `19871569…616a5` | `799734e7…dc2e` |
+
+* **Source.** The only change between the two commits is `docs/VALIDATION.md` (3 lines). No source, resource, Makefile or package metadata changed.
+* **Package.** Everything is byte-identical except the two Mach-O binaries:
+  - `control`, `Root.plist`, `Info.plist`, the PreferenceLoader entry, the filter plist and the icons are identical;
+  - the archive itself differs only in timestamps and lzma output size.
+* **Binaries.** In each binary (`HCGNexus.dylib`, `HCGNexusPrefs`) and each slice (arm64, arm64e), 190–192 bytes differ, all in three places:
+  1. the embedded build ID: `907b1df330` → `13416698ea`, 2 occurrences per slice (same length, so no layout shift);
+  2. `LC_UUID`: derived from the content, so it changes when the build ID changes;
+  3. the ad-hoc code signature (`ldid`): it hashes the pages that changed.
+* **Proof.** With those three normalised, every slice of both binaries is byte-for-byte identical, with equal sizes and signature offsets.
+* **Conclusion.** Executable code and data are identical, so runtime behaviour is the same. The only visible difference is the build ID shown in Settings › HCG Nexus and in the diagnostics report.
+
+### What this package contains, compared with newer work
+
+The run #10 package is exactly 0.2.0 as described in `docs/FEATURES.md` at `1341669`. It does **not** contain:
+
+| Change | Where it lives | Affects the jailbreak package? |
+|---|---|---|
+| In-panel Settings › About › **HCG Repo** row (opens `https://repo.hakmicapitalgroup.com/products/hcg-nexus/` in Safari) | `main` after the build: `60c3b77`, merged as `3136149` (PR #2) | **Yes** (overlay panel and standalone app) — **not in the run #10 .deb** |
+| **Connected Devices / HCG Device Link** (pairing with HCG Server through HCG Connect, paired devices, shared reports; Swift package `HCGDeviceLink`) | branch `claude/lucid-mendel-egzyd6` only (`bc40ad3`, `24ec523`; based on `1341669`, not merged) | No: standalone app only. `Sources/Platform/App/` is compiled only into the Xcode app target; the tweak and Prefs Makefiles include only `Sources/Core`, `Sources/Panel` and `Sources/Platform/SpringBoard`. The shared panel code gains a section the overlay never shows. One Core string (the detail text for a legacy HCG Server shortcut) changes wording |
+
+`claude/lucid-mendel-egzyd6` and `main` both edit `Sources/Panel/HCGPanelSettingsViewController.m`. A test merge (`git merge-tree origin/main origin/claude/lucid-mendel-egzyd6`, 2026-11-16) conflicts in that file only. The conflicts are in the section enum and the section lists, which both sides extend.
+## Command Mode (branch `claude/nexus-command-mode`, 2026-11-18)
+
+Linux container only (Ubuntu clang 18.1.3 + GNUstep). **No Theos toolchain,
+no Xcode run, no simulator and no device run** for this change. Version stays
+0.2.0: nothing in the docs requires a bump for an unreleased feature branch,
+and `control`/`HCG_NEXUS_VERSION` must move together when it is released.
+
+| Check | Result |
+|---|---|
+| `scripts/check.sh` (lint, Core portability, safety rules, plists, Xcode project matches generator, app-target boundaries, host tests) | **pass** — "All checks passed."; app-target compile/link step **SKIP** (no `$THEOS`) |
+| Core host tests (new `Tests/Host/CommandModeTests.m`: every Command Mode display state, nil/unrecognised/out-of-range data, battery/power/network/storage, presentation policy, no implied-activity wording) | **pass** — 27,456 checks, 0 failures (26,970 before this change) |
+| Mutation checks by hand: an unreported sign-in state mapped to Connected; "off" mapped to Disconnected | suite **fails** as expected (2 and 3 failures) |
+| `generate_xcodeproj.py --check` after regenerating (3 new app sources, Network.framework linked) | **pass** — 34 app sources |
+| `check_app_target.py` | **pass** — 34 sources, public APIs only |
+| Syntax check with host clang against public iPhoneOS SDK headers (`theos/sdks`, fetched into a scratch directory, not installed): tweak sources (Core + Panel + SpringBoard) for 16.5/iOS 15.0 and 14.5/iOS 14.0 with `-Wall -Werror`; app target for both SDKs with the flags of `compile-app-target.sh`; preview harness sources | **pass** — 0 diagnostics in every set. This is not a Theos or Xcode build: no Logos (`Tweak.x`), no Settings bundle (private Preferences headers), no packaging |
+| App target linked with `ld64.lld` against the 14.5 and 16.5 SDK stubs (compiler-rt `___isOSVersionAtLeast` / `___isPlatformVersionAtLeast` left to Xcode, as in `compile-app-target.sh`) | **pass** — `nw_path_*` resolve from Network.framework; no private-API strings |
+| `Tests/App/HCGNexusAppTests.m` › `testCommandModeShowsRealStatesInAppMode` | **not run** (needs Xcode); syntax-checked only, against a stub XCTest header |
+| Command Mode on the simulator, in the preview harness, or on the iPhone 13 Pro | **not done** — see `DEVICE-CHECKLIST.md` row 4b |
+
 ## 0.2.0 — first device release candidate (branch `claude/hcg-nexus-tweak-yb1ii2`, 2026-11-14)
 
 Linux only (Theos clang 11 + GNUstep). **No device run and no Xcode run for

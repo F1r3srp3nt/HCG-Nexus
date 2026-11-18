@@ -3,10 +3,14 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		056FE5A114EA01184551B9ED /* HCGDeviceLink in Frameworks */ = {
+			isa = PBXBuildFile;
+			productRef = 7FE5DCB53787C133C7F8AA5C;
+		};
 		063342ED52C8803B928695BE /* HCGWorkspaceManagerViewController.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = A52C126137DBC4173B8DC9A1;
@@ -14,6 +18,10 @@
 		067CE4BEEFC11A261324CC0E /* HCGPanelTableViewController.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 81D56076A1B1A36DA6650C8C;
+		};
+		0817F77CEED62D43A2231F20 /* HCGLayoutMigration.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 987BB1D3B1FB1A239D523FDD;
 		};
 		134E79769D43BD65D02E6EBA /* HCGTheme.m in Sources */ = {
 			isa = PBXBuildFile;
@@ -27,17 +35,41 @@
 			isa = PBXBuildFile;
 			fileRef = 8FE38AE4AB045DDF750C063E;
 		};
+		23E1B031BF4655142ED5428B /* HCGDevicesInfoViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 8DF19EEEAD6005DAE47514F9;
+		};
+		2C7F3538461464795DD7FA37 /* HCGPanelServices.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 752117A0AF7C2D457237A906;
+		};
 		35DA9693C7136B95DBA5E276 /* HCGPanelHomeViewController.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = F5CFB14C421E20511E716D01;
+		};
+		3C058E8672C2EE55A39088E4 /* HCGCommandModeViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = AF198653D9F346A35527FD9F;
+		};
+		3E9A601B356B02EC8C832407 /* HCGAccount.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 004468DAF7650DA0463E984B;
 		};
 		4264A2B8F7C5F1F160B56169 /* HCGSearch.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 7E54E52E89E1165AF0EF238A;
 		};
+		435385F533EF99C66600AE0E /* HCGToolsViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 582D384857292E62EC488A6B;
+		};
 		4F50DC1A55407EFDE68D702E /* HCGNexusAppTests.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 9FDCAB71903DC4D63E2F81B3;
+		};
+		53E88B4055A3CDB62AA0387C /* HCGOverviewViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = B4F4069DBF535FC07D2A0304;
 		};
 		589F4CA7CC9898ED7304C8E4 /* HCGAppRootViewController.m in Sources */ = {
 			isa = PBXBuildFile;
@@ -54,6 +86,10 @@
 		6009AD07C4618CEE7C023B4D /* HCGPanelContext.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 3B2B813C1265303959118322;
+		};
+		636366564C619A050B091CFE /* HCGAppLibrary.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 2846CFC12CFA43627359273A;
 		};
 		643D29E9302DE61D0808CCC0 /* Foundation.framework in Frameworks */ = {
 			isa = PBXBuildFile;
@@ -75,9 +111,25 @@
 			isa = PBXBuildFile;
 			fileRef = 67EE213C3F1743224FE903E3;
 		};
+		7155FA6EFCC85A2F92C0EAD5 /* HCGToolCatalog.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 3EA66240A171612E980737CF;
+		};
+		75F8ED7B79851C532C43D0E2 /* HCGAppAccountProvider.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 7EEACED9F2B07D3A22B80217;
+		};
+		7CE427E6D2E461840C4CCC27 /* HCGCommandMode.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 958CFF062160CC947DCB2C66;
+		};
 		7D11C78EAE5B4C69D10839CA /* Assets.xcassets in Resources */ = {
 			isa = PBXBuildFile;
 			fileRef = C5563B2D91BAF29557D8468C;
+		};
+		8105ACE2A4AB2314CCD7B344 /* HCGDeviceStatusMonitor.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = E1FBBECA914FBC93D6181E9E;
 		};
 		8F3A0B6580A55AD425BF84C9 /* UIKit.framework in Frameworks */ = {
 			isa = PBXBuildFile;
@@ -86,6 +138,10 @@
 		8F5A852019BDB6237D2D4C10 /* CoreGraphics.framework in Frameworks */ = {
 			isa = PBXBuildFile;
 			fileRef = 76F9D685866F3288582BB70B;
+		};
+		91DECF5C94A03BC8BFF41104 /* HCGBranding.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = EE149DD8A592AB0CE92A7BAC;
 		};
 		94C35AC56B68442714774FDF /* HCGOverlayCoordinator.m in Sources */ = {
 			isa = PBXBuildFile;
@@ -103,6 +159,18 @@
 			isa = PBXBuildFile;
 			fileRef = 5EB962FBEE34DC85BCBFA4CC;
 		};
+		AFEC655F706AE470EF7019EF /* HCGLinkTypes.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = EE7EEF54CC2BC3BBBF11736F;
+		};
+		B0629AA551FC77F988BF3E53 /* HCGProductCatalog.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 5A8058573E9046222565AA55;
+		};
+		B09B52C095DED110D8049E38 /* HCGProductsViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 64ECB23ADC864B3D02A955A3;
+		};
 		B0F2008134CB47D792B1D6F2 /* HCGShortcutEditorViewController.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = EAAFE77D1C832D4112DE5862;
@@ -119,6 +187,10 @@
 			isa = PBXBuildFile;
 			fileRef = 0FEDB9CBA813A865934D7647;
 		};
+		C6B87B8593877A40BE63C2F3 /* HCGAppsViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 39EF3848BD49042D56DBC0AF;
+		};
 		C6E9C37FB51D92106C6BEB67 /* HCGAppPlatform.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = DF9C83BBE76AF761A4BFCBA0;
@@ -126,6 +198,14 @@
 		C9382163EAAE1B7DF654F3F1 /* HCGGeometry.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 38F01A3CAEADC3AA86D51E53;
+		};
+		CDE1FF078B4DAA499B15F29D /* HCGAccountViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 04A54BBB286E5C26BAB195EB;
+		};
+		CDE329ABF0ABF087E4711E45 /* HCGDeviceLinkService.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 7D9CD0FE5DCFCBA8155BA6B7;
 		};
 		CF37F9723E4697D1402DEF09 /* HCGPanelSettingsViewController.m in Sources */ = {
 			isa = PBXBuildFile;
@@ -143,6 +223,14 @@
 			isa = PBXBuildFile;
 			fileRef = 1E711720A28482846A34FA39;
 		};
+		DB9E7CF0E7539B1C2CB32DCD /* HCGVerifiedConnectTransport.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 90A27DEE948A9EDEC3ACF4A3;
+		};
+		DBFEF11E6F8113142148F715 /* HCGLinkReportViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 7A230D8035737B5788F9AE48;
+		};
 		DDFC0EECC4214499EC764E61 /* HCGRecents.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 0A3E55034877A24B87DA9271;
@@ -150,6 +238,18 @@
 		DEEAFD716FB7DB4E434394C5 /* HCGSettings.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 9F42A85466F7E2D5F20DCEE9;
+		};
+		DF42BF63CF25715B38A01C74 /* HCGConnectedDevicesViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = A647D18F83B154FEDD1D1D94;
+		};
+		E569A85690435DBE763E27D3 /* HCGConnectTokenVerifier.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = A054B7D1100C17765B4FC755;
+		};
+		E76F5DD34E5E40BB0F3B5721 /* Network.framework in Frameworks */ = {
+			isa = PBXBuildFile;
+			fileRef = A5D2210C1ED4298EAFF936A3;
 		};
 		F3C5FD26A46ADBAF5E0D7672 /* HCGSceneDelegate.m in Sources */ = {
 			isa = PBXBuildFile;
@@ -168,11 +268,32 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		004468DAF7650DA0463E984B /* HCGAccount.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGAccount.m;
+			path = Sources/Core/HCGAccount.m;
+			sourceTree = SOURCE_ROOT;
+		};
 		01FA27804A2F3E6C92EB9034 /* HCGPanelStateMachine.h */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGPanelStateMachine.h;
 			path = Sources/Core/HCGPanelStateMachine.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		04A54BBB286E5C26BAB195EB /* HCGAccountViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGAccountViewController.m;
+			path = Sources/Panel/HCGAccountViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		07FD241EBC2BB6BCBE68B970 /* HCGConnectedDevicesViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGConnectedDevicesViewController.h;
+			path = Sources/Platform/App/DeviceLink/HCGConnectedDevicesViewController.h;
 			sourceTree = SOURCE_ROOT;
 		};
 		086B95508381EB53B6ACA976 /* HCGNexusModel.m */ = {
@@ -203,6 +324,13 @@
 			path = Sources/Panel/HCGWorkspaceManagerViewController.h;
 			sourceTree = SOURCE_ROOT;
 		};
+		0CDC47645BB142BD7B87374D /* HCGLinkTypes.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGLinkTypes.h;
+			path = Sources/Platform/App/DeviceLink/HCGLinkTypes.h;
+			sourceTree = SOURCE_ROOT;
+		};
 		0D4158BFF29972DC1A9B79C6 /* QuartzCore.framework */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
@@ -229,6 +357,13 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGSceneDelegate.h;
 			path = App/HCGSceneDelegate.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		1354BEA2CAA61D42EB10747B /* HCGDeviceStatusMonitor.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGDeviceStatusMonitor.h;
+			path = Sources/Panel/HCGDeviceStatusMonitor.h;
 			sourceTree = SOURCE_ROOT;
 		};
 		15F9BB34D7ACA39D3BC8E99D /* HCGActionRunner.m */ = {
@@ -273,6 +408,13 @@
 			path = Sources/Core/HCGConstants.h;
 			sourceTree = SOURCE_ROOT;
 		};
+		2846CFC12CFA43627359273A /* HCGAppLibrary.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGAppLibrary.m;
+			path = Sources/Core/HCGAppLibrary.m;
+			sourceTree = SOURCE_ROOT;
+		};
 		2A19486AFB2E73CA688DF378 /* Foundation.framework */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = wrapper.framework;
@@ -294,6 +436,13 @@
 			path = Sources/Core/HCGGeometry.m;
 			sourceTree = SOURCE_ROOT;
 		};
+		39EF3848BD49042D56DBC0AF /* HCGAppsViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGAppsViewController.m;
+			path = Sources/Panel/HCGAppsViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
 		3B2B813C1265303959118322 /* HCGPanelContext.m */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
@@ -306,6 +455,13 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGWorkspace.h;
 			path = Sources/Core/HCGWorkspace.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		3EA66240A171612E980737CF /* HCGToolCatalog.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGToolCatalog.m;
+			path = Sources/Core/HCGToolCatalog.m;
 			sourceTree = SOURCE_ROOT;
 		};
 		40149B2A094766AB4FC6E549 /* HCGWorkspacePresets.h */ = {
@@ -336,11 +492,53 @@
 			path = Sources/Panel/HCGLauncher.h;
 			sourceTree = SOURCE_ROOT;
 		};
+		484D26FB7E55C542E6D33432 /* HCGCommandMode.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGCommandMode.h;
+			path = Sources/Core/HCGCommandMode.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		4B1EB2CDFC74BB0BBE9F2E2F /* HCGOverviewViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGOverviewViewController.h;
+			path = Sources/Panel/HCGOverviewViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		4C45EFB05DC1714978C1EF7A /* HCGLinkReportViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGLinkReportViewController.h;
+			path = Sources/Platform/App/DeviceLink/HCGLinkReportViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
 		549DD0C3BE1F2717DF5D0CB7 /* HCGPanelSettingsViewController.m */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
 			name = HCGPanelSettingsViewController.m;
 			path = Sources/Panel/HCGPanelSettingsViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		55818FD4549F46929772A131 /* HCGBranding.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGBranding.h;
+			path = Sources/Panel/HCGBranding.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		582D384857292E62EC488A6B /* HCGToolsViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGToolsViewController.m;
+			path = Sources/Panel/HCGToolsViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		5A8058573E9046222565AA55 /* HCGProductCatalog.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGProductCatalog.m;
+			path = Sources/Core/HCGProductCatalog.m;
 			sourceTree = SOURCE_ROOT;
 		};
 		5C8FF1673D757AE3C870386A /* HCGKeyValueStore.m */ = {
@@ -371,6 +569,13 @@
 			path = Sources/Core/HCGKeyValueStore.h;
 			sourceTree = SOURCE_ROOT;
 		};
+		6327A07C1D8FA41BE048B43C /* HCGProductsViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGProductsViewController.h;
+			path = Sources/Panel/HCGProductsViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
 		63344EE2FA96F4DC54A9E0C8 /* HCGSearch.h */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
@@ -385,6 +590,27 @@
 			path = Sources/Core/HCGWorkspaceStore.h;
 			sourceTree = SOURCE_ROOT;
 		};
+		6445B1C7CAF427BB12DF6AA4 /* HCGLayoutMigration.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGLayoutMigration.h;
+			path = Sources/Core/HCGLayoutMigration.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		64ECB23ADC864B3D02A955A3 /* HCGProductsViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGProductsViewController.m;
+			path = Sources/Panel/HCGProductsViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		664EE36A0DC4025BD8116780 /* HCGToolCatalog.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGToolCatalog.h;
+			path = Sources/Core/HCGToolCatalog.h;
+			sourceTree = SOURCE_ROOT;
+		};
 		67EE213C3F1743224FE903E3 /* HCGDiagnostics.m */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
@@ -392,11 +618,32 @@
 			path = Sources/Core/HCGDiagnostics.m;
 			sourceTree = SOURCE_ROOT;
 		};
+		6B6FCA6893B83A6C49F371E7 /* HCGAppLibrary.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGAppLibrary.h;
+			path = Sources/Core/HCGAppLibrary.h;
+			sourceTree = SOURCE_ROOT;
+		};
 		6D6F4DE6DEBDCBCE27304086 /* HCGCore.h */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGCore.h;
 			path = Sources/Core/HCGCore.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		6F5C0908D2339480A36EBC5A /* HCGAppsViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGAppsViewController.h;
+			path = Sources/Panel/HCGAppsViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		752117A0AF7C2D457237A906 /* HCGPanelServices.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGPanelServices.m;
+			path = Sources/Panel/HCGPanelServices.m;
 			sourceTree = SOURCE_ROOT;
 		};
 		76F9D685866F3288582BB70B /* CoreGraphics.framework */ = {
@@ -413,11 +660,39 @@
 			path = Sources/Panel/HCGShortcutEditorViewController.h;
 			sourceTree = SOURCE_ROOT;
 		};
+		7A230D8035737B5788F9AE48 /* HCGLinkReportViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGLinkReportViewController.m;
+			path = Sources/Platform/App/DeviceLink/HCGLinkReportViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		7D9CD0FE5DCFCBA8155BA6B7 /* HCGDeviceLinkService.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			name = HCGDeviceLinkService.swift;
+			path = Sources/Platform/App/DeviceLink/HCGDeviceLinkService.swift;
+			sourceTree = SOURCE_ROOT;
+		};
 		7E54E52E89E1165AF0EF238A /* HCGSearch.m */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
 			name = HCGSearch.m;
 			path = Sources/Core/HCGSearch.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		7EEACED9F2B07D3A22B80217 /* HCGAppAccountProvider.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGAppAccountProvider.m;
+			path = Sources/Platform/App/DeviceLink/HCGAppAccountProvider.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		7FB3736A58D9B5C89B0C7926 /* HCGProductCatalog.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGProductCatalog.h;
+			path = Sources/Core/HCGProductCatalog.h;
 			sourceTree = SOURCE_ROOT;
 		};
 		7FC87A8F7443B65C52C7A580 /* HCGWorkspacePresets.m */ = {
@@ -432,6 +707,13 @@
 			lastKnownFileType = sourcecode.c.objc;
 			name = HCGPanelTableViewController.m;
 			path = Sources/Panel/HCGPanelTableViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		827767D087BAEB75330C341B /* HCGCommandModeViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGCommandModeViewController.h;
+			path = Sources/Panel/HCGCommandModeViewController.h;
 			sourceTree = SOURCE_ROOT;
 		};
 		83C5CBAE4AEEAF8586F9BF0B /* HCGNexus.app */ = {
@@ -455,6 +737,13 @@
 			path = Sources/Core/HCGOverlayCoordinator.m;
 			sourceTree = SOURCE_ROOT;
 		};
+		8DF19EEEAD6005DAE47514F9 /* HCGDevicesInfoViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGDevicesInfoViewController.m;
+			path = Sources/Panel/HCGDevicesInfoViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
 		8FE38AE4AB045DDF750C063E /* HCGSystemInfo.m */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
@@ -469,11 +758,32 @@
 			path = Sources/Core/HCGIntegrations.m;
 			sourceTree = SOURCE_ROOT;
 		};
+		90A27DEE948A9EDEC3ACF4A3 /* HCGVerifiedConnectTransport.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			name = HCGVerifiedConnectTransport.swift;
+			path = Sources/Platform/App/DeviceLink/HCGVerifiedConnectTransport.swift;
+			sourceTree = SOURCE_ROOT;
+		};
 		9141D5B791C2D60021D9070C /* HCGAppRootViewController.m */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
 			name = HCGAppRootViewController.m;
 			path = App/HCGAppRootViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		958CFF062160CC947DCB2C66 /* HCGCommandMode.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGCommandMode.m;
+			path = Sources/Core/HCGCommandMode.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		987BB1D3B1FB1A239D523FDD /* HCGLayoutMigration.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGLayoutMigration.m;
+			path = Sources/Core/HCGLayoutMigration.m;
 			sourceTree = SOURCE_ROOT;
 		};
 		9F42A85466F7E2D5F20DCEE9 /* HCGSettings.m */ = {
@@ -488,6 +798,13 @@
 			lastKnownFileType = sourcecode.c.objc;
 			name = HCGNexusAppTests.m;
 			path = Tests/App/HCGNexusAppTests.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		A054B7D1100C17765B4FC755 /* HCGConnectTokenVerifier.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			name = HCGConnectTokenVerifier.swift;
+			path = HCGConnectVerify/Sources/HCGConnectVerify/HCGConnectTokenVerifier.swift;
 			sourceTree = SOURCE_ROOT;
 		};
 		A1811C38D20847BCBEE8F357 /* HCGIntegrations.h */ = {
@@ -511,6 +828,20 @@
 			path = Sources/Panel/HCGWorkspaceManagerViewController.m;
 			sourceTree = SOURCE_ROOT;
 		};
+		A5D2210C1ED4298EAFF936A3 /* Network.framework */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = Network.framework;
+			path = System/Library/Frameworks/Network.framework;
+			sourceTree = SDKROOT;
+		};
+		A647D18F83B154FEDD1D1D94 /* HCGConnectedDevicesViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGConnectedDevicesViewController.m;
+			path = Sources/Platform/App/DeviceLink/HCGConnectedDevicesViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
 		ADD859C76040FA4DD8D760B7 /* HCGDiagnostics.h */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
@@ -525,11 +856,46 @@
 			path = App/main.m;
 			sourceTree = SOURCE_ROOT;
 		};
+		AECA786662627A990417286C /* HCGAccountViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGAccountViewController.h;
+			path = Sources/Panel/HCGAccountViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		AF198653D9F346A35527FD9F /* HCGCommandModeViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGCommandModeViewController.m;
+			path = Sources/Panel/HCGCommandModeViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		B2A15363F280791D6EE287C6 /* HCGDevicesInfoViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGDevicesInfoViewController.h;
+			path = Sources/Panel/HCGDevicesInfoViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
 		B2FAD72EF4B4935CDED78F59 /* HCGTheme.m */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
 			name = HCGTheme.m;
 			path = Sources/Panel/HCGTheme.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		B469A9A23B17184205F3AB98 /* HCGAccount.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGAccount.h;
+			path = Sources/Core/HCGAccount.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		B4F4069DBF535FC07D2A0304 /* HCGOverviewViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGOverviewViewController.m;
+			path = Sources/Panel/HCGOverviewViewController.m;
 			sourceTree = SOURCE_ROOT;
 		};
 		B6172EBE4D10152B2219648A /* HCGAppDelegate.h */ = {
@@ -544,6 +910,27 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGAction.h;
 			path = Sources/Core/HCGAction.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		BDD210F0099F5937A90060FA /* HCGSections.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGSections.h;
+			path = Sources/Panel/HCGSections.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		C2AD0FCD0FD826780A3326E6 /* HCGToolsViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGToolsViewController.h;
+			path = Sources/Panel/HCGToolsViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		C450CF0F26B6A01B5BA1EF78 /* HCGNexus-Bridging-Header.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = "HCGNexus-Bridging-Header.h";
+			path = "Sources/Platform/App/DeviceLink/HCGNexus-Bridging-Header.h";
 			sourceTree = SOURCE_ROOT;
 		};
 		C5563B2D91BAF29557D8468C /* Assets.xcassets */ = {
@@ -581,6 +968,13 @@
 			path = Sources/Panel/HCGPanelTableViewController.h;
 			sourceTree = SOURCE_ROOT;
 		};
+		D0B2CD76C568394C91E42BD0 /* HCGPanelServices.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGPanelServices.h;
+			path = Sources/Panel/HCGPanelServices.h;
+			sourceTree = SOURCE_ROOT;
+		};
 		D241D27FABB933E4A7AC907A /* Info.plist */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = text.plist.xml;
@@ -602,6 +996,20 @@
 			path = Sources/Platform/App/HCGAppPlatform.m;
 			sourceTree = SOURCE_ROOT;
 		};
+		E1FBBECA914FBC93D6181E9E /* HCGDeviceStatusMonitor.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGDeviceStatusMonitor.m;
+			path = Sources/Panel/HCGDeviceStatusMonitor.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		E8D6DF94996D9EEBA9F617A5 /* HCGAppAccountProvider.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGAppAccountProvider.h;
+			path = Sources/Platform/App/DeviceLink/HCGAppAccountProvider.h;
+			sourceTree = SOURCE_ROOT;
+		};
 		EAAFE77D1C832D4112DE5862 /* HCGShortcutEditorViewController.m */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
@@ -615,6 +1023,20 @@
 			includeInIndex = 0;
 			path = HCGNexusTests.xctest;
 			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		EE149DD8A592AB0CE92A7BAC /* HCGBranding.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGBranding.m;
+			path = Sources/Panel/HCGBranding.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		EE7EEF54CC2BC3BBBF11736F /* HCGLinkTypes.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGLinkTypes.m;
+			path = Sources/Platform/App/DeviceLink/HCGLinkTypes.m;
+			sourceTree = SOURCE_ROOT;
 		};
 		EE890FCF88C9248E51E7F8A2 /* HCGSystemInfo.h */ = {
 			isa = PBXFileReference;
@@ -683,6 +1105,8 @@
 				8F3A0B6580A55AD425BF84C9,
 				ADB48BCB471BAFC9B8A1766B,
 				8F5A852019BDB6237D2D4C10,
+				E76F5DD34E5E40BB0F3B5721,
+				056FE5A114EA01184551B9ED,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -711,6 +1135,7 @@
 			children = (
 				F71BFE7FD4E97510EBC34197,
 				DF9C83BBE76AF761A4BFCBA0,
+				816A619FC604A34D7AB4CCF5,
 			);
 			name = "Platform (App)";
 			sourceTree = "<group>";
@@ -718,25 +1143,46 @@
 		1F5310C51605BDE7EEEB0130 /* Panel */ = {
 			isa = PBXGroup;
 			children = (
+				AECA786662627A990417286C,
+				04A54BBB286E5C26BAB195EB,
 				F7B74B6F2F87FCAA8E3FC2EF,
 				15F9BB34D7ACA39D3BC8E99D,
+				6F5C0908D2339480A36EBC5A,
+				39EF3848BD49042D56DBC0AF,
+				55818FD4549F46929772A131,
+				EE149DD8A592AB0CE92A7BAC,
+				827767D087BAEB75330C341B,
+				AF198653D9F346A35527FD9F,
+				1354BEA2CAA61D42EB10747B,
+				E1FBBECA914FBC93D6181E9E,
+				B2A15363F280791D6EE287C6,
+				8DF19EEEAD6005DAE47514F9,
 				4520B8904987E431A902E5EF,
 				4411099AB04FF54D223BE11F,
 				086B95508381EB53B6ACA976,
+				4B1EB2CDFC74BB0BBE9F2E2F,
+				B4F4069DBF535FC07D2A0304,
 				2AF4C3737581B00EBD0A6AD1,
 				3B2B813C1265303959118322,
 				088154D2A3C393C637201AE0,
 				F5CFB14C421E20511E716D01,
+				D0B2CD76C568394C91E42BD0,
+				752117A0AF7C2D457237A906,
 				1208C343690391BA0405793B,
 				549DD0C3BE1F2717DF5D0CB7,
 				CC04B3A72DFF9B7A7886F0AE,
 				81D56076A1B1A36DA6650C8C,
+				6327A07C1D8FA41BE048B43C,
+				64ECB23ADC864B3D02A955A3,
+				BDD210F0099F5937A90060FA,
 				7842903A1820C82A3F56D334,
 				EAAFE77D1C832D4112DE5862,
 				EE890FCF88C9248E51E7F8A2,
 				8FE38AE4AB045DDF750C063E,
 				F4F9FEF82035A0CA4F5F20E5,
 				B2FAD72EF4B4935CDED78F59,
+				C2AD0FCD0FD826780A3326E6,
+				582D384857292E62EC488A6B,
 				D2FE9A58D4472EF54133B9C7,
 				0FEDB9CBA813A865934D7647,
 				0B14876436DADBE728748170,
@@ -756,8 +1202,14 @@
 		3AAEF99ECE03226CE4BC84EF /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				B469A9A23B17184205F3AB98,
+				004468DAF7650DA0463E984B,
 				BA8C479F3A5600CAC03BEF7C,
 				8A20893A8B66B6FA9C6D9E8E,
+				6B6FCA6893B83A6C49F371E7,
+				2846CFC12CFA43627359273A,
+				484D26FB7E55C542E6D33432,
+				958CFF062160CC947DCB2C66,
 				23007D7C72B8DFE7A39EC6CE,
 				A4D581A24430C94CFD83FA2E,
 				6D6F4DE6DEBDCBCE27304086,
@@ -769,18 +1221,24 @@
 				9042FE5571141CAA0349E2F9,
 				6052C318C84108030BA0827D,
 				5C8FF1673D757AE3C870386A,
+				6445B1C7CAF427BB12DF6AA4,
+				987BB1D3B1FB1A239D523FDD,
 				C8100ECE80083FA872EF6617,
 				8AF6734E2433E7E67718413A,
 				F1BF1695CD967DF00C11FB92,
 				2050E8CA5D2C92592CC242B9,
 				01FA27804A2F3E6C92EB9034,
 				CA02812DB72F15E131452B8A,
+				7FB3736A58D9B5C89B0C7926,
+				5A8058573E9046222565AA55,
 				187646796C26C5BC3A00852D,
 				0A3E55034877A24B87DA9271,
 				63344EE2FA96F4DC54A9E0C8,
 				7E54E52E89E1165AF0EF238A,
 				FEEF4F3A1BAA702DCD372EF9,
 				9F42A85466F7E2D5F20DCEE9,
+				664EE36A0DC4025BD8116780,
+				3EA66240A171612E980737CF,
 				3CDF01D2A25E4EE40B827538,
 				1DFF45AE3D3B9B02A39F2A74,
 				40149B2A094766AB4FC6E549,
@@ -811,6 +1269,24 @@
 			);
 			sourceTree = "<group>";
 		};
+		816A619FC604A34D7AB4CCF5 /* Device Link (App) */ = {
+			isa = PBXGroup;
+			children = (
+				E8D6DF94996D9EEBA9F617A5,
+				7EEACED9F2B07D3A22B80217,
+				07FD241EBC2BB6BCBE68B970,
+				A647D18F83B154FEDD1D1D94,
+				7D9CD0FE5DCFCBA8155BA6B7,
+				4C45EFB05DC1714978C1EF7A,
+				7A230D8035737B5788F9AE48,
+				0CDC47645BB142BD7B87374D,
+				EE7EEF54CC2BC3BBBF11736F,
+				C450CF0F26B6A01B5BA1EF78,
+				90A27DEE948A9EDEC3ACF4A3,
+			);
+			name = "Device Link (App)";
+			sourceTree = "<group>";
+		};
 		A33FEC12CE857A065B24788A /* App */ = {
 			isa = PBXGroup;
 			children = (
@@ -834,6 +1310,7 @@
 				5F7B283559C888C36B65801B,
 				0D4158BFF29972DC1A9B79C6,
 				76F9D685866F3288582BB70B,
+				A5D2210C1ED4298EAFF936A3,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -854,6 +1331,9 @@
 			dependencies = (
 			);
 			name = HCGNexus;
+			packageProductDependencies = (
+				7FE5DCB53787C133C7F8AA5C,
+			);
 			productName = HCGNexus;
 			productReference = 83C5CBAE4AEEAF8586F9BF0B;
 			productType = "com.apple.product-type.application";
@@ -895,7 +1375,7 @@
 				};
 			};
 			buildConfigurationList = BD217B8183C2B127BD6EC483;
-			compatibilityVersion = "Xcode 14.0";
+			compatibilityVersion = "Xcode 15.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -903,6 +1383,9 @@
 				Base,
 			);
 			mainGroup = 5C26A49B47E5F07808F45C7E;
+			packageReferences = (
+				CABD50FF0EA6C114B1DB15B5,
+			);
 			productRefGroup = 51B93CCB1FB5ECF302C017B3;
 			projectDirPath = "";
 			projectRoot = "";
@@ -940,33 +1423,56 @@
 				589F4CA7CC9898ED7304C8E4,
 				F3C5FD26A46ADBAF5E0D7672,
 				BEC19CB72860A18682631E42,
+				3E9A601B356B02EC8C832407,
 				6680936370656B23F3581EE5,
+				636366564C619A050B091CFE,
+				7CE427E6D2E461840C4CCC27,
 				6FB811E50C5164543FAB9D80,
 				703A2FCF13F45E4489E73A20,
 				C9382163EAAE1B7DF654F3F1,
 				AB9E6DC7C31FED85F6932247,
 				D267E31B775E4DAB97984534,
+				0817F77CEED62D43A2231F20,
 				94C35AC56B68442714774FDF,
 				195064D9F80D74D3692B6974,
 				5AD2BC50E7D54D6585F8FC95,
+				B0629AA551FC77F988BF3E53,
 				DDFC0EECC4214499EC764E61,
 				4264A2B8F7C5F1F160B56169,
 				DEEAFD716FB7DB4E434394C5,
+				7155FA6EFCC85A2F92C0EAD5,
 				B42A7AF819B521C15C7A2334,
 				5C803444F8AB813ACD73B0E4,
 				DA0D996AFCA3DAA4CD864D09,
+				CDE1FF078B4DAA499B15F29D,
 				D4808BAF38595B9A96A0D334,
+				C6B87B8593877A40BE63C2F3,
+				91DECF5C94A03BC8BFF41104,
+				3C058E8672C2EE55A39088E4,
+				8105ACE2A4AB2314CCD7B344,
+				23E1B031BF4655142ED5428B,
 				6EAE21116EFFC4F9AF2E3DD2,
+				53E88B4055A3CDB62AA0387C,
 				6009AD07C4618CEE7C023B4D,
 				35DA9693C7136B95DBA5E276,
+				2C7F3538461464795DD7FA37,
 				CF37F9723E4697D1402DEF09,
 				067CE4BEEFC11A261324CC0E,
+				B09B52C095DED110D8049E38,
 				B0F2008134CB47D792B1D6F2,
 				1B813C12CB1E3EA62F868DD2,
 				134E79769D43BD65D02E6EBA,
+				435385F533EF99C66600AE0E,
 				C3885B071F2BFD14A8E504E0,
 				063342ED52C8803B928695BE,
 				C6E9C37FB51D92106C6BEB67,
+				75F8ED7B79851C532C43D0E2,
+				DF42BF63CF25715B38A01C74,
+				DBFEF11E6F8113142148F715,
+				AFEC655F706AE470EF7019EF,
+				CDE329ABF0ABF087E4711E45,
+				DB9E7CF0E7539B1C2CB32DCD,
+				E569A85690435DBE763E27D3,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1035,11 +1541,14 @@
 					"$(SRCROOT)/Sources/Core",
 					"$(SRCROOT)/Sources/Panel",
 					"$(SRCROOT)/Sources/Platform/App",
+					"$(SRCROOT)/Sources/Platform/App/DeviceLink",
 					"$(SRCROOT)/App",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
@@ -1086,10 +1595,13 @@
 					"$(SRCROOT)/Sources/Core",
 					"$(SRCROOT)/Sources/Panel",
 					"$(SRCROOT)/Sources/Platform/App",
+					"$(SRCROOT)/Sources/Platform/App/DeviceLink",
 					"$(SRCROOT)/App",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -1100,7 +1612,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = App/Info.plist;
@@ -1109,13 +1621,16 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "Sources/Platform/App/DeviceLink/HCGNexus-Bridging-Header.h";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "HCGNexus-Swift.h";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -1126,7 +1641,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = App/Info.plist;
@@ -1135,13 +1650,16 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "Sources/Platform/App/DeviceLink/HCGNexus-Bridging-Header.h";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "HCGNexus-Swift.h";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -1151,11 +1669,11 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1169,11 +1687,11 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.2.0;
+				MARKETING_VERSION = 0.3.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1213,6 +1731,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		CABD50FF0EA6C114B1DB15B5 /* XCLocalSwiftPackageReference "HCGDeviceLink" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = HCGDeviceLink;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7FE5DCB53787C133C7F8AA5C /* HCGDeviceLink */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CABD50FF0EA6C114B1DB15B5;
+			productName = HCGDeviceLink;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = EF6EC78549424C6E1163F9D8 /* Project object */;
 }

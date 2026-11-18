@@ -195,6 +195,32 @@ def installed_owner(uid, gid, uname, gname):
     return user, group
 
 
+def member_checks(deb):
+    """ar members and their compression. Legacy lzma-alone is refused: it is Theos' default and the
+    format of the HCG Vortex beta whose unpack crashed on a device (dpkg-deb Bus error 10)."""
+    data = open(deb, "rb").read()
+    if not data.startswith(b"!<arch>\n"):
+        return [("FAIL", "not an ar archive")]
+    names, off = [], 8
+    while off + 60 <= len(data):
+        name = data[off:off + 16].decode("ascii", "replace").strip().rstrip("/")
+        size = int(data[off + 48:off + 58].decode().strip())
+        names.append((name, data[off + 60:off + 60 + min(size, 16)]))
+        off += 60 + size + (size & 1)
+    listed = [n for n, _ in names]
+    results = [("OK" if listed[:1] == ["debian-binary"] and len(listed) == 3 else "FAIL", f"ar members: {listed}")]
+    for name, head in names[1:]:
+        if name.endswith(".lzma"):
+            results.append(("FAIL", f"{name}: legacy lzma-alone compression; rebuild with gzip or xz (Makefile THEOS_PLATFORM_DEB_COMPRESSION_TYPE)"))
+        elif name.endswith(".gz"):
+            results.append(("OK" if head[:2] == b"\x1f\x8b" else "FAIL", f"{name}: gzip"))
+        elif name.endswith(".xz"):
+            results.append(("OK" if head[:6] == b"\xfd7zXZ\x00" else "FAIL", f"{name}: xz"))
+        else:
+            results.append(("FAIL", f"{name}: unexpected compression"))
+    return results
+
+
 def archive_checks(deb, scheme):
     """Ownership, permissions and entry types of the installed payload."""
     results = []
@@ -291,15 +317,33 @@ def main():
                 "Library/PreferenceBundles/HCGNexusPrefs.bundle/icon.png",
                 "Library/PreferenceBundles/HCGNexusPrefs.bundle/icon@2x.png",
                 "Library/PreferenceBundles/HCGNexusPrefs.bundle/icon@3x.png",
+                "Library/PreferenceBundles/HCGNexusPrefs.bundle/HaloBorder.plist",
+            ]
+            expected += [
+                "Library/Application Support/HCGNexus/hcg-logo.png",
+                "Library/Application Support/HCGNexus/nexus-emblem.png",
+                "Library/Application Support/HCGNexus/hcg-nexus-banner.jpg",
             ]
             for rel in expected:
                 p = os.path.join(tmp, prefix + rel)
                 results.append(("OK" if os.path.exists(p) else "FAIL", f"/{prefix}{rel}"))
+            definition = os.path.join(tmp, prefix + "Library/PreferenceBundles/HCGNexusPrefs.bundle/HaloBorder.plist")
+            if os.path.exists(definition):
+                sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+                import check_halo_border
+                pkg_ver = next((l.split(":", 1)[1].strip() for l in control.splitlines() if l.startswith("Version:")), None)
+                problems = check_halo_border.validate(open(definition, "rb").read(), pkg_ver)
+                results.append(("FAIL" if problems else "OK",
+                                f"HaloBorder.plist (Halo border definition, schema 1): {'; '.join(problems) or 'valid, nexusVersion == ' + str(pkg_ver)}"))
             checks, bundle_version = consistency_checks(tmp, prefix, scheme)
             results.extend(checks)
             pkg_version = next((l.split(":", 1)[1].strip() for l in control.splitlines() if l.startswith("Version:")), None)
-            results.append(("OK" if bundle_version == pkg_version else "FAIL",
-                            f"Settings bundle version {bundle_version} == package Version {pkg_version}"))
+            upstream = re.split(r"[~+-]", pkg_version or "", maxsplit=1)[0]
+            results.append(("OK" if bundle_version == upstream else "FAIL",
+                            f"Settings bundle version {bundle_version} == package Version {pkg_version} (base {upstream})"))
+            nested = [os.path.relpath(os.path.join(r, d), tmp) for r, ds, _ in os.walk(tmp) for d in ds
+                      if os.path.relpath(os.path.join(r, d), tmp).startswith("var/jb/var/jb")]
+            results.append(("FAIL" if nested else "OK", f"no doubled install prefix (var/jb/var/jb): {nested[:3] or 'ok'}"))
             if scheme == "rootless":
                 stray = [d for d in os.listdir(tmp) if d not in ("DEBIAN", "var")]
                 results.append(("FAIL" if stray else "OK", f"nothing outside /var/jb: {stray or 'ok'}"))
@@ -318,6 +362,7 @@ def main():
                     if name == "HCGNexus.dylib":
                         results.extend(activation_checks(rel, data))
 
+    results.extend(member_checks(deb))
     results.extend(archive_checks(deb, scheme))
 
     failures = 0

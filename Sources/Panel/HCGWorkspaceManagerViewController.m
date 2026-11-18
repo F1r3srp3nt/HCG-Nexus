@@ -4,7 +4,46 @@
 
 static NSString *const kCell = @"HCGWorkspaceCell";
 
-@implementation HCGWorkspaceManagerViewController
+@implementation HCGWorkspaceManagerViewController {
+    UIButton *_editToggle;
+}
+
+// In-content controls: inside the panel home the navigation bar is hidden.
+- (UIButton *)headerButton:(NSString *)title symbol:(NSString *)symbol action:(SEL)action {
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
+    [button setTitle:title forState:UIControlStateNormal];
+    [button setImage:[HCGTheme symbolNamed:symbol pointSize:13] forState:UIControlStateNormal];
+    button.titleLabel.font = [HCGTheme fontForTextStyle:UIFontTextStyleFootnote weight:UIFontWeightSemibold
+                                       maximumPointSize:HCGHeaderButtonMaximumPointSize];
+    [HCGTheme enableLargeContentViewerForButton:button title:title];
+    button.titleLabel.adjustsFontForContentSizeCategory = YES;
+    button.tintColor = [HCGTheme cyan];
+    [HCGTheme styleCard:button cornerRadius:12];
+    [button.heightAnchor constraintGreaterThanOrEqualToConstant:44].active = YES;
+    [button addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
+    return button;
+}
+
+- (UIView *)makeHeader {
+    UIButton *add = [self headerButton:@"New Workspace" symbol:@"plus" action:@selector(addTapped:)];
+    _editToggle = [self headerButton:@"Edit" symbol:@"arrow.up.arrow.down" action:@selector(toggleEditing)];
+    UIStackView *row = [[UIStackView alloc] initWithArrangedSubviews:@[ add, _editToggle ]];
+    row.spacing = 8;
+    row.distribution = UIStackViewDistributionFillEqually;
+    row.translatesAutoresizingMaskIntoConstraints = NO;
+    UIView *header = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 320, 56)];
+    [header addSubview:row];
+    [NSLayoutConstraint activateConstraints:@[
+        [row.leadingAnchor constraintEqualToAnchor:header.layoutMarginsGuide.leadingAnchor],
+        [row.trailingAnchor constraintEqualToAnchor:header.layoutMarginsGuide.trailingAnchor],
+        [row.centerYAnchor constraintEqualToAnchor:header.centerYAnchor],
+    ]];
+    return header;
+}
+
+- (void)toggleEditing {
+    [self setEditing:!self.isEditing animated:!UIAccessibilityIsReduceMotionEnabled()];
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -13,6 +52,7 @@ static NSString *const kCell = @"HCGWorkspaceCell";
     add.accessibilityLabel = @"New workspace";
     self.navigationItem.rightBarButtonItems = @[ add, self.editButtonItem ];
     self.tableView.allowsSelectionDuringEditing = YES;
+    self.tableView.tableHeaderView = [self makeHeader];
 }
 
 - (HCGWorkspaceStore *)store {
@@ -26,7 +66,7 @@ static NSString *const kCell = @"HCGWorkspaceCell";
 
 #pragma mark Actions
 
-- (void)addTapped:(UIBarButtonItem *)sender {
+- (void)addTapped:(id)sender {
     UIAlertController *sheet = [UIAlertController alertControllerWithTitle:@"New workspace"
                                                                     message:@"Presets only organise shortcuts. They don't change notifications, other apps' state or permissions."
                                                              preferredStyle:UIAlertControllerStyleActionSheet];
@@ -45,7 +85,12 @@ static NSString *const kCell = @"HCGWorkspaceCell";
         }];
     }]];
     [sheet addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
-    sheet.popoverPresentationController.barButtonItem = sender;
+    if ([sender isKindOfClass:[UIBarButtonItem class]]) {
+        sheet.popoverPresentationController.barButtonItem = sender;
+    } else if ([sender isKindOfClass:[UIView class]]) {
+        sheet.popoverPresentationController.sourceView = sender;
+        sheet.popoverPresentationController.sourceRect = [(UIView *)sender bounds];
+    }
     [self presentViewController:sheet animated:!UIAccessibilityIsReduceMotionEnabled() completion:nil];
 }
 
@@ -111,16 +156,18 @@ static NSString *const kCell = @"HCGWorkspaceCell";
     NSArray<HCGWorkspace *> *workspaces = self.store.workspaces;
     if (workspaces.count == 0) {
         cell.textLabel.text = @"No workspaces";
-        cell.detailTextLabel.text = @"Tap + to create one from a preset.";
+        cell.detailTextLabel.text = @"Tap New Workspace to create one from a preset.";
         cell.selectionStyle = UITableViewCellSelectionStyleNone;
         return cell;
     }
     HCGWorkspace *workspace = workspaces[(NSUInteger)indexPath.row];
     BOOL active = [workspace.identifier isEqualToString:self.store.activeWorkspace.identifier];
     cell.textLabel.text = workspace.name;
-    cell.detailTextLabel.text = [NSString stringWithFormat:@"%@ · %lu shortcuts%@",
-                                 [HCGWorkspacePresets displayNameForPreset:workspace.preset],
-                                 (unsigned long)workspace.actions.count, active ? @" · Active" : @""];
+    cell.detailTextLabel.text = [NSString stringWithFormat:@"%@%@ · %lu shortcuts · %lu quick actions · %lu tools",
+                                 active ? @"Active · " : @"", [HCGWorkspacePresets displayNameForPreset:workspace.preset],
+                                 (unsigned long)workspace.actions.count, (unsigned long)workspace.quickActionIdentifiers.count,
+                                 (unsigned long)workspace.toolIdentifiers.count];
+    cell.imageView.tintColor = active ? [HCGTheme cyan] : [HCGTheme secondaryText];
     cell.imageView.image = [HCGTheme symbolNamed:[HCGWorkspacePresets symbolNameForPreset:workspace.preset] pointSize:18];
     cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     cell.showsReorderControl = YES;
@@ -197,7 +244,31 @@ static NSString *const kCell = @"HCGWorkspaceCell";
 
 - (void)setEditing:(BOOL)editing animated:(BOOL)animated {
     [super setEditing:editing animated:animated];
+    [_editToggle setTitle:editing ? @"Done" : @"Edit" forState:UIControlStateNormal];
     if (!editing) [self.tableView reloadData];
+}
+
+- (UISwipeActionsConfiguration *)tableView:(UITableView *)tableView leadingSwipeActionsConfigurationForRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSArray<HCGWorkspace *> *workspaces = self.store.workspaces;
+    if (workspaces.count == 0) return nil;
+    HCGWorkspace *workspace = workspaces[(NSUInteger)indexPath.row];
+    if ([workspace.identifier isEqualToString:self.store.activeWorkspace.identifier]) return nil;
+    __weak typeof(self) weakSelf = self;
+    UIContextualAction *activate = [UIContextualAction contextualActionWithStyle:UIContextualActionStyleNormal title:@"Make Active"
+                                                                         handler:^(UIContextualAction *a, UIView *v, void (^done)(BOOL)) {
+        NSError *error = nil;
+        BOOL ok = [weakSelf.store setActiveWorkspace:workspace.identifier error:&error];
+        if (ok) {
+            [weakSelf.context.model workspacesDidChange];
+            [weakSelf.context feedback:[NSString stringWithFormat:@"Switched to %@", workspace.name] success:YES];
+        } else {
+            HCGPresentError(weakSelf, error, nil);
+        }
+        [weakSelf.tableView reloadData];
+        done(ok);
+    }];
+    activate.backgroundColor = [HCGTheme cyan];
+    return [UISwipeActionsConfiguration configurationWithActions:@[ activate ]];
 }
 
 @end

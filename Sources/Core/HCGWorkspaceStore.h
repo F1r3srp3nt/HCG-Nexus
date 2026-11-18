@@ -48,6 +48,11 @@ FOUNDATION_EXPORT const NSUInteger HCGMaxWorkspaceNameLength;
 - (BOOL)removeAction:(NSString *)actionIdentifier fromWorkspace:(NSString *)identifier error:(NSError *_Nullable *_Nullable)error;
 - (BOOL)moveActionInWorkspace:(NSString *)identifier fromIndex:(NSUInteger)from toIndex:(NSUInteger)to error:(NSError *_Nullable *_Nullable)error;
 
+// Layout 2: per-workspace Overview quick actions (App Library identifiers, at
+// most HCGWorkspaceMaxQuickActions) and pinned tools. Persisted immediately.
+- (BOOL)setQuickActionIdentifiers:(NSArray<NSString *> *)identifiers forWorkspace:(NSString *)identifier error:(NSError *_Nullable *_Nullable)error;
+- (BOOL)setToolIdentifiers:(NSArray<NSString *> *)identifiers forWorkspace:(NSString *)identifier error:(NSError *_Nullable *_Nullable)error;
+
 // Returns the trimmed name or nil with an error.
 - (nullable NSString *)validatedName:(nullable NSString *)name excludingWorkspace:(nullable NSString *)identifier error:(NSError *_Nullable *_Nullable)error;
 @end

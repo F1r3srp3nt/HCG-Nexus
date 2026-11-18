@@ -1,8 +1,13 @@
 #import "HCGTheme.h"
+#import "HCGSettings.h"
 
 static UIColor *RGB(CGFloat r, CGFloat g, CGFloat b, CGFloat a) {
     return [UIColor colorWithRed:r / 255.0 green:g / 255.0 blue:b / 255.0 alpha:a];
 }
+
+const CGFloat HCGSectionBarMaximumPointSize = 20;   // the bar is 52 pt tall
+const CGFloat HCGHeaderButtonMaximumPointSize = 22; // Add / Reorder / New Workspace / Edit
+const CGFloat HCGChipMaximumPointSize = 26;         // workspace chips (they grow to fit)
 
 @implementation HCGTheme
 
@@ -22,8 +27,26 @@ static UIColor *RGB(CGFloat r, CGFloat g, CGFloat b, CGFloat a) {
 + (UIColor *)secondaryText { return [self increaseContrast] ? RGB(200, 210, 220, 1) : RGB(150, 163, 176, 1); }
 + (UIColor *)cyan { return [self increaseContrast] ? RGB(120, 240, 255, 1) : RGB(52, 222, 242, 1); }
 + (UIColor *)cyanSoft { return RGB(52, 222, 242, [self increaseContrast] ? 0.30 : 0.16); }
++ (UIColor *)violet { return [self increaseContrast] ? RGB(196, 176, 255, 1) : RGB(150, 128, 255, 1); }
++ (UIColor *)violetSoft { return RGB(150, 128, 255, [self increaseContrast] ? 0.30 : 0.14); }
++ (UIColor *)glassRow {
+    if ([self reduceTransparency]) return [self raisedSurface];
+    return [self increaseContrast] ? RGB(34, 40, 50, 0.86) : RGB(26, 32, 42, 0.58);
+}
++ (UIColor *)hairline { return [self increaseContrast] ? RGB(150, 162, 176, 1) : RGB(255, 255, 255, 0.10); }
 + (UIColor *)warning { return RGB(255, 184, 77, 1); }
 + (UIColor *)success { return RGB(98, 224, 160, 1); }
++ (UIColor *)critical { return [self increaseContrast] ? RGB(255, 140, 140, 1) : RGB(255, 107, 107, 1); }
+
++ (UIColor *)colorForStatusRole:(HCGStatusColorRole)role {
+    switch (role) {
+        case HCGStatusColorRolePositive: return [self success];
+        case HCGStatusColorRoleCaution: return [self warning];
+        case HCGStatusColorRoleCritical: return [self critical];
+        case HCGStatusColorRoleMuted: return [self secondaryText];
+        default: return [self primaryText];
+    }
+}
 
 + (NSArray *)chromeGradientColors {
     CGFloat boost = [self increaseContrast] ? 1.15 : 1.0;
@@ -35,10 +58,33 @@ static UIColor *RGB(CGFloat r, CGFloat g, CGFloat b, CGFloat a) {
     ];
 }
 
+// The base size must be the style's size at the DEFAULT text size ("Large"). UIFontMetrics then scales it once
+// for the user's setting. Starting from preferredFontDescriptorWithTextStyle: (already scaled for the current
+// setting) scaled it twice: at the largest accessibility size body text was drawn at ~150 pt instead of 53 pt.
++ (CGFloat)defaultPointSizeForTextStyle:(UIFontTextStyle)style {
+    UITraitCollection *standard = [UITraitCollection traitCollectionWithPreferredContentSizeCategory:UIContentSizeCategoryLarge];
+    return [UIFontDescriptor preferredFontDescriptorWithTextStyle:style compatibleWithTraitCollection:standard].pointSize;
+}
+
 + (UIFont *)fontForTextStyle:(UIFontTextStyle)style weight:(UIFontWeight)weight {
-    UIFontDescriptor *base = [UIFontDescriptor preferredFontDescriptorWithTextStyle:style];
-    UIFont *font = [UIFont systemFontOfSize:base.pointSize weight:weight];
-    return [[UIFontMetrics metricsForTextStyle:style] scaledFontForFont:font];
+    return [self fontForTextStyle:style weight:weight compatibleWithTraitCollection:nil];
+}
+
++ (UIFont *)fontForTextStyle:(UIFontTextStyle)style weight:(UIFontWeight)weight compatibleWithTraitCollection:(UITraitCollection *)traits {
+    UIFont *font = [UIFont systemFontOfSize:[self defaultPointSizeForTextStyle:style] weight:weight];
+    UIFontMetrics *metrics = [UIFontMetrics metricsForTextStyle:style];
+    return traits ? [metrics scaledFontForFont:font compatibleWithTraitCollection:traits] : [metrics scaledFontForFont:font];
+}
+
++ (UIFont *)fontForTextStyle:(UIFontTextStyle)style weight:(UIFontWeight)weight maximumPointSize:(CGFloat)maximum {
+    UIFont *font = [UIFont systemFontOfSize:[self defaultPointSizeForTextStyle:style] weight:weight];
+    return [[UIFontMetrics metricsForTextStyle:style] scaledFontForFont:font maximumPointSize:maximum];
+}
+
++ (void)enableLargeContentViewerForButton:(UIButton *)button title:(NSString *)title {
+    button.showsLargeContentViewer = YES;
+    button.largeContentTitle = title;
+    button.scalesLargeContentImage = YES;
 }
 
 + (NSAttributedString *)wordmarkWithSize:(CGFloat)size {
@@ -57,22 +103,59 @@ static UIColor *RGB(CGFloat r, CGFloat g, CGFloat b, CGFloat a) {
 }
 
 + (UIView *)makePanelBackgroundWithCornerRadius:(CGFloat)radius {
+    return [self makePanelBackgroundWithCornerRadius:radius settings:nil];
+}
+
++ (BOOL)decorativeMotionAllowedWithSettings:(HCGSettings *)settings {
+    if (UIAccessibilityIsReduceMotionEnabled()) return NO;
+    return settings == nil || settings.animationsEnabled;
+}
+
++ (void)styleCard:(UIView *)view cornerRadius:(CGFloat)radius {
+    view.backgroundColor = [self glassRow];
+    view.layer.cornerRadius = radius;
+    view.layer.cornerCurve = kCACornerCurveContinuous;
+    view.layer.borderWidth = [self increaseContrast] ? 1.0 : 0.5;
+    view.layer.borderColor = [self hairline].CGColor;
+    view.clipsToBounds = YES;
+}
+
++ (UIView *)makePanelBackgroundWithCornerRadius:(CGFloat)radius settings:(HCGSettings *)settings {
+    HCGSettings *s = settings ?: [HCGSettings defaultSettings];
+    BOOL reduce = [self reduceTransparency];
+    HCGPanelBlur blur = [s effectivePanelBlurWithReduceTransparency:reduce];
+    CGFloat tintAlpha = (CGFloat)[s effectivePanelOpacityWithReduceTransparency:reduce];
     UIView *container = [[UIView alloc] init];
     container.userInteractionEnabled = NO;
     container.layer.cornerRadius = radius;
     container.layer.cornerCurve = kCACornerCurveContinuous;
     container.clipsToBounds = YES;
 
-    if (![self reduceTransparency]) {
-        UIVisualEffectView *blur = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterialDark]];
-        blur.frame = container.bounds;
-        blur.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-        [container addSubview:blur];
+    if (blur != HCGPanelBlurOff) {
+        UIBlurEffectStyle style = blur == HCGPanelBlurLight ? UIBlurEffectStyleSystemUltraThinMaterialDark
+                                : (blur == HCGPanelBlurStrong ? UIBlurEffectStyleSystemThickMaterialDark : UIBlurEffectStyleSystemThinMaterialDark);
+        UIVisualEffectView *effect = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:style]];
+        effect.frame = container.bounds;
+        effect.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        [container addSubview:effect];
     }
+    // Smoked tint: obsidian with a faint violet cast toward the bottom.
     UIView *tint = [[UIView alloc] initWithFrame:container.bounds];
     tint.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    tint.backgroundColor = [self surface];
+    tint.backgroundColor = RGB(10, 13, 18, tintAlpha);
     [container addSubview:tint];
+    if (!reduce) {
+        CAGradientLayer *cast = [CAGradientLayer layer];
+        cast.colors = @[ (id)[UIColor clearColor].CGColor, (id)RGB(90, 70, 190, 0.10).CGColor ];
+        cast.startPoint = CGPointMake(0.5, 0.35);
+        cast.endPoint = CGPointMake(0.5, 1.0);
+        cast.frame = CGRectMake(0, 0, 2000, 2000);
+        UIView *castView = [[UIView alloc] initWithFrame:container.bounds];
+        castView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        castView.clipsToBounds = YES;
+        [castView.layer addSublayer:cast];
+        [container addSubview:castView];
+    }
 
     // Faint cyan rim light along the top edge.
     CAGradientLayer *rim = [CAGradientLayer layer];
@@ -108,7 +191,7 @@ static UIColor *RGB(CGFloat r, CGFloat g, CGFloat b, CGFloat a) {
 }
 
 + (void)styleCell:(UITableViewCell *)cell {
-    cell.backgroundColor = [self raisedSurface];
+    cell.backgroundColor = [self glassRow];
     cell.textLabel.textColor = [self primaryText];
     cell.textLabel.font = [self fontForTextStyle:UIFontTextStyleBody weight:UIFontWeightMedium];
     cell.textLabel.adjustsFontForContentSizeCategory = YES;
@@ -162,6 +245,77 @@ static UIColor *RGB(CGFloat r, CGFloat g, CGFloat b, CGFloat a) {
     CGRect inset = CGRectInset(self.bounds, self.lineWidth / 2.0, self.lineWidth / 2.0);
     _mask.lineWidth = self.lineWidth;
     _mask.path = [UIBezierPath bezierPathWithRoundedRect:inset cornerRadius:MAX(0, self.cornerRadius - self.lineWidth / 2.0)].CGPath;
+}
+
+@end
+
+@implementation HCGGlowLineView {
+    CAGradientLayer *_line;
+    CAGradientLayer *_highlight;
+    BOOL _animating;
+}
+
+- (instancetype)initWithFrame:(CGRect)frame {
+    if ((self = [super initWithFrame:frame])) {
+        self.userInteractionEnabled = NO;
+        self.isAccessibilityElement = NO;
+        _line = [CAGradientLayer layer];
+        _line.colors = @[ (id)[[HCGTheme cyan] colorWithAlphaComponent:0.0].CGColor, (id)[[HCGTheme cyan] colorWithAlphaComponent:0.75].CGColor,
+                          (id)[[HCGTheme violet] colorWithAlphaComponent:0.65].CGColor, (id)[[HCGTheme violet] colorWithAlphaComponent:0.0].CGColor ];
+        _line.startPoint = CGPointMake(0, 0.5);
+        _line.endPoint = CGPointMake(1, 0.5);
+        [self.layer addSublayer:_line];
+        _highlight = [CAGradientLayer layer];
+        _highlight.colors = @[ (id)[UIColor colorWithWhite:1 alpha:0].CGColor, (id)[UIColor colorWithWhite:1 alpha:0.85].CGColor,
+                               (id)[UIColor colorWithWhite:1 alpha:0].CGColor ];
+        _highlight.startPoint = CGPointMake(0, 0.5);
+        _highlight.endPoint = CGPointMake(1, 0.5);
+        _highlight.opacity = 0;
+        [self.layer addSublayer:_highlight];
+    }
+    return self;
+}
+
+- (CGSize)intrinsicContentSize {
+    return CGSizeMake(UIViewNoIntrinsicMetric, 1);
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    _line.frame = self.bounds;
+    _highlight.frame = CGRectMake(-80, 0, 80, self.bounds.size.height);
+}
+
+- (BOOL)isAnimating {
+    return _animating;
+}
+
+- (void)startAnimating {
+    if (_animating || !self.window || ![HCGTheme decorativeMotionAllowedWithSettings:nil]) return;
+    _animating = YES;
+    CABasicAnimation *drift = [CABasicAnimation animationWithKeyPath:@"position.x"];
+    drift.fromValue = @(-40.0);
+    drift.toValue = @(self.bounds.size.width + 40.0);
+    drift.duration = 2.4;
+    CAAnimationGroup *cycle = [CAAnimationGroup animation];
+    CABasicAnimation *fade = [CABasicAnimation animationWithKeyPath:@"opacity"];
+    fade.fromValue = @(0.9);
+    fade.toValue = @(0.9);
+    fade.duration = 2.4;
+    cycle.animations = @[ drift, fade ];
+    cycle.duration = 6.0;           // 2.4 s drift, then 3.6 s rest
+    cycle.repeatCount = HUGE_VALF;
+    [_highlight addAnimation:cycle forKey:@"hcg.glow"];
+}
+
+- (void)stopAnimating {
+    _animating = NO;
+    [_highlight removeAnimationForKey:@"hcg.glow"];
+}
+
+- (void)didMoveToWindow {
+    [super didMoveToWindow];
+    if (!self.window) [self stopAnimating];
 }
 
 @end

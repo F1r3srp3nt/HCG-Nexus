@@ -1,4 +1,37 @@
-# Feature inventory — 0.2.0 (first device release candidate)
+# Feature inventory — 0.3.1~beta1 (redesign + Command Mode + HCG Halo border interface, candidate)
+
+## 0.3.1~beta1: combined release
+
+0.3.1~beta1 is 0.3.0~beta1 (below) plus two additions:
+- **Command Mode**, from PR #3: the grid button in the panel header shows device status tiles, shortcuts and HCG
+  integration states. It uses `Network.framework`'s path monitor for the network tile.
+- **HCG Halo border interface**, from PR #4: `HaloBorder.plist`, `HCGNexusBorderInterface`, and Settings ›
+  Appearance › Halo border. See [HALO-BORDER.md](HALO-BORDER.md).
+
+Simulator-tested only; real-device testing is pending.
+
+
+## 0.3.0~beta1: what changed and how far it is proven
+
+Nothing below has run on a physical device. A section works in both builds unless the row says otherwise.
+
+| Feature | Tweak (jailbreak) | Standalone app | Status / evidence |
+|---|---|---|---|
+| Smoked-glass panel: opacity 0.35–1.0, blur Off / Light / Standard / Strong | yes (panel + Settings › HCG Nexus) | yes (app panel) | Clamping, readability floor without blur and the Reduce Transparency override are host-tested. Rendering is device-unverified |
+| Reduce Transparency / Reduce Motion / Increase Contrast | yes | yes | Opaque panel, no decorative motion, thicker borders. Increased-contrast screenshot from CI; device-unverified in SpringBoard |
+| Official HCG logo (header) and Nexus emblem (Overview) | bundled in `<prefix>/Library/Application Support/HCGNexus` | asset catalog | The inspector checks both files are in the package; provenance in `Resources/Branding/README.md` |
+| Official HCG Nexus banner (Overview hero, shown whole) | bundled in `<prefix>/Library/Application Support/HCGNexus` | asset catalog | Founder-approved banner from the HCG Store (provenance in `Resources/Branding/README.md`); the inspector checks it is in the package |
+| Section bar: Overview, Workspaces, Tools, HCG Products, Devices, Apps, Account | yes | yes | App XCTest: every section loads with labelled 44 pt targets, including at the largest text size |
+| Overview: active workspace + one-tap switch, quick actions, device facts, account/connection/product summaries | yes | yes | Device facts use public APIs (model, iOS, battery, Low Power, thermal, storage, uptime); nothing is estimated |
+| Workspaces: create / rename / reorder / delete; per-workspace shortcuts, ≤4 quick actions, pinned tools | yes | yes | Persistence and caps are host-tested |
+| Apps: favourites, search, order, add (validated), delete, add to the active workspace | yes | yes (links open; apps need the tweak) | Library persistence, duplicate guard and search are host-tested (mutation-checked) |
+| Migration to layout 2, reversible | yes | yes | Host-tested: verbatim backup, every shortcut kept, restore, declined state, idempotence |
+| Tools (appearance, diagnostics, recents, reset, turn off, HCG Repo, import, restore) | all | turn off: n/a (said so) | Availability per build is host-tested; each tool reports success or failure |
+| HCG Products: installed / not installed / unable to determine / no iPhone app; account state separate | install check via SpringBoard | "unable to determine" (sandbox) | Host-tested; Sentinel links validated with Sentinel's own rules |
+| Connected Devices (HCG Device Link) | **not in the tweak**: an explanation only | real screen (pairing, devices, reports) | No mock data anywhere |
+| Account (HCG Connect sign-in) | "Sign-in is in the standalone app" | **Not configured**: no client issued; registration request ready | Foreign-client guard, strict permission check and token-free summary are host-tested (mutation-checked). Every token response is signature-verified (ES256/JWKS, issuer, audience, expiry, nonce) before use; `swift test` rejection suite. See `HCG-CONNECT-REGISTRATION.md` |
+
+## Earlier inventory (0.2.0)
 
 Every row says how far the feature has actually been proven. Nothing in this
 project has run on a physical device yet, so **no row is "verified on
@@ -49,6 +82,28 @@ Legend:
 | **Settings › HCG Nexus › Status** (installed build, SpringBoard state, per-feature state with reason) | Implemented, device-unverified | state logic host-tested (`DiagnosticsTests`) |
 | **Copy Diagnostics Report** (redacted, clipboard only, never sent) | Implemented, device-unverified | report + redaction host-tested |
 | Settings asks SpringBoard for a fresh report | Implemented, device-unverified | payload-free Darwin notification; it can only trigger a status write |
+
+## Command Mode (both routes, branch `claude/nexus-command-mode`)
+
+Opened from the **Command Mode** button (grid icon) in the panel header, next
+to the close button. It is shared Panel code: the SpringBoard overlay and the
+preview harness show it on the overlay canvas above the panel; the standalone
+app presents it full screen. Nothing about the jailbreak package's defaults
+changed (it still ships disabled), and Command Mode adds no setting, no
+network request and no telemetry.
+
+| Feature | Status | Evidence / gap |
+|---|---|---|
+| State mapping (device values and integration connection states → label, detail, symbol, colour role) in `Sources/Core/HCGCommandMode.{h,m}` | **Verified (automated)** | host tests `Tests/Host/CommandModeTests.m`: every display state, missing/`nil`/out-of-range input, battery/power/network/storage edge cases, no "online"/"syncing"/"live" wording; mutation-checked (treating an unreported sign-in state as Connected, or "off" as Disconnected, fails the suite) |
+| Integration states **Unknown / Unavailable / Off / Disconnected / Signed out / Connected**, each with its own text label and symbol (never colour alone) | **Verified (automated)** for the mapping; UI device-unverified | the integrations model gained `recognized`, `contractAvailable`, `configured`, `reachability` and `session` (`Sources/Core/HCGIntegrations.h`). Reachability and session default to *Unknown*, so nothing reads as connected by accident |
+| What each shipped integration can actually show | — | HCG Terminal / HCG News: *Off* until turned on; then *Connected* (Nexus can open the app; no session or sync status is claimed), *Unavailable* (app not installed, or the sandboxed app cannot open apps), or *Unknown* (installation cannot be checked). HCG Server / Executable Maker would map to *Unavailable* (no phone-reachable contract) but stay unlisted, as before. **No shipped integration can produce *Disconnected* or *Signed out* today**: no HCG contract publishes reachability or sign-in state to a phone. Those states are mapped and tested so a future contract cannot be misreported |
+| Device status: battery level + charging state (`UIDevice`, battery monitoring on only while visible and restored afterwards), Low Power Mode (`NSProcessInfo`), network path and interface (`Network.framework` `nw_path_monitor`, no request made), available storage (`NSURLVolumeAvailableCapacityForImportantUsageKey`, `NSFileManager` fallback), time and date | Implemented, device-unverified | public APIs only (`check_app_target.py` passes); values iOS does not give show **Unavailable** (e.g. the simulator's battery). The network tile says it is a route check, not an internet or HCG service check |
+| Shortcuts of the active workspace, launched through the existing `HCGActionRunner` (same errors, recents and closing behaviour as the home screen) | Implemented, device-unverified | reuses `HCGWorkspaceStore`; no second store |
+| Scrim dims what is behind by 30% (35% with Increase Contrast); nearly opaque obsidian with Reduce Transparency; instant open/close with Reduce Motion or animations off | **Verified (automated)** for the policy values; rendering device-unverified | `testPresentationPolicy`. In the overlay the Command Mode scrim replaces the panel's 42% dimming while it is shown, so the app is dimmed once, not twice |
+| Decoration (static scanlines, status rings, rim light) never animates and implies no activity | Implemented | no animation besides the optional 0.2 s fade on open/close; scanlines are hidden with Reduce Transparency / Increase Contrast |
+| Closed by every panel close path (lock, cover sheet, disable, launched shortcut) | Implemented, device-unverified | `finishClosing`, `overlaySetVisible:NO` and the close transition all remove it first |
+| VoiceOver: modal view, header focus on open, two-finger-Z escape back to the panel, one combined label per tile/row; Dynamic Type switches the grids to one column at accessibility sizes | Implemented, device-unverified | — |
+| Standalone app XCTest `testCommandModeShowsRealStatesInAppMode` | written, **not run** (needs Xcode) | syntax-checked on Linux against the iPhoneOS 16.5 SDK headers with a stub XCTest header only |
 
 ## Removed / not offered
 

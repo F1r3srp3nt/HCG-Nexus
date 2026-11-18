@@ -41,6 +41,10 @@ endif
 ifeq ($(origin HCG_BUILD_ID),undefined)
   HCG_BUILD_ID := $(or $(shell git -C "$(CURDIR)" rev-parse --short=10 HEAD 2>/dev/null),nogit)$(if $(shell git -C "$(CURDIR)" status --porcelain --untracked-files=no 2>/dev/null),-dirty)
 endif
+# Package compression: gzip. Theos' default (legacy lzma-alone with a 64 MiB dictionary) is the
+# format of the HCG Vortex beta whose unpack crashed on a device (dpkg-deb Bus error 10); gzip is
+# read by every dpkg. scripts/inspect-package.py rejects lzma-alone data members.
+THEOS_PLATFORM_DEB_COMPRESSION_TYPE = gzip
 HCG_BUILD_CONFIG := $(HCG_ENV)-$(if $(FINALPACKAGE),release,debug)
 
 # Separate outputs per configuration so a rootless build can never pick up
@@ -67,8 +71,9 @@ HCGNexus_FILES = Tweak/Tweak.x \
 	$(wildcard Sources/Platform/SpringBoard/*.m)
 HCGNexus_CFLAGS = -fobjc-arc -Wall -Werror \
 	-ISources/Core -ISources/Panel -ISources/Platform/SpringBoard \
-	-DHCG_PACKAGE_SCHEME=\"$(HCG_ENV)\" -DHCG_BUILD_ID=\"$(HCG_BUILD_ID)\" -DHCG_BUILD_CONFIG=\"$(HCG_BUILD_CONFIG)\"
-HCGNexus_FRAMEWORKS = UIKit QuartzCore CoreFoundation
+	-DHCG_PACKAGE_SCHEME=\"$(HCG_ENV)\" -DHCG_BUILD_ID=\"$(HCG_BUILD_ID)\" -DHCG_BUILD_CONFIG=\"$(HCG_BUILD_CONFIG)\" \
+	-DHCG_INSTALL_PREFIX=\"$(THEOS_PACKAGE_INSTALL_PREFIX)\"
+HCGNexus_FRAMEWORKS = UIKit QuartzCore CoreFoundation Network
 # No %hook is used, so generate runtime-only Logos code: the dylib does not
 # link CydiaSubstrate and works with whichever injector loads it.
 HCGNexus_LOGOS_DEFAULT_GENERATOR = internal
@@ -77,3 +82,11 @@ include $(THEOS_MAKE_PATH)/tweak.mk
 
 SUBPROJECTS += Prefs
 include $(THEOS_MAKE_PATH)/aggregate.mk
+
+# Branding used by the panel (Resources/Branding/README.md). Bundled so it works offline;
+# a missing banner simply leaves its slot empty.
+# Theos relocates the staging tree under the rootless prefix itself, so no prefix here.
+HCG_BRANDING_DIR = $(THEOS_STAGING_DIR)/Library/Application Support/HCGNexus
+internal-stage::
+	$(ECHO_NOTHING)mkdir -p "$(HCG_BRANDING_DIR)"$(ECHO_END)
+	$(ECHO_NOTHING)for f in Resources/Branding/*.png Resources/Branding/*.jpg; do [ -f "$$f" ] && install -m 0644 "$$f" "$(HCG_BRANDING_DIR)/"; done; true$(ECHO_END)

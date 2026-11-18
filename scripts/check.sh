@@ -36,6 +36,8 @@ absent "No method hooks in the SpringBoard layer" '%hook|MSHookMessageEx|MSHookF
 absent "No embedded credentials" '(password|passwd|secret|api[_-]?key|bearer)[[:space:]]*[:=][[:space:]]*@?"[^"]+' Sources Prefs PreviewHarness Tweak
 absent "No HCG Server admin endpoints or tokens" '127\.0\.0\.1|:7600|:7610|/api/v1|#token=' Sources Prefs Tweak
 absent "No invented HCG URL schemes" '(hcgterminal|hcgnews|hcgserver|hcgnexus)://' Sources Prefs Tweak PreviewHarness
+absent "Device Link stays out of shared, tweak, Settings and preview sources" 'HCGLinkServic|HCGLinkTypes|HCGDeviceLink|HCGConnectedDevices' Sources/Core Sources/Panel Sources/Platform/SpringBoard Sources/Platform/Preview Tweak Prefs PreviewHarness
+absent "Theos builds never compile Device Link or Swift" 'DeviceLink|\.swift' Makefile Prefs/Makefile PreviewHarness/Makefile
 check  "Tweak filter targets only SpringBoard" grep -qx '{ Filter = { Bundles = ( "com.apple.springboard" ); }; }' HCGNexus.plist
 
 echo "== Metadata =="
@@ -51,8 +53,12 @@ items=plistlib.load(open("Prefs/Resources/Root.plist","rb"))["items"]
 sys.exit(0 if any(i.get("key")=="enabled" and i.get("default") is False for i in items) else 1)'
 
 check "inspect-package.py self-test (filter plist formats)" python3 -I scripts/inspect-package.py --self-test
+check "Halo border definition validator self-test" python3 -I scripts/check_halo_border.py --self-test
+check "Halo border definition valid, nexusVersion == control Version" python3 -I scripts/check_halo_border.py Prefs/Resources/HaloBorder.plist --version "$CONTROL_VERSION"
+absent "Nexus never references HCG Halo code (independent package)" '#import.*Halo|HaloRenderer|HaloPreferences' Sources Tweak Prefs PreviewHarness
 
 echo "== Standalone app (HCGNexus.xcodeproj) =="
+check "HCGDeviceLink is an unmodified vendored copy (VENDORED.sha256)" sh -c 'cd HCGDeviceLink && shasum -a 256 -c VENDORED.sha256'
 check "Xcode project matches scripts/generate_xcodeproj.py" python3 -I scripts/generate_xcodeproj.py --check
 if python3 -I scripts/check_app_target.py; then pass "app target boundaries and Executable Maker discovery"; else fail "app target boundaries and Executable Maker discovery"; fi
 check "App/Info.plist parses" python3 -I -c 'import plistlib,sys; plistlib.load(open(sys.argv[1],"rb"))' App/Info.plist
@@ -63,6 +69,14 @@ if [ -n "${THEOS:-}" ] && [ -x "$THEOS/toolchain/linux/iphone/bin/clang" -o "$(u
     if scripts/compile-app-target.sh; then pass "app target compiles and links (iOS SDKs)"; else fail "app target compiles and links (iOS SDKs)"; fi
 else
     echo "SKIP  app target compile/link (set THEOS with the iOS toolchain, or run on macOS)"
+fi
+
+echo "== Device install helper =="
+if sh -n scripts/device/hcg-nexus-install-local.sh; then pass "install helper parses as POSIX sh"; else fail "install helper parses as POSIX sh"; fi
+if grep -v '^#' scripts/device/hcg-nexus-install-local.sh | grep -Eq 'killall|sbreload|ldrestart|reboot|(^|[;&|(])[[:space:]]*(sudo[[:space:]]+)?apt(-get)?[[:space:]]+[a-z]|>>[[:space:]]*[^[:space:]]*sources'; then
+    fail "install helper must not respring, reboot, use apt or edit sources"
+else
+    pass "install helper never resprings, reboots, uses apt or edits sources"
 fi
 
 echo "== Core host tests =="

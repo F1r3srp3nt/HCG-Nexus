@@ -4,7 +4,9 @@
 
 typedef NS_ENUM(NSInteger, HCGDetailSection) {
     HCGDetailSectionShortcuts = 0,
-    HCGDetailSectionWorkspace = 1,
+    HCGDetailSectionQuickActions = 1, // Overview quick actions: chosen from Apps
+    HCGDetailSectionTools = 2,        // tools pinned for this workspace
+    HCGDetailSectionWorkspace = 3,
 };
 
 static NSString *const kCell = @"HCGDetailCell";
@@ -71,23 +73,69 @@ static NSString *const kCell = @"HCGDetailCell";
 #pragma mark Table
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 2;
+    return 4;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    return section == HCGDetailSectionShortcuts ? @"Shortcuts" : @"Workspace";
+    switch (section) {
+        case HCGDetailSectionShortcuts: return @"Shortcuts";
+        case HCGDetailSectionQuickActions: return [NSString stringWithFormat:@"Overview quick actions (%lu of %lu)",
+                                                    (unsigned long)[self workspace].quickActionIdentifiers.count, (unsigned long)HCGWorkspaceMaxQuickActions];
+        case HCGDetailSectionTools: return @"Pinned tools";
+        default: return @"Workspace";
+    }
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section {
     if (section == HCGDetailSectionShortcuts) {
         return @"Shortcuts open apps by bundle identifier, links by URL, or HCG integrations. Use Edit to reorder or delete.";
     }
+    if (section == HCGDetailSectionQuickActions) {
+        return self.context.model.appLibrary.items.count == 0 ? @"Add apps or links under Apps first."
+                                                              : @"Tap to show or hide an app on this workspace's Overview. Saved immediately.";
+    }
+    if (section == HCGDetailSectionTools) return @"Pinned tools appear first under Tools while this workspace is active.";
     return nil;
+}
+
+- (NSArray<HCGAction *> *)libraryItems {
+    return self.context.model.appLibrary.items;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section == HCGDetailSectionShortcuts) return MAX(1, (NSInteger)[self workspace].actions.count);
+    if (section == HCGDetailSectionQuickActions) return (NSInteger)[self libraryItems].count;
+    if (section == HCGDetailSectionTools) return (NSInteger)[HCGToolCatalog allTools].count;
     return 2; // rename, make active
+}
+
+- (void)toggleQuickAction:(NSString *)itemIdentifier {
+    HCGWorkspace *workspace = [self workspace];
+    NSMutableArray *quick = [workspace.quickActionIdentifiers mutableCopy];
+    if ([quick containsObject:itemIdentifier]) {
+        [quick removeObject:itemIdentifier];
+    } else if (quick.count >= HCGWorkspaceMaxQuickActions) {
+        HCGPresentError(self, HCGMakeError(HCGErrorLimitReached,
+                                           [NSString stringWithFormat:@"A workspace shows up to %lu quick actions.", (unsigned long)HCGWorkspaceMaxQuickActions],
+                                           @"Remove one first."), nil);
+        return;
+    } else {
+        [quick addObject:itemIdentifier];
+    }
+    NSError *error = nil;
+    if (![self.store setQuickActionIdentifiers:quick forWorkspace:_identifier error:&error]) HCGPresentError(self, error, nil);
+    [self.context.model workspacesDidChange];
+    [self.tableView reloadData];
+}
+
+- (void)toggleTool:(NSString *)toolIdentifier {
+    NSMutableArray *tools = [[self workspace].toolIdentifiers mutableCopy];
+    if ([tools containsObject:toolIdentifier]) [tools removeObject:toolIdentifier];
+    else [tools addObject:toolIdentifier];
+    NSError *error = nil;
+    if (![self.store setToolIdentifiers:tools forWorkspace:_identifier error:&error]) HCGPresentError(self, error, nil);
+    [self.context.model workspacesDidChange];
+    [self.tableView reloadData];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -114,6 +162,26 @@ static NSString *const kCell = @"HCGDetailCell";
         }] ];
         return cell;
     }
+    if (indexPath.section == HCGDetailSectionQuickActions) {
+        HCGAction *item = [self libraryItems][(NSUInteger)indexPath.row];
+        BOOL on = [workspace.quickActionIdentifiers containsObject:item.identifier];
+        cell.textLabel.text = item.title;
+        cell.detailTextLabel.text = item.target;
+        cell.imageView.image = [HCGTheme symbolNamed:item.symbolName pointSize:17];
+        cell.accessoryType = on ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+        cell.accessibilityTraits = UIAccessibilityTraitButton | (on ? UIAccessibilityTraitSelected : 0);
+        return cell;
+    }
+    if (indexPath.section == HCGDetailSectionTools) {
+        HCGToolInfo *tool = [HCGToolCatalog allTools][(NSUInteger)indexPath.row];
+        BOOL on = [workspace.toolIdentifiers containsObject:tool.identifier];
+        cell.textLabel.text = tool.title;
+        cell.detailTextLabel.text = tool.summary;
+        cell.imageView.image = [HCGTheme symbolNamed:tool.symbolName pointSize:17];
+        cell.accessoryType = on ? UITableViewCellAccessoryCheckmark : UITableViewCellAccessoryNone;
+        cell.accessibilityTraits = UIAccessibilityTraitButton | (on ? UIAccessibilityTraitSelected : 0);
+        return cell;
+    }
     BOOL active = [workspace.identifier isEqualToString:self.store.activeWorkspace.identifier];
     if (indexPath.row == 0) {
         cell.textLabel.text = @"Rename";
@@ -131,6 +199,14 @@ static NSString *const kCell = @"HCGDetailCell";
     HCGWorkspace *workspace = [self workspace];
     if (indexPath.section == HCGDetailSectionShortcuts) {
         if (workspace.actions.count == 0) [self addShortcut];
+        return;
+    }
+    if (indexPath.section == HCGDetailSectionQuickActions) {
+        [self toggleQuickAction:[self libraryItems][(NSUInteger)indexPath.row].identifier];
+        return;
+    }
+    if (indexPath.section == HCGDetailSectionTools) {
+        [self toggleTool:[HCGToolCatalog allTools][(NSUInteger)indexPath.row].identifier];
         return;
     }
     if (indexPath.row == 0) {

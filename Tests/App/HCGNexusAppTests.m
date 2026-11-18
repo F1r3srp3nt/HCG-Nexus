@@ -9,9 +9,22 @@
 #import "HCGPanelSettingsViewController.h"
 #import "HCGAppPlatform.h"
 #import "HCGAppRootViewController.h"
+#import "HCGLinkTypes.h"
+#import "HCGConnectedDevicesViewController.h"
+#import "HCGLinkReportViewController.h"
+#import "HCGPanelHomeViewController.h"
+#import "HCGSections.h"
+#import "HCGTheme.h"
+#import "HCGAppAccountProvider.h"
+#import "HCGCommandModeViewController.h"
 
 @interface HCGNexusAppTests : XCTestCase
 @end
+
+static void HCGCollectAccessibilityLabels(UIView *view, NSMutableArray<NSString *> *labels) {
+    if (view.isAccessibilityElement && view.accessibilityLabel.length) [labels addObject:view.accessibilityLabel];
+    for (UIView *sub in view.subviews) HCGCollectAccessibilityLabels(sub, labels);
+}
 
 @implementation HCGNexusAppTests {
     HCGAppDefaultsStore *_store;
@@ -115,8 +128,8 @@
 - (void)testStandaloneSettingsHideOverlayControls {
     NSArray<NSNumber *> *app = HCGSettingsSectionsForMode(HCGPanelModeStandaloneApp);
     NSArray<NSNumber *> *overlay = HCGSettingsSectionsForMode(HCGPanelModeOverlay);
-    // 0 = enable switch, 1 = edge handle, 2 = motion (overlay transitions).
-    for (NSNumber *overlayOnly in @[ @0, @1, @2 ]) {
+    // Enable switch, edge handle and motion (overlay transitions) belong to the overlay.
+    for (NSNumber *overlayOnly in @[ @(HCGSettingsSectionGeneral), @(HCGSettingsSectionHandle), @(HCGSettingsSectionMotion) ]) {
         XCTAssertFalse([app containsObject:overlayOnly], @"section %@ must not appear in the standalone app", overlayOnly);
         XCTAssertTrue([overlay containsObject:overlayOnly]);
     }
@@ -126,11 +139,37 @@
     XCTAssertTrue(context.isStandaloneApp);
 }
 
+// Every Settings row builds in every mode, with a title: a section listed for a mode but not wired
+// for it (or wired to overlay-only state) fails here instead of on a device.
+- (void)testSettingsBuildEveryRowInEveryMode {
+    for (NSNumber *mode in @[ @(HCGPanelModeStandaloneApp), @(HCGPanelModeOverlay), @(HCGPanelModePreview) ]) {
+        HCGPanelContext *context = [self appContextWithModel:[self makeModel]];
+        context.mode = (HCGPanelMode)mode.integerValue;
+        HCGPanelSettingsViewController *settings = [[HCGPanelSettingsViewController alloc] initWithContext:context];
+        [settings loadViewIfNeeded];
+        [settings beginAppearanceTransition:YES animated:NO]; // fills Diagnostics, as on screen
+        [settings endAppearanceTransition];
+        UITableView *table = settings.tableView;
+        NSInteger sections = [settings numberOfSectionsInTableView:table];
+        XCTAssertEqual(sections, (NSInteger)HCGSettingsSectionsForMode(context.mode).count, @"mode %@", mode);
+        for (NSInteger section = 0; section < sections; section++) {
+            XCTAssertGreaterThan([settings tableView:table titleForHeaderInSection:section].length, 0u, @"mode %@ section %ld", mode, (long)section);
+            NSInteger rows = [settings tableView:table numberOfRowsInSection:section];
+            XCTAssertGreaterThan(rows, 0, @"mode %@ section %ld", mode, (long)section);
+            for (NSInteger row = 0; row < rows; row++) {
+                UITableViewCell *cell = [settings tableView:table cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:section]];
+                XCTAssertNotNil(cell, @"mode %@ section %ld row %ld", mode, (long)section, (long)row);
+            }
+        }
+    }
+}
+
 - (void)testSettingsShowAboutSectionInEveryMode {
-    // 8 = About (HCG Repo product page); shown in the app and in the overlay.
+    // About (HCG Repo product page) and Panel glass (the app's panel uses the same glass) are in every mode.
     for (NSNumber *mode in @[ @(HCGPanelModeStandaloneApp), @(HCGPanelModeOverlay), @(HCGPanelModePreview) ]) {
         NSArray<NSNumber *> *sections = HCGSettingsSectionsForMode((HCGPanelMode)mode.integerValue);
-        XCTAssertTrue([sections containsObject:@8], @"mode %@", mode);
+        XCTAssertTrue([sections containsObject:@(HCGSettingsSectionAbout)], @"mode %@", mode);
+        XCTAssertTrue([sections containsObject:@(HCGSettingsSectionGlass)], @"mode %@", mode);
     }
 }
 
@@ -148,6 +187,305 @@
     walk(root.view);
     walk = nil;
     XCTAssertTrue(found, @"app mode must be clearly identified");
+}
+
+#pragma mark - HCG Device Link (Connected Devices, standalone app only)
+
+- (HCGPanelContext *)appContext {
+    HCGPanelContext *context = [[HCGPanelContext alloc] init];
+    context.mode = HCGPanelModeStandaloneApp;
+    context.model = [self makeModel];
+    return context;
+}
+
+- (void)testConnectedDevicesIsStandaloneAppOnly {
+    XCTAssertTrue([HCGSettingsSectionsForMode(HCGPanelModeStandaloneApp) containsObject:@(HCGSettingsSectionConnectedDevices)]);
+    XCTAssertFalse([HCGSettingsSectionsForMode(HCGPanelModeOverlay) containsObject:@(HCGSettingsSectionConnectedDevices)]);
+    XCTAssertFalse([HCGSettingsSectionsForMode(HCGPanelModeSettingsApp) containsObject:@(HCGSettingsSectionConnectedDevices)]);
+    XCTAssertFalse([HCGSettingsSectionsForMode(HCGPanelModePreview) containsObject:@(HCGSettingsSectionConnectedDevices)]);
+    HCGAppRootViewController *root = [[HCGAppRootViewController alloc] initWithModel:[self makeModel]];
+    XCTAssertNotNil(root.context.connectedDevicesScreen, @"the app wires the Connected Devices screen");
+    XCTAssertNil([self appContext].connectedDevicesScreen, @"nothing else provides it");
+}
+
+- (void)testDeviceLinkServiceIsLinkedAndNotConfiguredUntilHCGIssuesAClient {
+    id<HCGLinkServicing> service = HCGSharedLinkService();
+    XCTAssertNotNil(service, @"the Swift HCGLinkService must be linked into the app");
+    XCTAssertTrue([(NSObject *)service conformsToProtocol:@protocol(HCGLinkServicing)]);
+    XCTAssertTrue(service == HCGSharedLinkService(), @"one shared service");
+    HCGLinkSnapshot *snapshot = service.snapshot;
+    // Info.plist HCGConnectClientID / HCGConnectRedirectURI are empty: nothing is contacted.
+    XCTAssertEqual(snapshot.accountState, HCGLinkAccountStateNotConfigured);
+    XCTAssertTrue(snapshot.accountDetail.length > 0);
+    XCTAssertEqual(snapshot.connectionState, HCGLinkConnectionStateNotPaired);
+    XCTAssertEqual(snapshot.approvalsCount, 0);
+    XCTAssertFalse(snapshot.executionEnabled);
+    NSMutableArray<NSString *> *advertised = [NSMutableArray array];
+    for (HCGLinkCapabilityInfo *capability in snapshot.advertisedCapabilities) {
+        [advertised addObject:capability.identifier];
+        XCTAssertEqualObjects(capability.state, @"available");
+    }
+    XCTAssertEqualObjects(advertised, (@[ @"report.receive", @"report.view" ]), @"Nexus only receives and views reports");
+    XCTAssertNotNil([service previewInvitationCode:@"https://example.test/not-an-invitation"].problem);
+}
+
+- (void)testSharedReportIsShownAsPlainData {
+    HCGLinkOpenedReport *report = [[HCGLinkOpenedReport alloc] init];
+    report.title = @"Exposure Check — 1 finding";
+    report.fromName = @"Ana's iPhone";
+    report.fromApp = @"HCG Sentinel";
+    HCGLinkReportSection *section = [[HCGLinkReportSection alloc] init];
+    section.title = @"Finding 1: <b>Open admin panel</b>";
+    section.lines = @[ @"Location: https://example.test/admin", @"Evidence: $(rm -rf ~) [link](https://example.test)" ];
+    report.sections = @[ section ];
+    XCTAssertEqualObjects([HCGLinkReportViewController headerTextForReport:report],
+                          @"Report from Ana's iPhone (remote) — data only, never executed");
+
+    HCGLinkReportViewController *viewer = [[HCGLinkReportViewController alloc] initWithContext:[self appContext] report:report];
+    [viewer loadViewIfNeeded];
+    XCTAssertFalse(viewer.tableView.allowsSelection, @"nothing in a report can be tapped");
+    XCTAssertEqual([viewer numberOfSectionsInTableView:viewer.tableView], 2);
+    XCTAssertEqualObjects([viewer tableView:viewer.tableView titleForHeaderInSection:1], section.title, @"shown verbatim, not as HTML");
+    for (NSInteger row = 0; row < 2; row++) {
+        UITableViewCell *cell = [viewer tableView:viewer.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:row inSection:1]];
+        XCTAssertEqualObjects(cell.textLabel.text, section.lines[(NSUInteger)row], @"verbatim plain text");
+        NSAttributedString *text = cell.textLabel.attributedText;
+        __block BOOL linked = NO;
+        [text enumerateAttribute:NSLinkAttributeName inRange:NSMakeRange(0, text.length) options:0
+                      usingBlock:^(id value, NSRange range, BOOL *stop) { if (value) linked = YES; }];
+        XCTAssertFalse(linked, @"no string becomes a link");
+    }
+    UITableViewCell *header = [viewer tableView:viewer.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+    XCTAssertTrue([header.textLabel.text containsString:@"data only, never executed"]);
+}
+
+- (void)testConnectedDevicesWithoutServiceSaysSo {
+    HCGConnectedDevicesViewController *screen = [[HCGConnectedDevicesViewController alloc] initWithContext:[self appContext] service:nil];
+    [screen loadViewIfNeeded];
+    XCTAssertEqual([screen numberOfSectionsInTableView:screen.tableView], 1);
+    UITableViewCell *cell = [screen tableView:screen.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
+    XCTAssertEqualObjects(cell.textLabel.text, @"Not available in this build");
+}
+
+- (void)testConnectedDevicesScreenShowsLocalDeviceAndAccount {
+    id<HCGLinkServicing> service = HCGSharedLinkService();
+    XCTAssertNotNil(service);
+    HCGConnectedDevicesViewController *screen = [[HCGConnectedDevicesViewController alloc] initWithContext:[self appContext] service:service];
+    [screen loadViewIfNeeded];
+    NSMutableArray<NSString *> *headers = [NSMutableArray array];
+    for (NSInteger i = 0; i < [screen numberOfSectionsInTableView:screen.tableView]; i++) {
+        [headers addObject:[screen tableView:screen.tableView titleForHeaderInSection:i] ?: @""];
+    }
+    XCTAssertTrue([headers containsObject:@"HCG Connect account"]);
+    XCTAssertTrue([headers containsObject:@"This device"]);
+    XCTAssertTrue([headers containsObject:@"Pair device"]);
+    NSInteger local = (NSInteger)[headers indexOfObject:@"This device"];
+    UITableViewCell *cell = [screen tableView:screen.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:local]];
+    XCTAssertTrue([cell.accessibilityLabel containsString:@"this device"], @"the local device is labelled LOCAL");
+}
+
+#pragma mark - Layout 2 (redesign)
+
+- (HCGPanelContext *)appContextWithModel:(HCGNexusModel *)model {
+    HCGPanelContext *context = [[HCGPanelContext alloc] init];
+    context.mode = HCGPanelModeStandaloneApp;
+    context.model = model;
+    context.runner = [[HCGActionRunner alloc] initWithModel:model];
+    context.environmentName = @"tests";
+    return context;
+}
+
+// A system-drawn, non-interactive cell accessory (disclosure chevron, checkmark). Recent iOS draws these with a
+// UIButton outside the content view; it is decoration, the row itself is the touch target. Interactive system
+// accessories (detail buttons) and anything Nexus adds itself (content view, accessoryView) are still checked.
+static BOOL HCGIsDecorativeCellAccessory(UIView *view) {
+    UIView *ancestor = view.superview;
+    while (ancestor && ![ancestor isKindOfClass:[UITableViewCell class]]) ancestor = ancestor.superview;
+    if (!ancestor) return NO;
+    UITableViewCell *cell = (UITableViewCell *)ancestor;
+    if ([view isDescendantOfView:cell.contentView]) return NO;
+    if (cell.accessoryView && [view isDescendantOfView:cell.accessoryView]) return NO;
+    UITableViewCellAccessoryType type = cell.isEditing ? cell.editingAccessoryType : cell.accessoryType;
+    return type == UITableViewCellAccessoryDisclosureIndicator || type == UITableViewCellAccessoryCheckmark;
+}
+
+static void HCGCollectLabels(UIView *view, NSMutableArray<UILabel *> *out) {
+    if (view.hidden || view.alpha <= 0.01) return;
+    if ([view isKindOfClass:[UILabel class]] && view.window && !CGRectIsEmpty(view.frame)) [out addObject:(UILabel *)view];
+    for (UIView *sub in view.subviews) HCGCollectLabels(sub, out);
+}
+
+static void HCGCollectButtons(UIView *view, NSMutableArray<UIButton *> *out) {
+    if ([view isKindOfClass:[UIButton class]] && !view.hidden && view.alpha > 0.01 && !HCGIsDecorativeCellAccessory(view)) {
+        [out addObject:(UIButton *)view];
+    }
+    for (UIView *sub in view.subviews) HCGCollectButtons(sub, out);
+}
+
+// Every section loads in a phone-sized window; every visible button is labelled for VoiceOver
+// and has at least a 44 pt touch target.
+- (void)testEverySectionLoadsWithLabelledTouchTargets {
+    HCGNexusModel *model = [self makeModel];
+    HCGPanelHomeViewController *home = [[HCGPanelHomeViewController alloc] initWithContext:[self appContextWithModel:model]];
+    UINavigationController *navigation = [[UINavigationController alloc] initWithRootViewController:home];
+    UIWindow *window = [[UIWindow alloc] initWithFrame:CGRectMake(0, 0, 390, 844)];
+    window.rootViewController = navigation;
+    [window makeKeyAndVisible];
+    for (NSInteger section = 0; section < HCGNexusSectionCount; section++) {
+        [home selectSection:section];
+        [window layoutIfNeeded];
+        XCTAssertEqual(home.selectedSection, section);
+        UIViewController *child = home.childViewControllers.lastObject;
+        XCTAssertNotNil(child, @"section %ld has content", (long)section);
+        if ([child isKindOfClass:[UITableViewController class]]) {
+            UITableView *table = ((UITableViewController *)child).tableView;
+            [table layoutIfNeeded];
+            XCTAssertGreaterThan(table.numberOfSections, 0, @"section %ld shows rows", (long)section);
+        }
+        NSMutableArray<UIButton *> *buttons = [NSMutableArray array];
+        HCGCollectButtons(home.view, buttons);
+        for (UIButton *button in buttons) {
+            if (button.window == nil || CGRectIsEmpty(button.frame)) continue;
+            NSString *label = button.accessibilityLabel ?: button.currentTitle;
+            XCTAssertTrue(label.length > 0, @"unlabelled button in section %ld", (long)section);
+            XCTAssertGreaterThanOrEqual(button.bounds.size.height, 43.5, @"%@ in section %ld is %.1f pt tall", label, (long)section, button.bounds.size.height);
+        }
+    }
+    window.hidden = YES;
+}
+
+- (void)testLargestAccessibilityTextSizeLaysOutEverySection {
+    HCGNexusModel *model = [self makeModel];
+    HCGPanelHomeViewController *home = [[HCGPanelHomeViewController alloc] initWithContext:[self appContextWithModel:model]];
+    UINavigationController *navigation = [[UINavigationController alloc] initWithRootViewController:home];
+    UIWindow *window = [[UIWindow alloc] initWithFrame:CGRectMake(0, 0, 375, 667)];
+    window.rootViewController = navigation;
+    UITraitCollection *huge = [UITraitCollection traitCollectionWithPreferredContentSizeCategory:UIContentSizeCategoryAccessibilityExtraExtraExtraLarge];
+    [navigation setOverrideTraitCollection:huge forChildViewController:home];
+    [window makeKeyAndVisible];
+    // Nothing may be drawn larger than the system's largest style at this size (LargeTitle); before the fix,
+    // double scaling drew body text at ~150 pt. Capped chrome stays within its cap.
+    CGFloat largest = [UIFont preferredFontForTextStyle:UIFontTextStyleLargeTitle compatibleWithTraitCollection:huge].pointSize;
+    for (NSInteger section = 0; section < HCGNexusSectionCount; section++) {
+        [home selectSection:section];
+        [window layoutIfNeeded];
+        XCTAssertEqual(home.selectedSection, section);
+        XCTAssertGreaterThan(home.view.bounds.size.height, 0);
+        NSMutableArray<UILabel *> *labels = [NSMutableArray array];
+        HCGCollectLabels(home.view, labels);
+        for (UILabel *label in labels) {
+            XCTAssertLessThanOrEqual(label.font.pointSize, largest + 0.5, @"\"%@\" in section %ld is %.0f pt",
+                                     label.text, (long)section, label.font.pointSize);
+        }
+    }
+    window.hidden = YES;
+}
+
+// Dynamic Type is applied exactly once: at every size our font stays within 20% of the system font of the same style.
+- (void)testDynamicTypeScalesOnce {
+    NSArray<UIContentSizeCategory> *sizes = @[ UIContentSizeCategoryExtraSmall, UIContentSizeCategoryLarge,
+                                               UIContentSizeCategoryExtraExtraExtraLarge,
+                                               UIContentSizeCategoryAccessibilityExtraExtraExtraLarge ];
+    NSArray<UIFontTextStyle> *styles = @[ UIFontTextStyleBody, UIFontTextStyleFootnote, UIFontTextStyleSubheadline,
+                                          UIFontTextStyleHeadline, UIFontTextStyleTitle3, UIFontTextStyleCaption1 ];
+    for (UIContentSizeCategory size in sizes) {
+        UITraitCollection *traits = [UITraitCollection traitCollectionWithPreferredContentSizeCategory:size];
+        for (UIFontTextStyle style in styles) {
+            CGFloat ours = [HCGTheme fontForTextStyle:style weight:UIFontWeightRegular compatibleWithTraitCollection:traits].pointSize;
+            CGFloat system = [UIFont preferredFontForTextStyle:style compatibleWithTraitCollection:traits].pointSize;
+            // UIFontMetrics (needed for live updates) follows Apple's scaling curve, which differs slightly from
+            // the system's size table (e.g. body at the largest size: 48 vs 53 pt). Scaling twice drew ~3x.
+            XCTAssertGreaterThanOrEqual(ours, system * 0.8, @"%@ at %@: %.0f vs %.0f", style, size, ours, system);
+            XCTAssertLessThanOrEqual(ours, system * 1.2, @"%@ at %@: %.0f vs %.0f", style, size, ours, system);
+        }
+    }
+    XCTAssertEqualWithAccuracy([HCGTheme defaultPointSizeForTextStyle:UIFontTextStyleBody], 17.0, 0.01);
+}
+
+// Fixed-height chrome keeps its cap at the largest size and offers the Large Content Viewer instead.
+- (void)testCappedChromeAtLargestTextSize {
+    HCGPanelHomeViewController *home = [[HCGPanelHomeViewController alloc] initWithContext:[self appContextWithModel:[self makeModel]]];
+    UINavigationController *navigation = [[UINavigationController alloc] initWithRootViewController:home];
+    UIWindow *window = [[UIWindow alloc] initWithFrame:CGRectMake(0, 0, 375, 667)];
+    window.rootViewController = navigation;
+    UITraitCollection *huge = [UITraitCollection traitCollectionWithPreferredContentSizeCategory:UIContentSizeCategoryAccessibilityExtraExtraExtraLarge];
+    [navigation setOverrideTraitCollection:huge forChildViewController:home];
+    [window makeKeyAndVisible];
+    [home selectSection:0];
+    [window layoutIfNeeded];
+    NSMutableArray<UIButton *> *buttons = [NSMutableArray array];
+    HCGCollectButtons(home.view, buttons);
+    NSUInteger capped = 0;
+    for (UIButton *button in buttons) {
+        if (!button.showsLargeContentViewer) continue;
+        capped++;
+        XCTAssertLessThanOrEqual(button.titleLabel.font.pointSize, HCGChipMaximumPointSize + 0.5, @"%@", button.largeContentTitle);
+        XCTAssertGreaterThan(button.largeContentTitle.length, 0u);
+    }
+    XCTAssertGreaterThanOrEqual(capped, (NSUInteger)HCGNexusSectionCount, @"section bar buttons use the Large Content Viewer");
+    BOOL hasInteraction = NO;
+    for (id<UIInteraction> interaction in home.view.interactions) {
+        if ([(NSObject *)interaction isKindOfClass:[UILargeContentViewerInteraction class]]) hasInteraction = YES;
+    }
+    XCTAssertTrue(hasInteraction, @"the panel installs a Large Content Viewer interaction");
+    window.hidden = YES;
+}
+
+- (void)testMigrationGivesTheAppAnAppsList {
+    HCGNexusModel *model = [self makeModel];
+    XCTAssertGreaterThan(model.appLibrary.items.count, 0u, @"preset shortcuts appear under Apps");
+    XCTAssertEqual([HCGLayoutMigration layoutVersionInStore:_store], HCGCurrentLayoutVersion);
+    HCGNexusModel *again = [self makeModel];
+    XCTAssertEqual(again.lastMigrationOutcome, HCGLayoutMigrationAlreadyCurrent);
+}
+
+// With the shipped Info.plist (no client issued) the account is "Not configured", sign-in is
+// impossible, and the Device Link service is never even constructed for it.
+- (void)testAccountIsNotConfiguredWithoutAnIssuedClient {
+    __block NSUInteger serviceRequests = 0;
+    HCGAppAccountProvider *provider = [[HCGAppAccountProvider alloc] initWithServiceProvider:^id<HCGLinkServicing> {
+        serviceRequests++;
+        return nil;
+    }];
+    XCTAssertEqual([provider accountState], HCGAccountStateNotConfigured);
+    XCTAssertFalse([provider canSignIn]);
+    XCTAssertNil([provider accountDisplayName]);
+    XCTAssertNil([provider organisationNames], @"organisations are never invented");
+    XCTAssertTrue([provider accountDetail].length > 0);
+    [provider signInFromViewController:[[UIViewController alloc] init]];
+    XCTAssertEqual(serviceRequests, 0u, @"nothing is contacted without a client");
+    NSDictionary *summary = [provider scopedSummary];
+    XCTAssertEqualObjects(summary[HCGAccountSummaryState], @(HCGAccountStateNotConfigured));
+    for (NSString *key in summary) XCTAssertFalse([key.lowercaseString containsString:@"token"]);
+}
+
+- (void)testCommandModeShowsRealStatesInAppMode {
+    HCGNexusModel *model = [self makeModel];
+    HCGSettings *settings = model.settings;
+    settings.terminalVariant = HCGTerminalVariantStandard; // turned on; News stays off
+    [model saveSettings:settings];
+    HCGPanelContext *context = [[HCGPanelContext alloc] init];
+    context.mode = HCGPanelModeStandaloneApp;
+    context.model = model;
+    context.runner = [[HCGActionRunner alloc] initWithModel:model];
+
+    HCGCommandModeViewController *commandMode = [[HCGCommandModeViewController alloc] initWithContext:context];
+    [commandMode loadViewIfNeeded];
+    commandMode.view.frame = CGRectMake(0, 0, 390, 844);
+    [commandMode startUpdates];
+    [commandMode.view layoutIfNeeded];
+    [commandMode stopUpdates];
+    XCTAssertNotNil([commandMode accessibilityFocusElement]);
+
+    // The sandboxed app cannot open apps by bundle ID: a configured
+    // integration is Unavailable, an unconfigured one Off — never Connected.
+    NSMutableArray<NSString *> *labels = [NSMutableArray array];
+    HCGCollectAccessibilityLabels(commandMode.view, labels);
+    NSString *all = [labels componentsJoinedByString:@"\n"];
+    XCTAssertTrue([all containsString:@"HCG Terminal: Unavailable."], @"%@", all);
+    XCTAssertTrue([all containsString:@"HCG News: Off."], @"%@", all);
+    XCTAssertFalse([all containsString:@": Connected."], @"%@", all);
+    XCTAssertTrue([all containsString:@"Battery: "], @"device tiles are shown");
 }
 
 @end
