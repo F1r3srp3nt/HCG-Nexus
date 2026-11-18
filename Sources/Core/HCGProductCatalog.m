@@ -41,9 +41,9 @@ static HCGProductInfo *HCGProduct(NSString *identifier, NSString *name, NSString
 + (NSArray *)allProducts {
     return [NSArray arrayWithObjects:
         HCGProduct(HCGProductTerminal, @"HCG Terminal", @"terminal", @"iPhone & iPad app", HCGTerminalBundleIdentifier, HCGIntegrationTerminal,
-                   @"Opens the app. HCG Terminal publishes no deep links.", nil),
+                   @"Opens the app by bundle ID. HCG Terminal 0.1.1+ also opens a saved connection from a link it issues (hcgterminal://connection?id=…); you tap Connect there.", nil),
         HCGProduct(HCGProductTerminalUnleashed, @"HCG Terminal Unleashed", @"terminal.fill", @"Jailbreak edition app", HCGTerminalUnleashedBundleIdentifier,
-                   HCGIntegrationTerminal, @"Opens the app. No deep links.", nil),
+                   HCGIntegrationTerminal, @"Opens the app by bundle ID. 0.1.1+ also opens a saved connection from its own link (hcgterminal-unleashed://connection?id=…).", nil),
         HCGProduct(HCGProductNews, @"HCG News", @"newspaper", @"iPhone & iPad app", HCGNewsBundleIdentifier, HCGIntegrationNews,
                    @"Opens the app. HCG News publishes no deep links; headlines are not available to Nexus.", nil),
         HCGProduct(HCGProductSentinel, @"HCG Sentinel", @"shield.lefthalf.filled", @"iPhone & iPad app", HCGSentinelBundleIdentifier, HCGIntegrationSentinel,
