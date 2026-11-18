@@ -115,7 +115,10 @@ jobs:
           sleep 8
           mkdir -p screenshots
           xcrun simctl io "$SIM_UDID" screenshot screenshots/hcg-nexus-simulator.png
-          if xcrun simctl spawn "$SIM_UDID" launchctl list | grep -q "com.hakmicapitalgroup.hcgnexus.app"; then
+          # Read the whole list before searching it: `launchctl list | grep -q` under pipefail fails when grep exits
+          # on the first match and launchctl gets SIGPIPE, i.e. it reported "not running" when the app was running.
+          services="$(xcrun simctl spawn "$SIM_UDID" launchctl list)"
+          if grep -qF "com.hakmicapitalgroup.hcgnexus.app" <<<"$services"; then
             echo "App is still running 8 s after launch."
           else
             echo "::error::HCG Nexus is not running 8 s after launch (crash?)"; exit 1
@@ -128,7 +131,8 @@ jobs:
             xcrun simctl launch "$SIM_UDID" "$APP_ID" -HCGNexusSection "$1" >/dev/null
             sleep 4
             xcrun simctl io "$SIM_UDID" screenshot "screenshots/$2.png"
-            xcrun simctl spawn "$SIM_UDID" launchctl list | grep -q "$APP_ID" || { echo "::error::crashed on section $1"; exit 1; }
+            services="$(xcrun simctl spawn "$SIM_UDID" launchctl list)" # whole list first: see the launch step
+            grep -qF "$APP_ID" <<<"$services" || { echo "::error::crashed on section $1"; exit 1; }
           }
           i=0
           for name in 1-overview 2-workspaces 3-tools 4-hcg-products 5-connected-devices 6-apps 7-account; do
