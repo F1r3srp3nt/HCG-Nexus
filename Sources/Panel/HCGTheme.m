@@ -32,6 +32,17 @@ static UIColor *RGB(CGFloat r, CGFloat g, CGFloat b, CGFloat a) {
 + (UIColor *)hairline { return [self increaseContrast] ? RGB(150, 162, 176, 1) : RGB(255, 255, 255, 0.10); }
 + (UIColor *)warning { return RGB(255, 184, 77, 1); }
 + (UIColor *)success { return RGB(98, 224, 160, 1); }
++ (UIColor *)critical { return [self increaseContrast] ? RGB(255, 140, 140, 1) : RGB(255, 107, 107, 1); }
+
++ (UIColor *)colorForStatusRole:(HCGStatusColorRole)role {
+    switch (role) {
+        case HCGStatusColorRolePositive: return [self success];
+        case HCGStatusColorRoleCaution: return [self warning];
+        case HCGStatusColorRoleCritical: return [self critical];
+        case HCGStatusColorRoleMuted: return [self secondaryText];
+        default: return [self primaryText];
+    }
+}
 
 + (NSArray *)chromeGradientColors {
     CGFloat boost = [self increaseContrast] ? 1.15 : 1.0;

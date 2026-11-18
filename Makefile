@@ -73,7 +73,7 @@ HCGNexus_CFLAGS = -fobjc-arc -Wall -Werror \
 	-ISources/Core -ISources/Panel -ISources/Platform/SpringBoard \
 	-DHCG_PACKAGE_SCHEME=\"$(HCG_ENV)\" -DHCG_BUILD_ID=\"$(HCG_BUILD_ID)\" -DHCG_BUILD_CONFIG=\"$(HCG_BUILD_CONFIG)\" \
 	-DHCG_INSTALL_PREFIX=\"$(THEOS_PACKAGE_INSTALL_PREFIX)\"
-HCGNexus_FRAMEWORKS = UIKit QuartzCore CoreFoundation
+HCGNexus_FRAMEWORKS = UIKit QuartzCore CoreFoundation Network
 # No %hook is used, so generate runtime-only Logos code: the dylib does not
 # link CydiaSubstrate and works with whichever injector loads it.
 HCGNexus_LOGOS_DEFAULT_GENERATOR = internal

@@ -31,3 +31,4 @@
 #import "HCGProductCatalog.h"
 #import "HCGAccount.h"
 #import "HCGLayoutMigration.h"
+#import "HCGCommandMode.h"

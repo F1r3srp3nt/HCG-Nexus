@@ -9,12 +9,14 @@
 #import "HCGDevicesInfoViewController.h"
 #import "HCGAppsViewController.h"
 #import "HCGAccountViewController.h"
+#import "HCGCommandModeViewController.h"
 
 @implementation HCGPanelHomeViewController {
     HCGPanelContext *_context;
     UIView *_brand;
     UILabel *_badge;
     UIButton *_closeButton;
+    UIButton *_commandButton;
     UIScrollView *_barScroll;
     UIStackView *_bar;
     UIView *_content;
@@ -153,7 +155,18 @@
 
     UIView *spacer = [[UIView alloc] init];
     [spacer setContentHuggingPriority:UILayoutPriorityDefaultLow forAxis:UILayoutConstraintAxisHorizontal];
-    UIStackView *header = [[UIStackView alloc] initWithArrangedSubviews:@[ mark, spacer, _badge, _closeButton ]];
+    // Command Mode entry: device status, shortcuts and integration states.
+    _commandButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [_commandButton setImage:[HCGTheme symbolNamed:@"square.grid.2x2" pointSize:14] forState:UIControlStateNormal];
+    _commandButton.tintColor = [HCGTheme cyan];
+    [HCGTheme styleCard:_commandButton cornerRadius:22];
+    _commandButton.accessibilityLabel = @"Command Mode";
+    _commandButton.accessibilityHint = @"Shows device status, shortcuts and HCG integration states.";
+    [_commandButton addTarget:self action:@selector(openCommandMode) forControlEvents:UIControlEventTouchUpInside];
+    [_commandButton.widthAnchor constraintEqualToConstant:44].active = YES;
+    [_commandButton.heightAnchor constraintEqualToConstant:44].active = YES;
+
+    UIStackView *header = [[UIStackView alloc] initWithArrangedSubviews:@[ mark, spacer, _badge, _commandButton, _closeButton ]];
     header.alignment = UIStackViewAlignmentCenter;
     header.spacing = 8;
     [header.heightAnchor constraintGreaterThanOrEqualToConstant:44].active = YES;
@@ -309,6 +322,23 @@
 
 - (void)closeTapped {
     if (_context.closePanel) _context.closePanel();
+}
+
+- (void)openCommandMode {
+    [self.view endEditing:YES];
+    if (_context.presentCommandMode) {
+        _context.presentCommandMode();
+        return;
+    }
+    if (self.presentedViewController) return;
+    HCGCommandModeViewController *commandMode = [[HCGCommandModeViewController alloc] initWithContext:_context];
+    commandMode.modalPresentationStyle = UIModalPresentationOverFullScreen;
+    commandMode.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+    BOOL animated = [HCGCommandModeStatus animatesTransitionsWithReduceMotion:UIAccessibilityIsReduceMotionEnabled()
+                                                            animationsEnabled:_context.model.settings.animationsEnabled];
+    [self presentViewController:commandMode animated:animated completion:^{
+        UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, [commandMode accessibilityFocusElement]);
+    }];
 }
 
 #pragma mark Feedback

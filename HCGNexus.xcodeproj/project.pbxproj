@@ -47,6 +47,10 @@
 			isa = PBXBuildFile;
 			fileRef = F5CFB14C421E20511E716D01;
 		};
+		3C058E8672C2EE55A39088E4 /* HCGCommandModeViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = AF198653D9F346A35527FD9F;
+		};
 		3E9A601B356B02EC8C832407 /* HCGAccount.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 004468DAF7650DA0463E984B;
@@ -115,9 +119,17 @@
 			isa = PBXBuildFile;
 			fileRef = 7EEACED9F2B07D3A22B80217;
 		};
+		7CE427E6D2E461840C4CCC27 /* HCGCommandMode.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 958CFF062160CC947DCB2C66;
+		};
 		7D11C78EAE5B4C69D10839CA /* Assets.xcassets in Resources */ = {
 			isa = PBXBuildFile;
 			fileRef = C5563B2D91BAF29557D8468C;
+		};
+		8105ACE2A4AB2314CCD7B344 /* HCGDeviceStatusMonitor.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = E1FBBECA914FBC93D6181E9E;
 		};
 		8F3A0B6580A55AD425BF84C9 /* UIKit.framework in Frameworks */ = {
 			isa = PBXBuildFile;
@@ -227,6 +239,10 @@
 			isa = PBXBuildFile;
 			fileRef = A647D18F83B154FEDD1D1D94;
 		};
+		E76F5DD34E5E40BB0F3B5721 /* Network.framework in Frameworks */ = {
+			isa = PBXBuildFile;
+			fileRef = A5D2210C1ED4298EAFF936A3;
+		};
 		F3C5FD26A46ADBAF5E0D7672 /* HCGSceneDelegate.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 42126D0B6A5000433B8BE9D2;
@@ -333,6 +349,13 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGSceneDelegate.h;
 			path = App/HCGSceneDelegate.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		1354BEA2CAA61D42EB10747B /* HCGDeviceStatusMonitor.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGDeviceStatusMonitor.h;
+			path = Sources/Panel/HCGDeviceStatusMonitor.h;
 			sourceTree = SOURCE_ROOT;
 		};
 		15F9BB34D7ACA39D3BC8E99D /* HCGActionRunner.m */ = {
@@ -459,6 +482,13 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGLauncher.h;
 			path = Sources/Panel/HCGLauncher.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		484D26FB7E55C542E6D33432 /* HCGCommandMode.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGCommandMode.h;
+			path = Sources/Core/HCGCommandMode.h;
 			sourceTree = SOURCE_ROOT;
 		};
 		4B1EB2CDFC74BB0BBE9F2E2F /* HCGOverviewViewController.h */ = {
@@ -671,6 +701,13 @@
 			path = Sources/Panel/HCGPanelTableViewController.m;
 			sourceTree = SOURCE_ROOT;
 		};
+		827767D087BAEB75330C341B /* HCGCommandModeViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGCommandModeViewController.h;
+			path = Sources/Panel/HCGCommandModeViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
 		83C5CBAE4AEEAF8586F9BF0B /* HCGNexus.app */ = {
 			isa = PBXFileReference;
 			explicitFileType = wrapper.application;
@@ -720,6 +757,13 @@
 			path = App/HCGAppRootViewController.m;
 			sourceTree = SOURCE_ROOT;
 		};
+		958CFF062160CC947DCB2C66 /* HCGCommandMode.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGCommandMode.m;
+			path = Sources/Core/HCGCommandMode.m;
+			sourceTree = SOURCE_ROOT;
+		};
 		987BB1D3B1FB1A239D523FDD /* HCGLayoutMigration.m */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
@@ -762,6 +806,13 @@
 			path = Sources/Panel/HCGWorkspaceManagerViewController.m;
 			sourceTree = SOURCE_ROOT;
 		};
+		A5D2210C1ED4298EAFF936A3 /* Network.framework */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = Network.framework;
+			path = System/Library/Frameworks/Network.framework;
+			sourceTree = SDKROOT;
+		};
 		A647D18F83B154FEDD1D1D94 /* HCGConnectedDevicesViewController.m */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
@@ -788,6 +839,13 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGAccountViewController.h;
 			path = Sources/Panel/HCGAccountViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		AF198653D9F346A35527FD9F /* HCGCommandModeViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGCommandModeViewController.m;
+			path = Sources/Panel/HCGCommandModeViewController.m;
 			sourceTree = SOURCE_ROOT;
 		};
 		B2A15363F280791D6EE287C6 /* HCGDevicesInfoViewController.h */ = {
@@ -916,6 +974,13 @@
 			path = Sources/Platform/App/HCGAppPlatform.m;
 			sourceTree = SOURCE_ROOT;
 		};
+		E1FBBECA914FBC93D6181E9E /* HCGDeviceStatusMonitor.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGDeviceStatusMonitor.m;
+			path = Sources/Panel/HCGDeviceStatusMonitor.m;
+			sourceTree = SOURCE_ROOT;
+		};
 		E8D6DF94996D9EEBA9F617A5 /* HCGAppAccountProvider.h */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
@@ -1018,6 +1083,7 @@
 				8F3A0B6580A55AD425BF84C9,
 				ADB48BCB471BAFC9B8A1766B,
 				8F5A852019BDB6237D2D4C10,
+				E76F5DD34E5E40BB0F3B5721,
 				056FE5A114EA01184551B9ED,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1063,6 +1129,10 @@
 				39EF3848BD49042D56DBC0AF,
 				55818FD4549F46929772A131,
 				EE149DD8A592AB0CE92A7BAC,
+				827767D087BAEB75330C341B,
+				AF198653D9F346A35527FD9F,
+				1354BEA2CAA61D42EB10747B,
+				E1FBBECA914FBC93D6181E9E,
 				B2A15363F280791D6EE287C6,
 				8DF19EEEAD6005DAE47514F9,
 				4520B8904987E431A902E5EF,
@@ -1116,6 +1186,8 @@
 				8A20893A8B66B6FA9C6D9E8E,
 				6B6FCA6893B83A6C49F371E7,
 				2846CFC12CFA43627359273A,
+				484D26FB7E55C542E6D33432,
+				958CFF062160CC947DCB2C66,
 				23007D7C72B8DFE7A39EC6CE,
 				A4D581A24430C94CFD83FA2E,
 				6D6F4DE6DEBDCBCE27304086,
@@ -1215,6 +1287,7 @@
 				5F7B283559C888C36B65801B,
 				0D4158BFF29972DC1A9B79C6,
 				76F9D685866F3288582BB70B,
+				A5D2210C1ED4298EAFF936A3,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -1330,6 +1403,7 @@
 				3E9A601B356B02EC8C832407,
 				6680936370656B23F3581EE5,
 				636366564C619A050B091CFE,
+				7CE427E6D2E461840C4CCC27,
 				6FB811E50C5164543FAB9D80,
 				703A2FCF13F45E4489E73A20,
 				C9382163EAAE1B7DF654F3F1,
@@ -1351,6 +1425,8 @@
 				D4808BAF38595B9A96A0D334,
 				C6B87B8593877A40BE63C2F3,
 				91DECF5C94A03BC8BFF41104,
+				3C058E8672C2EE55A39088E4,
+				8105ACE2A4AB2314CCD7B344,
 				23E1B031BF4655142ED5428B,
 				6EAE21116EFFC4F9AF2E3DD2,
 				53E88B4055A3CDB62AA0387C,

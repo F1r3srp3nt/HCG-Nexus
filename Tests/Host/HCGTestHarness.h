@@ -34,5 +34,6 @@ void HCGRunStateMachineTests(void);
 void HCGRunOverlayTests(void);
 void HCGRunDiagnosticsTests(void);
 void HCGRunRedesignTests(void);
+void HCGRunCommandModeTests(void);
 
 #define HCG_RUN(fn) do { HCGCurrentTest = #fn; fn(); } while (0)

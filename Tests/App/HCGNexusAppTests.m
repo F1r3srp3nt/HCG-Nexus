@@ -15,9 +15,15 @@
 #import "HCGPanelHomeViewController.h"
 #import "HCGSections.h"
 #import "HCGAppAccountProvider.h"
+#import "HCGCommandModeViewController.h"
 
 @interface HCGNexusAppTests : XCTestCase
 @end
+
+static void HCGCollectAccessibilityLabels(UIView *view, NSMutableArray<NSString *> *labels) {
+    if (view.isAccessibilityElement && view.accessibilityLabel.length) [labels addObject:view.accessibilityLabel];
+    for (UIView *sub in view.subviews) HCGCollectAccessibilityLabels(sub, labels);
+}
 
 @implementation HCGNexusAppTests {
     HCGAppDefaultsStore *_store;
@@ -385,6 +391,35 @@ static void HCGCollectButtons(UIView *view, NSMutableArray<UIButton *> *out) {
     NSDictionary *summary = [provider scopedSummary];
     XCTAssertEqualObjects(summary[HCGAccountSummaryState], @(HCGAccountStateNotConfigured));
     for (NSString *key in summary) XCTAssertFalse([key.lowercaseString containsString:@"token"]);
+}
+
+- (void)testCommandModeShowsRealStatesInAppMode {
+    HCGNexusModel *model = [self makeModel];
+    HCGSettings *settings = model.settings;
+    settings.terminalVariant = HCGTerminalVariantStandard; // turned on; News stays off
+    [model saveSettings:settings];
+    HCGPanelContext *context = [[HCGPanelContext alloc] init];
+    context.mode = HCGPanelModeStandaloneApp;
+    context.model = model;
+    context.runner = [[HCGActionRunner alloc] initWithModel:model];
+
+    HCGCommandModeViewController *commandMode = [[HCGCommandModeViewController alloc] initWithContext:context];
+    [commandMode loadViewIfNeeded];
+    commandMode.view.frame = CGRectMake(0, 0, 390, 844);
+    [commandMode startUpdates];
+    [commandMode.view layoutIfNeeded];
+    [commandMode stopUpdates];
+    XCTAssertNotNil([commandMode accessibilityFocusElement]);
+
+    // The sandboxed app cannot open apps by bundle ID: a configured
+    // integration is Unavailable, an unconfigured one Off — never Connected.
+    NSMutableArray<NSString *> *labels = [NSMutableArray array];
+    HCGCollectAccessibilityLabels(commandMode.view, labels);
+    NSString *all = [labels componentsJoinedByString:@"\n"];
+    XCTAssertTrue([all containsString:@"HCG Terminal: Unavailable."], @"%@", all);
+    XCTAssertTrue([all containsString:@"HCG News: Off."], @"%@", all);
+    XCTAssertFalse([all containsString:@": Connected."], @"%@", all);
+    XCTAssertTrue([all containsString:@"Battery: "], @"device tiles are shown");
 }
 
 @end

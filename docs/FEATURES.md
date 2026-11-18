@@ -72,6 +72,28 @@ Legend:
 | **Copy Diagnostics Report** (redacted, clipboard only, never sent) | Implemented, device-unverified | report + redaction host-tested |
 | Settings asks SpringBoard for a fresh report | Implemented, device-unverified | payload-free Darwin notification; it can only trigger a status write |
 
+## Command Mode (both routes, branch `claude/nexus-command-mode`)
+
+Opened from the **Command Mode** button (grid icon) in the panel header, next
+to the close button. It is shared Panel code: the SpringBoard overlay and the
+preview harness show it on the overlay canvas above the panel; the standalone
+app presents it full screen. Nothing about the jailbreak package's defaults
+changed (it still ships disabled), and Command Mode adds no setting, no
+network request and no telemetry.
+
+| Feature | Status | Evidence / gap |
+|---|---|---|
+| State mapping (device values and integration connection states → label, detail, symbol, colour role) in `Sources/Core/HCGCommandMode.{h,m}` | **Verified (automated)** | host tests `Tests/Host/CommandModeTests.m`: every display state, missing/`nil`/out-of-range input, battery/power/network/storage edge cases, no "online"/"syncing"/"live" wording; mutation-checked (treating an unreported sign-in state as Connected, or "off" as Disconnected, fails the suite) |
+| Integration states **Unknown / Unavailable / Off / Disconnected / Signed out / Connected**, each with its own text label and symbol (never colour alone) | **Verified (automated)** for the mapping; UI device-unverified | the integrations model gained `recognized`, `contractAvailable`, `configured`, `reachability` and `session` (`Sources/Core/HCGIntegrations.h`). Reachability and session default to *Unknown*, so nothing reads as connected by accident |
+| What each shipped integration can actually show | — | HCG Terminal / HCG News: *Off* until turned on; then *Connected* (Nexus can open the app; no session or sync status is claimed), *Unavailable* (app not installed, or the sandboxed app cannot open apps), or *Unknown* (installation cannot be checked). HCG Server / Executable Maker would map to *Unavailable* (no phone-reachable contract) but stay unlisted, as before. **No shipped integration can produce *Disconnected* or *Signed out* today**: no HCG contract publishes reachability or sign-in state to a phone. Those states are mapped and tested so a future contract cannot be misreported |
+| Device status: battery level + charging state (`UIDevice`, battery monitoring on only while visible and restored afterwards), Low Power Mode (`NSProcessInfo`), network path and interface (`Network.framework` `nw_path_monitor`, no request made), available storage (`NSURLVolumeAvailableCapacityForImportantUsageKey`, `NSFileManager` fallback), time and date | Implemented, device-unverified | public APIs only (`check_app_target.py` passes); values iOS does not give show **Unavailable** (e.g. the simulator's battery). The network tile says it is a route check, not an internet or HCG service check |
+| Shortcuts of the active workspace, launched through the existing `HCGActionRunner` (same errors, recents and closing behaviour as the home screen) | Implemented, device-unverified | reuses `HCGWorkspaceStore`; no second store |
+| Scrim dims what is behind by 30% (35% with Increase Contrast); nearly opaque obsidian with Reduce Transparency; instant open/close with Reduce Motion or animations off | **Verified (automated)** for the policy values; rendering device-unverified | `testPresentationPolicy`. In the overlay the Command Mode scrim replaces the panel's 42% dimming while it is shown, so the app is dimmed once, not twice |
+| Decoration (static scanlines, status rings, rim light) never animates and implies no activity | Implemented | no animation besides the optional 0.2 s fade on open/close; scanlines are hidden with Reduce Transparency / Increase Contrast |
+| Closed by every panel close path (lock, cover sheet, disable, launched shortcut) | Implemented, device-unverified | `finishClosing`, `overlaySetVisible:NO` and the close transition all remove it first |
+| VoiceOver: modal view, header focus on open, two-finger-Z escape back to the panel, one combined label per tile/row; Dynamic Type switches the grids to one column at accessibility sizes | Implemented, device-unverified | — |
+| Standalone app XCTest `testCommandModeShowsRealStatesInAppMode` | written, **not run** (needs Xcode) | syntax-checked on Linux against the iPhoneOS 16.5 SDK headers with a stub XCTest header only |
+
 ## Removed / not offered
 
 | Item | Why |

@@ -1,7 +1,7 @@
 # HCG Nexus
 
 An HCG command panel with searchable shortcuts, workspaces, recent actions,
-HCG integration status and settings. It uses obsidian surfaces,
+HCG integration status, settings and a Command Mode status view. It uses obsidian surfaces,
 brushed-chrome hairlines and restrained cyan light. It ships in two
 separately built forms:
 
@@ -39,9 +39,11 @@ Makefile, control, HCGNexus.plist   Theos tweak (filter: com.apple.springboard o
 Tweak/Tweak.x              %ctor only; installs no hooks (activation path: docs/RUNTIME.md)
 Sources/
   Core/                    Foundation-only, host-tested: actions, workspaces + presets, store,
-                           settings, recents, search, integrations, geometry, state machine, policy
+                           settings, recents, search, integrations, geometry, state machine, policy,
+                           Command Mode status mapping
   Panel/                   shared UIKit screens: theme, home, workspaces, shortcut editor, settings,
-                           action runner, model façade (+ overlay controller/edge handle: tweak only)
+                           Command Mode + device status monitor, action runner, model façade
+                           (+ overlay controller/edge handle: tweak only)
   Platform/App/            standalone app: UserDefaults store, UIApplication link launcher (public APIs)
   Platform/App/DeviceLink/ standalone app only: Connected Devices (HCG Device Link): Swift facade,
                            Objective-C screens (docs/CONNECTED_DEVICES.md)
@@ -114,6 +116,13 @@ scripts/check.sh                   # add THEOS=… to also compile/link the app 
     app's Connected Devices is the one exception: it keeps its own HCG Connect
     sign-in in the Keychain.
   * See [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md).
+* **Command Mode** (both routes; grid button in the panel header). A
+  translucent status view over a light 30% dim: battery, Low Power Mode,
+  network path, storage and time from public iOS APIs ("Unavailable" when iOS
+  gives no value), the active workspace's shortcuts, and HCG integration
+  states (Unknown / Unavailable / Off / Disconnected / Signed out /
+  Connected). Static decoration only; no network requests. See
+  [`docs/FEATURES.md`](docs/FEATURES.md#command-mode-both-routes-branch-claudenexus-command-mode).
 * **Settings.** Available in the panel and in the Settings app:
   * enable switch
   * handle side, position, visibility and keyboard zone

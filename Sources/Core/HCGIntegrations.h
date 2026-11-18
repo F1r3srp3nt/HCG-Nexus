@@ -40,6 +40,30 @@ typedef NS_ENUM(NSInteger, HCGIntegrationState) {
     HCGIntegrationStateUnavailableHere = 4, // configured, but this build cannot open apps by bundle ID
 };
 
+// Whether a service behind the integration can be reached. Defaults to
+// Unknown (0) so a status that nobody filled in never reads as reachable.
+// HCG Terminal and HCG News are app-launch integrations: Nexus opens the app
+// and there is no service for Nexus to reach (NotApplicable). No integration
+// publishes a phone-reachable status contract yet, so Reachable/Unreachable
+// are only produced once one exists (docs/INTEGRATIONS.md).
+typedef NS_ENUM(NSInteger, HCGIntegrationReachability) {
+    HCGIntegrationReachabilityUnknown = 0,
+    HCGIntegrationReachabilityNotApplicable = 1,
+    HCGIntegrationReachabilityReachable = 2,
+    HCGIntegrationReachabilityUnreachable = 3,
+};
+
+// Sign-in state Nexus can observe for the integration. Defaults to Unknown
+// (0). Nexus stores no HCG credentials and holds no session of its own (HCG
+// Connect and ERP stay the authority), so app-launch integrations report
+// NotApplicable: whether you are signed in inside the app is not visible here.
+typedef NS_ENUM(NSInteger, HCGIntegrationSession) {
+    HCGIntegrationSessionUnknown = 0,
+    HCGIntegrationSessionNotApplicable = 1,
+    HCGIntegrationSessionSignedIn = 2,
+    HCGIntegrationSessionSignedOut = 3,
+};
+
 // Answers "is this app installed / can it be opened?" without launching
 // anything. Implemented by the platform layer: LSApplicationWorkspace inside
 // SpringBoard (jailbreak package), a simulation in the preview harness, and
@@ -62,6 +86,11 @@ typedef NS_ENUM(NSInteger, HCGIntegrationState) {
     NSString *_headline;
     NSString *_detail;
     NSString *_launchBundleIdentifier;
+    BOOL _recognized;
+    BOOL _contractAvailable;
+    BOOL _configured;
+    HCGIntegrationReachability _reachability;
+    HCGIntegrationSession _session;
 }
 @property (nonatomic, copy) NSString *identifier;
 @property (nonatomic, copy) NSString *displayName;
@@ -70,6 +99,15 @@ typedef NS_ENUM(NSInteger, HCGIntegrationState) {
 @property (nonatomic, copy) NSString *headline;   // "Not connected", "Ready", "Needs jailbreak package", ...
 @property (nonatomic, copy) NSString *detail;     // actionable explanation
 @property (nonatomic, copy, nullable) NSString *launchBundleIdentifier;
+// The identifier is one of +[HCGIntegrationCatalog allIdentifiers].
+@property (nonatomic) BOOL recognized;
+// A contract a phone can use exists (HCG Terminal, HCG News: open the app).
+// NO for HCG Server and Executable Maker, whatever the settings say.
+@property (nonatomic) BOOL contractAvailable;
+// The user turned the integration on in HCG Nexus settings.
+@property (nonatomic) BOOL configured;
+@property (nonatomic) HCGIntegrationReachability reachability;
+@property (nonatomic) HCGIntegrationSession session;
 @property (nonatomic, readonly) BOOL canLaunch;
 @end
 

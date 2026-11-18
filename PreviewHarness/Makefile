@@ -26,7 +26,7 @@ HCGNexusPreview_FILES = main.m HCGPreviewRootViewController.m HCGPreviewSelfChec
 	$(wildcard $(ROOT)/Sources/Core/*.m) \
 	$(wildcard $(ROOT)/Sources/Panel/*.m) \
 	$(wildcard $(ROOT)/Sources/Platform/Preview/*.m)
-HCGNexusPreview_FRAMEWORKS = UIKit QuartzCore CoreGraphics
+HCGNexusPreview_FRAMEWORKS = UIKit QuartzCore CoreGraphics Network
 HCGNexusPreview_CFLAGS = -fobjc-arc -Wall -Werror \
 	-I$(ROOT)/Sources/Core -I$(ROOT)/Sources/Panel -I$(ROOT)/Sources/Platform/Preview -I. \
 	-DHCG_PACKAGE_SCHEME=\"preview-$(HCG_ENV)\"

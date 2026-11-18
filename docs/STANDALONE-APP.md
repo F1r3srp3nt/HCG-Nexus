@@ -13,6 +13,7 @@ or `.ipa`, not a jailbreak `.deb`.
 | Link shortcuts (`https:`, `mailto:`, `tel:`, `sms:`, an app's documented URL scheme) | ✅ opened with `UIApplication openURL:`; the real success/failure is reported |
 | App shortcuts by bundle identifier | ❌ reported as **unavailable** — iOS has no public API for it |
 | HCG Terminal / News integrations | status only ("Not connected" / "Needs jailbreak package") |
+| Command Mode (grid button in the header): device status from public APIs, the active workspace's shortcuts, integration states | ✅ full screen over the app; integrations that are turned on read **Unavailable** (opening apps needs the jailbreak package) |
 | System-wide edge handle and overlay | ❌ jailbreak package only. Settings show **App mode** and do not offer handle controls |
 | Connected Devices (HCG Device Link): pair with HCG Server, paired devices, shared reports | ✅ app only, foreground only. Sign-in is **Not configured** until HCG issues Nexus's HCG Connect client ([`CONNECTED_DEVICES.md`](CONNECTED_DEVICES.md)) |
 

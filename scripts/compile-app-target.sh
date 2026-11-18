@@ -50,7 +50,7 @@ for SDK in "${SDKS[@]}"; do
         -DHCG_STANDALONE_APP=1 \
         -ISources/Core -ISources/Panel -ISources/Platform/App -ISources/Platform/App/DeviceLink -IApp \
         "${SOURCES[@]}" \
-        -framework Foundation -framework UIKit -framework QuartzCore -framework CoreGraphics "${EXTRA_LDFLAGS[@]}" \
+        -framework Foundation -framework UIKit -framework QuartzCore -framework CoreGraphics -framework Network "${EXTRA_LDFLAGS[@]}" \
         -o "$exe" 2> "$OUT/$name.log"; then
         echo "PASS  compiled and linked against $name ($(stat -c%s "$exe" 2>/dev/null || stat -f%z "$exe") bytes)"
     else
