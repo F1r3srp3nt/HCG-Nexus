@@ -322,6 +322,7 @@ def main():
             expected += [
                 "Library/Application Support/HCGNexus/hcg-logo.png",
                 "Library/Application Support/HCGNexus/nexus-emblem.png",
+                "Library/Application Support/HCGNexus/hcg-nexus-banner.jpg",
             ]
             for rel in expected:
                 p = os.path.join(tmp, prefix + rel)

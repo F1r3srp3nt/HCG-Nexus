@@ -14,6 +14,7 @@
 #import "HCGLinkReportViewController.h"
 #import "HCGPanelHomeViewController.h"
 #import "HCGSections.h"
+#import "HCGTheme.h"
 #import "HCGAppAccountProvider.h"
 #import "HCGCommandModeViewController.h"
 
@@ -308,6 +309,12 @@ static BOOL HCGIsDecorativeCellAccessory(UIView *view) {
     return type == UITableViewCellAccessoryDisclosureIndicator || type == UITableViewCellAccessoryCheckmark;
 }
 
+static void HCGCollectLabels(UIView *view, NSMutableArray<UILabel *> *out) {
+    if (view.hidden || view.alpha <= 0.01) return;
+    if ([view isKindOfClass:[UILabel class]] && view.window && !CGRectIsEmpty(view.frame)) [out addObject:(UILabel *)view];
+    for (UIView *sub in view.subviews) HCGCollectLabels(sub, out);
+}
+
 static void HCGCollectButtons(UIView *view, NSMutableArray<UIButton *> *out) {
     if ([view isKindOfClass:[UIButton class]] && !view.hidden && view.alpha > 0.01 && !HCGIsDecorativeCellAccessory(view)) {
         [out addObject:(UIButton *)view];
@@ -356,12 +363,68 @@ static void HCGCollectButtons(UIView *view, NSMutableArray<UIButton *> *out) {
     UITraitCollection *huge = [UITraitCollection traitCollectionWithPreferredContentSizeCategory:UIContentSizeCategoryAccessibilityExtraExtraExtraLarge];
     [navigation setOverrideTraitCollection:huge forChildViewController:home];
     [window makeKeyAndVisible];
+    // Nothing may be drawn larger than the system's largest style at this size (LargeTitle); before the fix,
+    // double scaling drew body text at ~150 pt. Capped chrome stays within its cap.
+    CGFloat largest = [UIFont preferredFontForTextStyle:UIFontTextStyleLargeTitle compatibleWithTraitCollection:huge].pointSize;
     for (NSInteger section = 0; section < HCGNexusSectionCount; section++) {
         [home selectSection:section];
         [window layoutIfNeeded];
         XCTAssertEqual(home.selectedSection, section);
         XCTAssertGreaterThan(home.view.bounds.size.height, 0);
+        NSMutableArray<UILabel *> *labels = [NSMutableArray array];
+        HCGCollectLabels(home.view, labels);
+        for (UILabel *label in labels) {
+            XCTAssertLessThanOrEqual(label.font.pointSize, largest + 0.5, @"\"%@\" in section %ld is %.0f pt",
+                                     label.text, (long)section, label.font.pointSize);
+        }
     }
+    window.hidden = YES;
+}
+
+// Dynamic Type is applied exactly once: at every size our font matches the system font of the same style.
+- (void)testDynamicTypeScalesOnce {
+    NSArray<UIContentSizeCategory> *sizes = @[ UIContentSizeCategoryExtraSmall, UIContentSizeCategoryLarge,
+                                               UIContentSizeCategoryExtraExtraExtraLarge,
+                                               UIContentSizeCategoryAccessibilityExtraExtraExtraLarge ];
+    NSArray<UIFontTextStyle> *styles = @[ UIFontTextStyleBody, UIFontTextStyleFootnote, UIFontTextStyleSubheadline,
+                                          UIFontTextStyleHeadline, UIFontTextStyleTitle3, UIFontTextStyleCaption1 ];
+    for (UIContentSizeCategory size in sizes) {
+        UITraitCollection *traits = [UITraitCollection traitCollectionWithPreferredContentSizeCategory:size];
+        for (UIFontTextStyle style in styles) {
+            CGFloat ours = [HCGTheme fontForTextStyle:style weight:UIFontWeightRegular compatibleWithTraitCollection:traits].pointSize;
+            CGFloat system = [UIFont preferredFontForTextStyle:style compatibleWithTraitCollection:traits].pointSize;
+            XCTAssertEqualWithAccuracy(ours, system, 0.5, @"%@ at %@", style, size);
+        }
+    }
+    XCTAssertEqualWithAccuracy([HCGTheme defaultPointSizeForTextStyle:UIFontTextStyleBody], 17.0, 0.01);
+}
+
+// Fixed-height chrome keeps its cap at the largest size and offers the Large Content Viewer instead.
+- (void)testCappedChromeAtLargestTextSize {
+    HCGPanelHomeViewController *home = [[HCGPanelHomeViewController alloc] initWithContext:[self appContextWithModel:[self makeModel]]];
+    UINavigationController *navigation = [[UINavigationController alloc] initWithRootViewController:home];
+    UIWindow *window = [[UIWindow alloc] initWithFrame:CGRectMake(0, 0, 375, 667)];
+    window.rootViewController = navigation;
+    UITraitCollection *huge = [UITraitCollection traitCollectionWithPreferredContentSizeCategory:UIContentSizeCategoryAccessibilityExtraExtraExtraLarge];
+    [navigation setOverrideTraitCollection:huge forChildViewController:home];
+    [window makeKeyAndVisible];
+    [home selectSection:0];
+    [window layoutIfNeeded];
+    NSMutableArray<UIButton *> *buttons = [NSMutableArray array];
+    HCGCollectButtons(home.view, buttons);
+    NSUInteger capped = 0;
+    for (UIButton *button in buttons) {
+        if (!button.showsLargeContentViewer) continue;
+        capped++;
+        XCTAssertLessThanOrEqual(button.titleLabel.font.pointSize, HCGChipMaximumPointSize + 0.5, @"%@", button.largeContentTitle);
+        XCTAssertGreaterThan(button.largeContentTitle.length, 0u);
+    }
+    XCTAssertGreaterThanOrEqual(capped, (NSUInteger)HCGNexusSectionCount, @"section bar buttons use the Large Content Viewer");
+    BOOL hasInteraction = NO;
+    for (id<UIInteraction> interaction in home.view.interactions) {
+        if ([(NSObject *)interaction isKindOfClass:[UILargeContentViewerInteraction class]]) hasInteraction = YES;
+    }
+    XCTAssertTrue(hasInteraction, @"the panel installs a Large Content Viewer interaction");
     window.hidden = YES;
 }
 

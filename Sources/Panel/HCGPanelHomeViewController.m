@@ -49,6 +49,9 @@
     self.view.backgroundColor = [UIColor clearColor]; // the host draws the glass panel behind
     self.overrideUserInterfaceStyle = UIUserInterfaceStyleDark;
     self.title = @"HCG Nexus";
+    // Shows the full-size title of capped chrome (section bar, header buttons, chips) on a long press at
+    // accessibility text sizes; covers every section, which are child views of this one.
+    [self.view addInteraction:[[UILargeContentViewerInteraction alloc] init]];
 
     UIStackView *header = [self makeHeader];
     _barScroll = [self makeSectionBar];
@@ -162,6 +165,7 @@
     [HCGTheme styleCard:_commandButton cornerRadius:22];
     _commandButton.accessibilityLabel = @"Command Mode";
     _commandButton.accessibilityHint = @"Shows device status, shortcuts and HCG integration states.";
+    [HCGTheme enableLargeContentViewerForButton:_commandButton title:@"Command Mode"];
     [_commandButton addTarget:self action:@selector(openCommandMode) forControlEvents:UIControlEventTouchUpInside];
     [_commandButton.widthAnchor constraintEqualToConstant:44].active = YES;
     [_commandButton.heightAnchor constraintEqualToConstant:44].active = YES;
@@ -194,8 +198,10 @@
         UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
         [button setTitle:HCGSectionTitle((HCGNexusSection)section) forState:UIControlStateNormal];
         [button setImage:[HCGTheme symbolNamed:HCGSectionSymbol((HCGNexusSection)section) pointSize:13] forState:UIControlStateNormal];
-        button.titleLabel.font = [HCGTheme fontForTextStyle:UIFontTextStyleFootnote weight:UIFontWeightSemibold];
+        button.titleLabel.font = [HCGTheme fontForTextStyle:UIFontTextStyleFootnote weight:UIFontWeightSemibold
+                                           maximumPointSize:HCGSectionBarMaximumPointSize];
         button.titleLabel.adjustsFontForContentSizeCategory = YES;
+        [HCGTheme enableLargeContentViewerForButton:button title:HCGSectionTitle((HCGNexusSection)section)];
         button.layer.cornerRadius = 12;
         button.layer.cornerCurve = kCACornerCurveContinuous;
 #pragma clang diagnostic push

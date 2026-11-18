@@ -5,6 +5,10 @@ static UIColor *RGB(CGFloat r, CGFloat g, CGFloat b, CGFloat a) {
     return [UIColor colorWithRed:r / 255.0 green:g / 255.0 blue:b / 255.0 alpha:a];
 }
 
+const CGFloat HCGSectionBarMaximumPointSize = 20;   // the bar is 52 pt tall
+const CGFloat HCGHeaderButtonMaximumPointSize = 22; // Add / Reorder / New Workspace / Edit
+const CGFloat HCGChipMaximumPointSize = 26;         // workspace chips (they grow to fit)
+
 @implementation HCGTheme
 
 + (BOOL)increaseContrast {
@@ -54,10 +58,33 @@ static UIColor *RGB(CGFloat r, CGFloat g, CGFloat b, CGFloat a) {
     ];
 }
 
+// The base size must be the style's size at the DEFAULT text size ("Large"). UIFontMetrics then scales it once
+// for the user's setting. Starting from preferredFontDescriptorWithTextStyle: (already scaled for the current
+// setting) scaled it twice: at the largest accessibility size body text was drawn at ~150 pt instead of 53 pt.
++ (CGFloat)defaultPointSizeForTextStyle:(UIFontTextStyle)style {
+    UITraitCollection *standard = [UITraitCollection traitCollectionWithPreferredContentSizeCategory:UIContentSizeCategoryLarge];
+    return [UIFontDescriptor preferredFontDescriptorWithTextStyle:style compatibleWithTraitCollection:standard].pointSize;
+}
+
 + (UIFont *)fontForTextStyle:(UIFontTextStyle)style weight:(UIFontWeight)weight {
-    UIFontDescriptor *base = [UIFontDescriptor preferredFontDescriptorWithTextStyle:style];
-    UIFont *font = [UIFont systemFontOfSize:base.pointSize weight:weight];
-    return [[UIFontMetrics metricsForTextStyle:style] scaledFontForFont:font];
+    return [self fontForTextStyle:style weight:weight compatibleWithTraitCollection:nil];
+}
+
++ (UIFont *)fontForTextStyle:(UIFontTextStyle)style weight:(UIFontWeight)weight compatibleWithTraitCollection:(UITraitCollection *)traits {
+    UIFont *font = [UIFont systemFontOfSize:[self defaultPointSizeForTextStyle:style] weight:weight];
+    UIFontMetrics *metrics = [UIFontMetrics metricsForTextStyle:style];
+    return traits ? [metrics scaledFontForFont:font compatibleWithTraitCollection:traits] : [metrics scaledFontForFont:font];
+}
+
++ (UIFont *)fontForTextStyle:(UIFontTextStyle)style weight:(UIFontWeight)weight maximumPointSize:(CGFloat)maximum {
+    UIFont *font = [UIFont systemFontOfSize:[self defaultPointSizeForTextStyle:style] weight:weight];
+    return [[UIFontMetrics metricsForTextStyle:style] scaledFontForFont:font maximumPointSize:maximum];
+}
+
++ (void)enableLargeContentViewerForButton:(UIButton *)button title:(NSString *)title {
+    button.showsLargeContentViewer = YES;
+    button.largeContentTitle = title;
+    button.scalesLargeContentImage = YES;
 }
 
 + (NSAttributedString *)wordmarkWithSize:(CGFloat)size {

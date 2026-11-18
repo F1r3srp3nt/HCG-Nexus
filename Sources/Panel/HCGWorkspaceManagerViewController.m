@@ -13,7 +13,9 @@ static NSString *const kCell = @"HCGWorkspaceCell";
     UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
     [button setTitle:title forState:UIControlStateNormal];
     [button setImage:[HCGTheme symbolNamed:symbol pointSize:13] forState:UIControlStateNormal];
-    button.titleLabel.font = [HCGTheme fontForTextStyle:UIFontTextStyleFootnote weight:UIFontWeightSemibold];
+    button.titleLabel.font = [HCGTheme fontForTextStyle:UIFontTextStyleFootnote weight:UIFontWeightSemibold
+                                       maximumPointSize:HCGHeaderButtonMaximumPointSize];
+    [HCGTheme enableLargeContentViewerForButton:button title:title];
     button.titleLabel.adjustsFontForContentSizeCategory = YES;
     button.tintColor = [HCGTheme cyan];
     [HCGTheme styleCard:button cornerRadius:12];

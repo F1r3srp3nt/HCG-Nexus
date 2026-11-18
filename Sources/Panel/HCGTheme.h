@@ -28,7 +28,16 @@ NS_ASSUME_NONNULL_BEGIN
 + (UIColor *)colorForStatusRole:(HCGStatusColorRole)role;
 + (NSArray *)chromeGradientColors; // CGColorRefs for brushed-chrome strokes
 
+// Dynamic Type font: the style's default size, scaled once for the user's text size.
 + (UIFont *)fontForTextStyle:(UIFontTextStyle)style weight:(UIFontWeight)weight;
+// The same for an explicit text size (nil = the current one); used by tests.
++ (UIFont *)fontForTextStyle:(UIFontTextStyle)style weight:(UIFontWeight)weight
+    compatibleWithTraitCollection:(nullable UITraitCollection *)traits;
+// The same, capped: for fixed-height chrome (section bar, header buttons, chips). Pair with
+// enableLargeContentViewerForButton:title: so a long press still shows the title at full size.
++ (UIFont *)fontForTextStyle:(UIFontTextStyle)style weight:(UIFontWeight)weight maximumPointSize:(CGFloat)maximum;
++ (CGFloat)defaultPointSizeForTextStyle:(UIFontTextStyle)style;
++ (void)enableLargeContentViewerForButton:(UIButton *)button title:(NSString *)title;
 + (NSAttributedString *)wordmarkWithSize:(CGFloat)size;
 
 + (BOOL)increaseContrast;
@@ -49,6 +58,11 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)styleCell:(UITableViewCell *)cell;
 + (UIImage *_Nullable)symbolNamed:(nullable NSString *)name pointSize:(CGFloat)size;
 @end
+
+// Caps used by fixed-height chrome; exposed for tests.
+FOUNDATION_EXPORT const CGFloat HCGSectionBarMaximumPointSize;
+FOUNDATION_EXPORT const CGFloat HCGHeaderButtonMaximumPointSize;
+FOUNDATION_EXPORT const CGFloat HCGChipMaximumPointSize;
 
 // Applies the chrome gradient stroke to its own bounds on every layout pass.
 @interface HCGChromeBorderView : UIView

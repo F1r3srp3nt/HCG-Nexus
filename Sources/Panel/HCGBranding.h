@@ -10,7 +10,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface HCGBranding : NSObject
 + (nullable UIImage *)hcgLogo;       // official chrome HCG logo
 + (nullable UIImage *)nexusEmblem;   // HCG Nexus app-icon emblem
-+ (nullable UIImage *)nexusBanner;   // official HCG Nexus banner — not supplied yet
++ (nullable UIImage *)nexusBanner;   // official HCG Nexus banner (founder-approved, Resources/Branding/README.md)
 // Paths searched for the tweak, for diagnostics.
 + (NSArray<NSString *> *)supportDirectories;
 @end

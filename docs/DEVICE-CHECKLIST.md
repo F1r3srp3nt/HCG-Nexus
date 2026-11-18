@@ -13,7 +13,7 @@ Apps. Tools › Restore Previous Layout undoes that.
 |---|---|---|
 | 1 | Zebra: refresh HCG Repo Candidate, install/upgrade **HCG Nexus 0.3.1~beta1**, respring | Install log clean (`data.tar.gz`); Settings › HCG Nexus › Status: *Installed 0.3.1~beta1*, *SpringBoard: Running* |
 | 2 | Enable, open the panel | Smoked-glass panel; chrome **HCG** logo + NEXUS in the header; section bar; Overview opens first |
-| 3 | Overview | Emblem header (no banner yet); workspace chips switch with one tap; quick actions run; device rows show `iPhone14,2`, iOS 16.5, battery %, Low Power, thermal, storage, uptime |
+| 3 | Overview | Official HCG Nexus banner shown whole (star and lettering not cropped); workspace chips switch with one tap; quick actions run; device rows show `iPhone14,2`, iOS 16.5, battery %, Low Power, thermal, storage, uptime |
 | 4 | Settings › HCG Nexus › Panel glass: opacity min/max, blur Off/Light/Standard/Strong | The panel changes at once; text stays readable at every setting; with blur off the panel never goes below ~60 % |
 | 5 | iOS Settings › Accessibility: Reduce Transparency on | The panel turns opaque and unblurred; glass controls are disabled with a note |
 | 6 | Reduce Motion on (or Animations off), open/close the panel | No glow sweep on the Overview, fade instead of slide; with both off, the glow line moves slowly while open and stops when closed |

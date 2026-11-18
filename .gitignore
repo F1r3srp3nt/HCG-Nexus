@@ -9,3 +9,5 @@ build/
 packages/
 xcuserdata/
 __pycache__/
+__pycache__/
+*.pyc

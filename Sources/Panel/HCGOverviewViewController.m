@@ -49,9 +49,11 @@ typedef NS_ENUM(NSInteger, HCGOverviewRowGroup) {
         [card.bottomAnchor constraintEqualToAnchor:container.bottomAnchor constant:-6],
     ]];
     if (banner) {
-        // Official banner: 3:1, aspect fill, centred (sides crop on narrow panels).
+        // Official banner (3:1): always shown whole (aspect fit), like the HCG Store shows it. The emblem and the
+        // lettering run edge to edge, so cropping the sides would cut them off.
         UIImageView *image = [[UIImageView alloc] initWithImage:banner];
-        image.contentMode = UIViewContentModeScaleAspectFill;
+        image.contentMode = UIViewContentModeScaleAspectFit;
+        image.backgroundColor = [UIColor blackColor]; // the artwork's own background, so letterboxing is invisible
         image.clipsToBounds = YES;
         image.isAccessibilityElement = YES;
         image.accessibilityLabel = @"HCG Nexus";
@@ -249,7 +251,9 @@ typedef NS_ENUM(NSInteger, HCGOverviewRowGroup) {
         UIButton *chip = [UIButton buttonWithType:UIButtonTypeSystem];
         [chip setTitle:workspace.name forState:UIControlStateNormal];
         [chip setImage:[HCGTheme symbolNamed:[HCGWorkspacePresets symbolNameForPreset:workspace.preset] pointSize:12] forState:UIControlStateNormal];
-        chip.titleLabel.font = [HCGTheme fontForTextStyle:UIFontTextStyleSubheadline weight:selected ? UIFontWeightSemibold : UIFontWeightRegular];
+        chip.titleLabel.font = [HCGTheme fontForTextStyle:UIFontTextStyleSubheadline weight:selected ? UIFontWeightSemibold : UIFontWeightRegular
+                                         maximumPointSize:HCGChipMaximumPointSize];
+        [HCGTheme enableLargeContentViewerForButton:chip title:workspace.name];
         chip.titleLabel.adjustsFontForContentSizeCategory = YES;
         chip.tintColor = selected ? [HCGTheme cyan] : [HCGTheme secondaryText];
         chip.backgroundColor = selected ? [HCGTheme cyanSoft] : [UIColor clearColor];
