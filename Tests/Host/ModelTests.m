@@ -377,9 +377,9 @@ void HCGRunSearchTests(void) {
 
 static void testUnconfiguredIntegrationsAreNotConnected(void) {
     HCGSettings *s = [HCGSettings defaultSettings];
-    HCGFakeProbe *probe = [[HCGFakeProbe alloc] initWithInstalled:[NSSet setWithObjects:HCGTerminalBundleIdentifier, HCGNewsBundleIdentifier, nil] canDetermine:YES];
+    HCGFakeProbe *probe = [[HCGFakeProbe alloc] initWithInstalled:[NSSet setWithObjects:HCGTerminalBundleIdentifier, HCGNewsBundleIdentifier, HCGSentinelBundleIdentifier, nil] canDetermine:YES];
     NSArray *statuses = [HCGIntegrationCatalog allStatusesWithSettings:s probe:probe];
-    HCG_CHECK_EQ_INT(statuses.count, 2);
+    HCG_CHECK_EQ_INT(statuses.count, 3);
     NSUInteger i;
     for (i = 0; i < statuses.count; i++) {
         HCGIntegrationStatus *st = [statuses objectAtIndex:i];
@@ -413,6 +413,63 @@ static void testConfiguredIntegrations(void) {
     HCG_CHECK_EQ_STR(server.headline, @"Not connected");
     HCG_CHECK_EQ_STR(maker.headline, @"Not connected");
     HCG_CHECK(!server.canLaunch && !maker.canLaunch, "no fabricated launch targets");
+}
+
+// HCG Sentinel: off until switched on; then installed / not installed from the probe. An installed app is never
+// reported as connected: Sentinel publishes no status, so Nexus says so.
+static void testSentinelIntegrationStates(void) {
+    HCGSettings *s = [HCGSettings defaultSettings];
+    HCGFakeProbe *installed = [[HCGFakeProbe alloc] initWithInstalled:[NSSet setWithObject:HCGSentinelBundleIdentifier] canDetermine:YES];
+    HCGFakeProbe *missing = [[HCGFakeProbe alloc] initWithInstalled:[NSSet set] canDetermine:YES];
+
+    HCGIntegrationStatus *off = [HCGIntegrationCatalog statusForIdentifier:HCGIntegrationSentinel settings:s probe:installed];
+    HCG_CHECK_EQ_STR(off.headline, @"Not connected");
+    HCG_CHECK(!off.canLaunch, "switched-off Sentinel must not launch");
+
+    s.sentinelConnected = YES;
+    HCGIntegrationStatus *ready = [HCGIntegrationCatalog statusForIdentifier:HCGIntegrationSentinel settings:s probe:installed];
+    HCG_CHECK_EQ_INT(ready.state, HCGIntegrationStateReady);
+    HCG_CHECK_EQ_STR(ready.launchBundleIdentifier, @"com.hcg.sentinel");
+    HCG_CHECK(ready.canLaunch, "installed Sentinel opens");
+    HCG_CHECK([ready.detail rangeOfString:@"Status is not available"].location != NSNotFound, "says that no status is published");
+    HCG_CHECK([ready.headline rangeOfString:@"onnected"].location == NSNotFound, "an installed app is not reported as connected");
+
+    HCGIntegrationStatus *gone = [HCGIntegrationCatalog statusForIdentifier:HCGIntegrationSentinel settings:s probe:missing];
+    HCG_CHECK_EQ_INT(gone.state, HCGIntegrationStateAppMissing);
+    HCG_CHECK_EQ_STR(gone.headline, @"App not installed");
+    HCG_CHECK(!gone.canLaunch, "missing Sentinel cannot launch");
+
+    HCGIntegrationStatus *sandboxed = [HCGIntegrationCatalog statusForIdentifier:HCGIntegrationSentinel settings:s probe:[[HCGFakeProbe alloc] initSandboxedApp]];
+    HCG_CHECK_EQ_INT(sandboxed.state, HCGIntegrationStateUnavailableHere);
+
+    // The setting round-trips through the store like the other integration switches.
+    HCG_CHECK(s.copy != nil && [(HCGSettings *)[s copy] sentinelConnected], "copy keeps sentinelConnected");
+}
+
+// Sentinel links: exactly what Sentinel's DeepLink.target(from:) accepts; everything else is refused before launch.
+static void testSentinelLinksAreValidatedLikeSentinel(void) {
+    NSArray *good = [NSArray arrayWithObjects:@"hcgsentinel://open/dashboard", @"hcgsentinel://open/securityLab", @"hcgsentinel://open/SECURITYLAB",
+                     @"HCGSentinel://open/network", @"hcgsentinel://open/networkCheck", @"hcgsentinel://open/settings",
+                     @"hcgsentinel://report/3F2504E0-4F89-41D3-9A0C-0305E82C3301", nil];
+    NSArray *bad = [NSArray arrayWithObjects:@"hcgsentinel://open/scan", @"hcgsentinel://open/", @"hcgsentinel://open/network/extra",
+                    @"hcgsentinel://open/network?start=1", @"hcgsentinel://open/network#now", @"hcgsentinel://start/bluetooth",
+                    @"hcgsentinel://run/securityLab", @"hcgsentinel://user:pw@open/network", @"hcgsentinel://open:8080/network",
+                    @"hcgsentinel://report/not-a-uuid", @"hcgsentinel://report/", @"hcgsentinel://", nil];
+    NSUInteger i;
+    for (i = 0; i < good.count; i++) {
+        NSString *u = [good objectAtIndex:i];
+        HCG_CHECK([HCGSentinelLinks problemWithURLString:u] == nil, "accepts %s", [u UTF8String]);
+        HCG_CHECK([HCGAction validationErrorForKind:HCGActionKindURL title:@"Sentinel" target:u] == nil, "shortcut accepts %s", [u UTF8String]);
+    }
+    for (i = 0; i < bad.count; i++) {
+        NSString *u = [bad objectAtIndex:i];
+        HCG_CHECK([HCGSentinelLinks problemWithURLString:u] != nil, "refuses %s", [u UTF8String]);
+        NSError *e = [HCGAction validationErrorForKind:HCGActionKindURL title:@"Sentinel" target:u];
+        HCG_CHECK(e != nil && e.code == HCGErrorInvalidTarget, "shortcut refuses %s", [u UTF8String]);
+    }
+    HCG_CHECK_EQ_STR([[HCGSentinelLinks URLForSection:@"securitylab"] absoluteString], @"hcgsentinel://open/securityLab");
+    HCG_CHECK([HCGSentinelLinks URLForSection:@"wipe"] == nil, "no URL for a screen Sentinel does not have");
+    HCG_CHECK_EQ_INT([HCGSentinelLinks sections].count, 9);
 }
 
 // Standalone app: configured app integrations must not claim to work.
@@ -464,4 +521,6 @@ void HCGRunIntegrationTests(void) {
     HCG_RUN(testUnconfiguredIntegrationsAreNotConnected);
     HCG_RUN(testConfiguredIntegrations);
     HCG_RUN(testSandboxedAppReportsBundleLaunchUnavailable);
+    HCG_RUN(testSentinelIntegrationStates);
+    HCG_RUN(testSentinelLinksAreValidatedLikeSentinel);
 }

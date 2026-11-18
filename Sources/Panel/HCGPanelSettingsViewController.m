@@ -182,6 +182,10 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
     [self save:^(HCGSettings *s) { s.newsConnected = control.on; }];
 }
 
+- (void)sentinelChanged:(UISwitch *)control {
+    [self save:^(HCGSettings *s) { s.sentinelConnected = control.on; }];
+}
+
 - (UISlider *)sliderWithValue:(float)value min:(float)min action:(SEL)action label:(NSString *)label {
     UISlider *slider = [[UISlider alloc] init];
     slider.minimumValue = min;
@@ -272,7 +276,7 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         case HCGSettingsSectionGeneral: return 1;
         case HCGSettingsSectionHandle: return 4;
         case HCGSettingsSectionMotion: return 2;
-        case HCGSettingsSectionIntegrations: return self.context.isStandaloneApp ? (NSInteger)[self standaloneIntegrationIdentifiers].count : 2;
+        case HCGSettingsSectionIntegrations: return self.context.isStandaloneApp ? (NSInteger)[self standaloneIntegrationIdentifiers].count : 3;
         case HCGSettingsSectionWorkspaces: return 2;
         case HCGSettingsSectionMaintenance: return 1;
         case HCGSettingsSectionDiagnostics: return (NSInteger)_diagnostics.count;
@@ -332,7 +336,7 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         NSArray *ids = [self standaloneIntegrationIdentifiers];
         return row >= 0 && (NSUInteger)row < ids.count ? ids[(NSUInteger)row] : nil;
     }
-    return nil; // overlay modes: rows 0-1 are the Terminal and News controls
+    return nil; // overlay modes: rows 0-2 are the Terminal, News and Sentinel controls
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -356,6 +360,9 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
             }
             if (!self.context.isStandaloneApp && indexPath.row == 1) {
                 return [self controlCell:@"HCG News" control:[self switchOn:s.newsConnected action:@selector(newsChanged:) label:@"Open HCG News from the panel"] stacked:NO];
+            }
+            if (!self.context.isStandaloneApp && indexPath.row == 2) {
+                return [self controlCell:@"HCG Sentinel" control:[self switchOn:s.sentinelConnected action:@selector(sentinelChanged:) label:@"Open HCG Sentinel from the panel"] stacked:NO];
             }
             return [self statusCellForIntegration:[self integrationIdentifierForRow:indexPath.row]];
         }

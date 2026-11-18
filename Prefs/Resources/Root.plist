@@ -152,7 +152,7 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
-			<string>Terminal and News open their apps from the panel (neither publishes deep links). HCG Connect and ERP remain the authority for signed-in ecosystem access; Nexus stores no HCG credentials.</string>
+			<string>Terminal and News open their apps from the panel (neither publishes deep links). HCG Sentinel opens its app and accepts only its own navigation links (hcgsentinel://open/…), which never start an operation; Sentinel publishes no status yet. HCG Connect and ERP remain the authority for signed-in ecosystem access; Nexus stores no HCG credentials.</string>
 			<key>label</key>
 			<string>HCG News</string>
 		</dict>
@@ -165,6 +165,16 @@
 			<string>newsConnected</string>
 			<key>label</key>
 			<string>HCG News</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>key</key>
+			<string>sentinelConnected</string>
+			<key>label</key>
+			<string>HCG Sentinel</string>
 		</dict>
 		<dict>
 			<key>cell</key>

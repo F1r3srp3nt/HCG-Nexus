@@ -9,6 +9,7 @@ NSString *const HCGSettingAnimations = @"animationsEnabled";
 NSString *const HCGSettingHaptics = @"hapticsEnabled";
 NSString *const HCGSettingTerminalVariant = @"terminalVariant";
 NSString *const HCGSettingNewsConnected = @"newsConnected";
+NSString *const HCGSettingSentinelConnected = @"sentinelConnected";
 
 static const double kDefaultPosition = 0.35;
 static const double kDefaultOpacity = 0.7;
@@ -50,6 +51,7 @@ static NSInteger HCGReadInteger(id<HCGKeyValueStore> store, NSString *key, NSInt
 @synthesize hapticsEnabled = _hapticsEnabled;
 @synthesize terminalVariant = _terminalVariant;
 @synthesize newsConnected = _newsConnected;
+@synthesize sentinelConnected = _sentinelConnected;
 
 + (double)minimumHandleOpacity {
     return kMinOpacity;
@@ -60,6 +62,7 @@ static NSInteger HCGReadInteger(id<HCGKeyValueStore> store, NSString *key, NSInt
         _enabled = NO;
         _terminalVariant = HCGTerminalVariantNone;
         _newsConnected = NO;
+        _sentinelConnected = NO;
         [self resetPreservingEnabledAndIntegrations];
     }
     return self;
@@ -108,6 +111,7 @@ static NSInteger HCGReadInteger(id<HCGKeyValueStore> store, NSString *key, NSInt
     copy.hapticsEnabled = self.hapticsEnabled;
     copy.terminalVariant = self.terminalVariant;
     copy.newsConnected = self.newsConnected;
+    copy.sentinelConnected = self.sentinelConnected;
     return copy;
 }
 
@@ -131,6 +135,7 @@ static NSInteger HCGReadInteger(id<HCGKeyValueStore> store, NSString *key, NSInt
     settings.hapticsEnabled = HCGReadBool(store, HCGSettingHaptics, YES);
     settings.terminalVariant = (HCGTerminalVariant)HCGReadInteger(store, HCGSettingTerminalVariant, HCGTerminalVariantNone);
     settings.newsConnected = HCGReadBool(store, HCGSettingNewsConnected, NO);
+    settings.sentinelConnected = HCGReadBool(store, HCGSettingSentinelConnected, NO);
     return settings;
 }
 
@@ -145,6 +150,7 @@ static NSInteger HCGReadInteger(id<HCGKeyValueStore> store, NSString *key, NSInt
     [dict setObject:[NSNumber numberWithBool:self.hapticsEnabled] forKey:HCGSettingHaptics];
     [dict setObject:[NSNumber numberWithInteger:self.terminalVariant] forKey:HCGSettingTerminalVariant];
     [dict setObject:[NSNumber numberWithBool:self.newsConnected] forKey:HCGSettingNewsConnected];
+    [dict setObject:[NSNumber numberWithBool:self.sentinelConnected] forKey:HCGSettingSentinelConnected];
     return dict;
 }
 

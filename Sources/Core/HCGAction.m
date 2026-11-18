@@ -123,7 +123,12 @@ static NSString *HCGTrim(NSString *value) {
                                     [NSString stringWithFormat:@"%@: links are not supported by HCG Nexus.", scheme],
                                     @"Use an https:// link or an app link instead.");
             }
-            if (([scheme isEqualToString:@"http"] || [scheme isEqualToString:@"https"]) && url.host.length == 0) {
+            if ([scheme isEqualToString:HCGSentinelURLScheme]) {
+                NSString *problem = [HCGSentinelLinks problemWithURLString:target];
+                if (problem != nil) return HCGMakeError(HCGErrorInvalidTarget, @"HCG Sentinel can't open this link.", problem);
+                return nil;
+            }
+                        if (([scheme isEqualToString:@"http"] || [scheme isEqualToString:@"https"]) && url.host.length == 0) {
                 return HCGMakeError(HCGErrorInvalidTarget, @"The web link has no host.", @"Use a full address such as https://example.com.");
             }
             return nil;

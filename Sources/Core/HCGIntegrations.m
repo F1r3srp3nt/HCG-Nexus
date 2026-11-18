@@ -5,10 +5,13 @@ NSString *const HCGIntegrationTerminal = @"terminal";
 NSString *const HCGIntegrationServer = @"server";
 NSString *const HCGIntegrationNews = @"news";
 NSString *const HCGIntegrationExecutableMaker = @"executable-maker";
+NSString *const HCGIntegrationSentinel = @"sentinel";
 
 NSString *const HCGTerminalBundleIdentifier = @"com.hakmicapitalgroup.hcgterminal";
 NSString *const HCGTerminalUnleashedBundleIdentifier = @"com.hakmicapitalgroup.hcgterminal.unleashed";
 NSString *const HCGNewsBundleIdentifier = @"com.hakmicapitalgroup.hcgnews";
+NSString *const HCGSentinelBundleIdentifier = @"com.hcg.sentinel";
+NSString *const HCGSentinelURLScheme = @"hcgsentinel";
 
 static NSString *const kNotConnected = @"Not connected";
 
@@ -32,11 +35,11 @@ static NSString *const kNotConnected = @"Not connected";
 @implementation HCGIntegrationCatalog
 
 + (NSArray *)allIdentifiers {
-    return [NSArray arrayWithObjects:HCGIntegrationTerminal, HCGIntegrationServer, HCGIntegrationNews, HCGIntegrationExecutableMaker, nil];
+    return [NSArray arrayWithObjects:HCGIntegrationTerminal, HCGIntegrationServer, HCGIntegrationNews, HCGIntegrationExecutableMaker, HCGIntegrationSentinel, nil];
 }
 
 + (NSArray *)offeredIdentifiers {
-    return [NSArray arrayWithObjects:HCGIntegrationTerminal, HCGIntegrationNews, nil];
+    return [NSArray arrayWithObjects:HCGIntegrationTerminal, HCGIntegrationNews, HCGIntegrationSentinel, nil];
 }
 
 + (NSString *)displayNameForIdentifier:(NSString *)identifier {
@@ -44,6 +47,7 @@ static NSString *const kNotConnected = @"Not connected";
     if ([identifier isEqualToString:HCGIntegrationServer]) return @"HCG Server";
     if ([identifier isEqualToString:HCGIntegrationNews]) return @"HCG News";
     if ([identifier isEqualToString:HCGIntegrationExecutableMaker]) return @"Executable Maker";
+    if ([identifier isEqualToString:HCGIntegrationSentinel]) return @"HCG Sentinel";
     return nil;
 }
 
@@ -52,6 +56,7 @@ static NSString *const kNotConnected = @"Not connected";
     if ([identifier isEqualToString:HCGIntegrationServer]) return @"server.rack";
     if ([identifier isEqualToString:HCGIntegrationNews]) return @"newspaper";
     if ([identifier isEqualToString:HCGIntegrationExecutableMaker]) return @"hammer";
+    if ([identifier isEqualToString:HCGIntegrationSentinel]) return @"checkmark.shield";
     return @"questionmark.square.dashed";
 }
 
@@ -118,6 +123,16 @@ static NSString *const kNotConnected = @"Not connected";
         return status;
     }
 
+    if ([identifier isEqualToString:HCGIntegrationSentinel]) {
+        if (!settings.sentinelConnected) {
+            status.detail = @"Turn on HCG Sentinel in HCG Nexus settings to open the app from the panel. Shortcuts can open Sentinel's own screens with hcgsentinel://open/<section> links, which only navigate. Sentinel publishes no status yet, so none is shown.";
+            return status;
+        }
+        [self applyAppBundle:HCGSentinelBundleIdentifier toStatus:status probe:probe
+                 openingNote:@"Opens HCG Sentinel. Status is not available: Sentinel does not publish a status snapshot yet, so Nexus shows no activity and never reports it as connected."];
+        return status;
+    }
+
     if ([identifier isEqualToString:HCGIntegrationServer]) {
         status.detail = @"HCG Server's admin API is only reachable on the host Mac's loopback interface and requires its local admin token. Nexus will not store that token; a phone connection needs an HCG Connect-authorised interface that does not exist yet.";
         return status;
@@ -140,6 +155,61 @@ static NSString *const kNotConnected = @"Not connected";
         [result addObject:[self statusForIdentifier:[identifiers objectAtIndex:i] settings:settings probe:probe]];
     }
     return result;
+}
+
+@end
+
+@implementation HCGSentinelLinks
+
++ (NSArray *)sections {
+    return [NSArray arrayWithObjects:@"dashboard", @"network", @"networkCheck", @"securityLab", @"bluetooth", @"radio",
+                                     @"requests", @"capabilities", @"settings", nil];
+}
+
++ (NSURL *)URLForSection:(NSString *)section {
+    NSArray *sections = [self sections];
+    NSUInteger i;
+    for (i = 0; i < sections.count; i++) {
+        NSString *known = [sections objectAtIndex:i];
+        if ([known caseInsensitiveCompare:section] == NSOrderedSame) {
+            return [NSURL URLWithString:[NSString stringWithFormat:@"%@://open/%@", HCGSentinelURLScheme, known]];
+        }
+    }
+    return nil;
+}
+
+static BOOL HCGIsUUIDString(NSString *s) {
+    if (s.length != 36) return NO;
+    NSUInteger i;
+    for (i = 0; i < 36; i++) {
+        unichar c = [s characterAtIndex:i];
+        BOOL dash = (i == 8 || i == 13 || i == 18 || i == 23);
+        if (dash) { if (c != '-') return NO; continue; }
+        if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) return NO;
+    }
+    return YES;
+}
+
++ (NSString *)problemWithURLString:(NSString *)string {
+    NSURL *url = [NSURL URLWithString:string];
+    if (url == nil || [[url.scheme lowercaseString] isEqualToString:HCGSentinelURLScheme] == NO) return @"Not an HCG Sentinel link.";
+    if (url.query != nil || url.fragment != nil || url.user != nil || url.password != nil || url.port != nil)
+        return @"HCG Sentinel links have no query, fragment, user, password or port.";
+    NSString *host = [url.host lowercaseString];
+    NSMutableArray *parts = [NSMutableArray array];
+    NSArray *raw = [url.path componentsSeparatedByString:@"/"];
+    NSUInteger i;
+    for (i = 0; i < raw.count; i++) if ([[raw objectAtIndex:i] length] > 0) [parts addObject:[raw objectAtIndex:i]];
+    if (parts.count != 1) return @"HCG Sentinel links have exactly one path component.";
+    NSString *last = [parts objectAtIndex:0];
+    if ([host isEqualToString:@"open"]) {
+        return [self URLForSection:last] != nil ? nil
+            : [NSString stringWithFormat:@"\"%@\" is not an HCG Sentinel screen. Use one of: %@.", last, [[self sections] componentsJoinedByString:@", "]];
+    }
+    if ([host isEqualToString:@"report"]) {
+        return HCGIsUUIDString(last) ? nil : @"An HCG Sentinel report link needs the report's UUID.";
+    }
+    return @"HCG Sentinel accepts only hcgsentinel://open/<screen> and hcgsentinel://report/<uuid>. Links never start an operation.";
 }
 
 @end

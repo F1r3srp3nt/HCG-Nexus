@@ -24,6 +24,7 @@ FOUNDATION_EXPORT NSString *const HCGSettingAnimations;
 FOUNDATION_EXPORT NSString *const HCGSettingHaptics;
 FOUNDATION_EXPORT NSString *const HCGSettingTerminalVariant;
 FOUNDATION_EXPORT NSString *const HCGSettingNewsConnected;
+FOUNDATION_EXPORT NSString *const HCGSettingSentinelConnected;
 
 // Value object. All setters clamp to valid ranges.
 @interface HCGSettings : NSObject <NSCopying> {
@@ -36,6 +37,7 @@ FOUNDATION_EXPORT NSString *const HCGSettingNewsConnected;
     BOOL _hapticsEnabled;
     HCGTerminalVariant _terminalVariant;
     BOOL _newsConnected;
+    BOOL _sentinelConnected;
 }
 // Defaults to NO: HCG Nexus starts disabled after installation.
 @property (nonatomic) BOOL enabled;
@@ -47,6 +49,7 @@ FOUNDATION_EXPORT NSString *const HCGSettingNewsConnected;
 @property (nonatomic) BOOL hapticsEnabled;
 @property (nonatomic) HCGTerminalVariant terminalVariant;
 @property (nonatomic) BOOL newsConnected;
+@property (nonatomic) BOOL sentinelConnected;
 
 + (instancetype)defaultSettings;
 + (double)minimumHandleOpacity;
