@@ -1,4 +1,26 @@
-# Feature inventory — 0.2.0 (first device release candidate)
+# Feature inventory — 0.3.0~beta1 (redesign, candidate)
+
+## 0.3.0~beta1: what changed and how far it is proven
+
+Nothing below has run on a physical device. A section works in both builds unless the row says otherwise.
+
+| Feature | Tweak (jailbreak) | Standalone app | Status / evidence |
+|---|---|---|---|
+| Smoked-glass panel: opacity 0.35–1.0, blur Off / Light / Standard / Strong | yes (panel + Settings › HCG Nexus) | yes (app panel) | Clamping, readability floor without blur and the Reduce Transparency override are host-tested. Rendering is device-unverified |
+| Reduce Transparency / Reduce Motion / Increase Contrast | yes | yes | Opaque panel, no decorative motion, thicker borders. Increased-contrast screenshot from CI; device-unverified in SpringBoard |
+| Official HCG logo (header) and Nexus emblem (Overview) | bundled in `<prefix>/Library/Application Support/HCGNexus` | asset catalog | The inspector checks both files are in the package; provenance in `Resources/Branding/README.md` |
+| HCG Nexus banner | slot only | slot only | **No official banner exists.** File needed: `Resources/Branding/hcg-nexus-banner.png`, 2000×667 |
+| Section bar: Overview, Workspaces, Tools, HCG Products, Devices, Apps, Account | yes | yes | App XCTest: every section loads with labelled 44 pt targets, including at the largest text size |
+| Overview: active workspace + one-tap switch, quick actions, device facts, account/connection/product summaries | yes | yes | Device facts use public APIs (model, iOS, battery, Low Power, thermal, storage, uptime); nothing is estimated |
+| Workspaces: create / rename / reorder / delete; per-workspace shortcuts, ≤4 quick actions, pinned tools | yes | yes | Persistence and caps are host-tested |
+| Apps: favourites, search, order, add (validated), delete, add to the active workspace | yes | yes (links open; apps need the tweak) | Library persistence, duplicate guard and search are host-tested (mutation-checked) |
+| Migration to layout 2, reversible | yes | yes | Host-tested: verbatim backup, every shortcut kept, restore, declined state, idempotence |
+| Tools (appearance, diagnostics, recents, reset, turn off, HCG Repo, import, restore) | all | turn off: n/a (said so) | Availability per build is host-tested; each tool reports success or failure |
+| HCG Products: installed / not installed / unable to determine / no iPhone app; account state separate | install check via SpringBoard | "unable to determine" (sandbox) | Host-tested; Sentinel links validated with Sentinel's own rules |
+| Connected Devices (HCG Device Link) | **not in the tweak**: an explanation only | real screen (pairing, devices, reports) | No mock data anywhere |
+| Account (HCG Connect sign-in) | "Sign-in is in the standalone app" | **Not configured**: no client issued; registration request ready | Foreign-client guard, strict permission check and token-free summary are host-tested (mutation-checked); see `HCG-CONNECT-REGISTRATION.md` |
+
+## Earlier inventory (0.2.0)
 
 Every row says how far the feature has actually been proven. Nothing in this
 project has run on a physical device yet, so **no row is "verified on

@@ -14,9 +14,11 @@ Both routes share `Sources/Core` and `Sources/Panel`. They never share data:
 the app keeps its own sandboxed store, separate from the tweak's preferences
 and the preview harness.
 
-> **Status:** 0.2.0, first device release candidate. What works and how it
-> was verified: [`docs/FEATURES.md`](docs/FEATURES.md). First run on the
-> phone: [`docs/DEVICE-CHECKLIST.md`](docs/DEVICE-CHECKLIST.md).
+> **Status:** 0.3.0~beta1, the redesign. It has a smoked-glass panel and seven sections: Overview,
+> Workspaces, Tools, HCG Products, Connected Devices, Apps and Account. What works and how it was verified:
+> [`docs/FEATURES.md`](docs/FEATURES.md). Device checks: [`docs/DEVICE-CHECKLIST.md`](docs/DEVICE-CHECKLIST.md).
+> HCG login readiness: [`docs/HCG-CONNECT-REGISTRATION.md`](docs/HCG-CONNECT-REGISTRATION.md).
+> Branding provenance and the missing banner: [`Resources/Branding/README.md`](Resources/Branding/README.md).
 > * **Jailbreak package:** confirmed target **iPhone 13 Pro · iOS 16.5 ·
 >   Dopamine (rootless) · ElleKit · Sileo**. Its Xcode-built rootless package
 >   passes the strict arm64e ABI check.
