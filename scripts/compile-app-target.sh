@@ -6,7 +6,11 @@
 # arm64-apple-ios<deployment target> and links an executable against the given
 # iPhoneOS SDK. This proves the sources compile and every symbol resolves from
 # public SDK frameworks; it is NOT a substitute for an Xcode build (no asset
-# catalog, Info.plist processing, signing or simulator run).
+# catalog, Info.plist processing, signing or simulator run). The Swift side of
+# HCG Device Link (Sources/Platform/App/DeviceLink/*.swift and the vendored
+# HCGDeviceLink package) is NOT compiled here: the Objective-C screens reach it
+# only through HCGLinkTypes.h and NSClassFromString, so they compile and link on
+# their own. Only the Xcode build (CI "app" job) compiles the Swift.
 #
 #   scripts/compile-app-target.sh [SDK path ...]
 #
@@ -44,7 +48,7 @@ for SDK in "${SDKS[@]}"; do
     if "$CLANG" -target "arm64-apple-ios$DEPLOYMENT_TARGET" -isysroot "$SDK" \
         -fobjc-arc -fobjc-weak -Wall -Werror -Wno-deprecated-declarations -Wno-unknown-warning-option \
         -DHCG_STANDALONE_APP=1 \
-        -ISources/Core -ISources/Panel -ISources/Platform/App -IApp \
+        -ISources/Core -ISources/Panel -ISources/Platform/App -ISources/Platform/App/DeviceLink -IApp \
         "${SOURCES[@]}" \
         -framework Foundation -framework UIKit -framework QuartzCore -framework CoreGraphics "${EXTRA_LDFLAGS[@]}" \
         -o "$exe" 2> "$OUT/$name.log"; then

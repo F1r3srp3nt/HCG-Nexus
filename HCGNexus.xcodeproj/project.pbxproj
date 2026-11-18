@@ -3,10 +3,14 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		056FE5A114EA01184551B9ED /* HCGDeviceLink in Frameworks */ = {
+			isa = PBXBuildFile;
+			productRef = 7FE5DCB53787C133C7F8AA5C;
+		};
 		063342ED52C8803B928695BE /* HCGWorkspaceManagerViewController.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = A52C126137DBC4173B8DC9A1;
@@ -103,6 +107,10 @@
 			isa = PBXBuildFile;
 			fileRef = 5EB962FBEE34DC85BCBFA4CC;
 		};
+		AFEC655F706AE470EF7019EF /* HCGLinkTypes.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = EE7EEF54CC2BC3BBBF11736F;
+		};
 		B0F2008134CB47D792B1D6F2 /* HCGShortcutEditorViewController.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = EAAFE77D1C832D4112DE5862;
@@ -127,6 +135,10 @@
 			isa = PBXBuildFile;
 			fileRef = 38F01A3CAEADC3AA86D51E53;
 		};
+		CDE329ABF0ABF087E4711E45 /* HCGDeviceLinkService.swift in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 7D9CD0FE5DCFCBA8155BA6B7;
+		};
 		CF37F9723E4697D1402DEF09 /* HCGPanelSettingsViewController.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 549DD0C3BE1F2717DF5D0CB7;
@@ -143,6 +155,10 @@
 			isa = PBXBuildFile;
 			fileRef = 1E711720A28482846A34FA39;
 		};
+		DBFEF11E6F8113142148F715 /* HCGLinkReportViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 7A230D8035737B5788F9AE48;
+		};
 		DDFC0EECC4214499EC764E61 /* HCGRecents.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 0A3E55034877A24B87DA9271;
@@ -150,6 +166,10 @@
 		DEEAFD716FB7DB4E434394C5 /* HCGSettings.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 9F42A85466F7E2D5F20DCEE9;
+		};
+		DF42BF63CF25715B38A01C74 /* HCGConnectedDevicesViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = A647D18F83B154FEDD1D1D94;
 		};
 		F3C5FD26A46ADBAF5E0D7672 /* HCGSceneDelegate.m in Sources */ = {
 			isa = PBXBuildFile;
@@ -173,6 +193,13 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGPanelStateMachine.h;
 			path = Sources/Core/HCGPanelStateMachine.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		07FD241EBC2BB6BCBE68B970 /* HCGConnectedDevicesViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGConnectedDevicesViewController.h;
+			path = Sources/Platform/App/DeviceLink/HCGConnectedDevicesViewController.h;
 			sourceTree = SOURCE_ROOT;
 		};
 		086B95508381EB53B6ACA976 /* HCGNexusModel.m */ = {
@@ -201,6 +228,13 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGWorkspaceManagerViewController.h;
 			path = Sources/Panel/HCGWorkspaceManagerViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		0CDC47645BB142BD7B87374D /* HCGLinkTypes.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGLinkTypes.h;
+			path = Sources/Platform/App/DeviceLink/HCGLinkTypes.h;
 			sourceTree = SOURCE_ROOT;
 		};
 		0D4158BFF29972DC1A9B79C6 /* QuartzCore.framework */ = {
@@ -336,6 +370,13 @@
 			path = Sources/Panel/HCGLauncher.h;
 			sourceTree = SOURCE_ROOT;
 		};
+		4C45EFB05DC1714978C1EF7A /* HCGLinkReportViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGLinkReportViewController.h;
+			path = Sources/Platform/App/DeviceLink/HCGLinkReportViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
 		549DD0C3BE1F2717DF5D0CB7 /* HCGPanelSettingsViewController.m */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
@@ -411,6 +452,20 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGShortcutEditorViewController.h;
 			path = Sources/Panel/HCGShortcutEditorViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		7A230D8035737B5788F9AE48 /* HCGLinkReportViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGLinkReportViewController.m;
+			path = Sources/Platform/App/DeviceLink/HCGLinkReportViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		7D9CD0FE5DCFCBA8155BA6B7 /* HCGDeviceLinkService.swift */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			name = HCGDeviceLinkService.swift;
+			path = Sources/Platform/App/DeviceLink/HCGDeviceLinkService.swift;
 			sourceTree = SOURCE_ROOT;
 		};
 		7E54E52E89E1165AF0EF238A /* HCGSearch.m */ = {
@@ -511,6 +566,13 @@
 			path = Sources/Panel/HCGWorkspaceManagerViewController.m;
 			sourceTree = SOURCE_ROOT;
 		};
+		A647D18F83B154FEDD1D1D94 /* HCGConnectedDevicesViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGConnectedDevicesViewController.m;
+			path = Sources/Platform/App/DeviceLink/HCGConnectedDevicesViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
 		ADD859C76040FA4DD8D760B7 /* HCGDiagnostics.h */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
@@ -544,6 +606,13 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGAction.h;
 			path = Sources/Core/HCGAction.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		C450CF0F26B6A01B5BA1EF78 /* HCGNexus-Bridging-Header.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = "HCGNexus-Bridging-Header.h";
+			path = "Sources/Platform/App/DeviceLink/HCGNexus-Bridging-Header.h";
 			sourceTree = SOURCE_ROOT;
 		};
 		C5563B2D91BAF29557D8468C /* Assets.xcassets */ = {
@@ -616,6 +685,13 @@
 			path = HCGNexusTests.xctest;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		EE7EEF54CC2BC3BBBF11736F /* HCGLinkTypes.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGLinkTypes.m;
+			path = Sources/Platform/App/DeviceLink/HCGLinkTypes.m;
+			sourceTree = SOURCE_ROOT;
+		};
 		EE890FCF88C9248E51E7F8A2 /* HCGSystemInfo.h */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
@@ -683,6 +759,7 @@
 				8F3A0B6580A55AD425BF84C9,
 				ADB48BCB471BAFC9B8A1766B,
 				8F5A852019BDB6237D2D4C10,
+				056FE5A114EA01184551B9ED,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -711,6 +788,7 @@
 			children = (
 				F71BFE7FD4E97510EBC34197,
 				DF9C83BBE76AF761A4BFCBA0,
+				816A619FC604A34D7AB4CCF5,
 			);
 			name = "Platform (App)";
 			sourceTree = "<group>";
@@ -811,6 +889,21 @@
 			);
 			sourceTree = "<group>";
 		};
+		816A619FC604A34D7AB4CCF5 /* Device Link (App) */ = {
+			isa = PBXGroup;
+			children = (
+				07FD241EBC2BB6BCBE68B970,
+				A647D18F83B154FEDD1D1D94,
+				7D9CD0FE5DCFCBA8155BA6B7,
+				4C45EFB05DC1714978C1EF7A,
+				7A230D8035737B5788F9AE48,
+				0CDC47645BB142BD7B87374D,
+				EE7EEF54CC2BC3BBBF11736F,
+				C450CF0F26B6A01B5BA1EF78,
+			);
+			name = "Device Link (App)";
+			sourceTree = "<group>";
+		};
 		A33FEC12CE857A065B24788A /* App */ = {
 			isa = PBXGroup;
 			children = (
@@ -854,6 +947,9 @@
 			dependencies = (
 			);
 			name = HCGNexus;
+			packageProductDependencies = (
+				7FE5DCB53787C133C7F8AA5C,
+			);
 			productName = HCGNexus;
 			productReference = 83C5CBAE4AEEAF8586F9BF0B;
 			productType = "com.apple.product-type.application";
@@ -895,7 +991,7 @@
 				};
 			};
 			buildConfigurationList = BD217B8183C2B127BD6EC483;
-			compatibilityVersion = "Xcode 14.0";
+			compatibilityVersion = "Xcode 15.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -903,6 +999,9 @@
 				Base,
 			);
 			mainGroup = 5C26A49B47E5F07808F45C7E;
+			packageReferences = (
+				CABD50FF0EA6C114B1DB15B5,
+			);
 			productRefGroup = 51B93CCB1FB5ECF302C017B3;
 			projectDirPath = "";
 			projectRoot = "";
@@ -967,6 +1066,10 @@
 				C3885B071F2BFD14A8E504E0,
 				063342ED52C8803B928695BE,
 				C6E9C37FB51D92106C6BEB67,
+				DF42BF63CF25715B38A01C74,
+				DBFEF11E6F8113142148F715,
+				AFEC655F706AE470EF7019EF,
+				CDE329ABF0ABF087E4711E45,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1035,11 +1138,14 @@
 					"$(SRCROOT)/Sources/Core",
 					"$(SRCROOT)/Sources/Panel",
 					"$(SRCROOT)/Sources/Platform/App",
+					"$(SRCROOT)/Sources/Platform/App/DeviceLink",
 					"$(SRCROOT)/App",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
@@ -1086,10 +1192,13 @@
 					"$(SRCROOT)/Sources/Core",
 					"$(SRCROOT)/Sources/Panel",
 					"$(SRCROOT)/Sources/Platform/App",
+					"$(SRCROOT)/Sources/Platform/App/DeviceLink",
 					"$(SRCROOT)/App",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -1116,6 +1225,9 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "Sources/Platform/App/DeviceLink/HCGNexus-Bridging-Header.h";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "HCGNexus-Swift.h";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -1142,6 +1254,9 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_OBJC_BRIDGING_HEADER = "Sources/Platform/App/DeviceLink/HCGNexus-Bridging-Header.h";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "HCGNexus-Swift.h";
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -1213,6 +1328,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		CABD50FF0EA6C114B1DB15B5 /* XCLocalSwiftPackageReference "HCGDeviceLink" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = HCGDeviceLink;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7FE5DCB53787C133C7F8AA5C /* HCGDeviceLink */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CABD50FF0EA6C114B1DB15B5;
+			productName = HCGDeviceLink;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = EF6EC78549424C6E1163F9D8 /* Project object */;
 }
