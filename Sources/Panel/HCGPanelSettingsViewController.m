@@ -42,7 +42,7 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         return @[ @(HCGSettingsSectionAppMode), @(HCGSettingsSectionConnectedDevices), @(HCGSettingsSectionGlass), @(HCGSettingsSectionIntegrations),
                   @(HCGSettingsSectionWorkspaces), @(HCGSettingsSectionAbout), @(HCGSettingsSectionDiagnostics) ];
     }
-    return @[ @(HCGSettingsSectionGeneral), @(HCGSettingsSectionGlass), @(HCGSettingsSectionHandle), @(HCGSettingsSectionMotion), @(HCGSettingsSectionIntegrations),
+    return @[ @(HCGSettingsSectionGeneral), @(HCGSettingsSectionGlass), @(HCGSettingsSectionHaloBorder), @(HCGSettingsSectionHandle), @(HCGSettingsSectionMotion), @(HCGSettingsSectionIntegrations),
               @(HCGSettingsSectionWorkspaces), @(HCGSettingsSectionMaintenance), @(HCGSettingsSectionAbout), @(HCGSettingsSectionDiagnostics) ];
 }
 
@@ -174,6 +174,23 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
     [self save:^(HCGSettings *s) { s.terminalVariant = (HCGTerminalVariant)control.selectedSegmentIndex; }];
 }
 
+- (void)haloBorderChanged:(UISwitch *)control {
+    BOOL wanted = control.isOn;
+    NSString *error = nil;
+    BOOL ok = self.context.setHaloBorderEnabled && self.context.setHaloBorderEnabled(wanted, &error);
+    if (!ok) {
+        [control setOn:!wanted animated:YES];
+        [self.context feedback:error ?: @"HCG Halo border can't be switched here." success:NO];
+        return;
+    }
+    [self.context feedback:wanted ? @"Asked HCG Halo to light this panel." : @"HCG Halo panel border turned off." success:YES];
+    // HCG Halo applies the change and rewrites its status; show the result once it has.
+    __weak typeof(self) weakSelf = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [weakSelf.tableView reloadData];
+    });
+}
+
 - (void)newsChanged:(UISwitch *)control {
     [self save:^(HCGSettings *s) { s.newsConnected = control.on; }];
 }
@@ -220,6 +237,7 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         case HCGSettingsSectionHandle: return @"Edge handle";
         case HCGSettingsSectionMotion: return @"Motion & feedback";
         case HCGSettingsSectionGlass: return @"Panel glass";
+        case HCGSettingsSectionHaloBorder: return @"HCG Halo border";
         case HCGSettingsSectionIntegrations: return @"HCG integrations";
         case HCGSettingsSectionWorkspaces: return @"Workspaces";
         case HCGSettingsSectionMaintenance: return @"Maintenance";
@@ -242,6 +260,8 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         case HCGSettingsSectionGlass:
             if ([HCGTheme reduceTransparency]) return @"Reduce Transparency is on in iOS Accessibility settings, so the panel is opaque and unblurred.";
             return @"Lower opacity shows more of what is behind the panel. With blur off, Nexus keeps at least 60% opacity so text stays readable.";
+        case HCGSettingsSectionHaloBorder:
+            return @"HCG Halo, a separate package, draws an animated border around this panel; Nexus provides the panel's shape and open/close events. This switch asks HCG Halo to light the panel only: it never turns on HCG Halo's screen-edge light. Colours and effects are in Settings › HCG Halo. Without HCG Halo, Nexus keeps its own outline.";
         case HCGSettingsSectionIntegrations:
             if (self.context.isStandaloneApp) {
                 return @"In the standalone app, HCG integrations show their status only: opening another app by bundle identifier needs the jailbreak package. HCG Connect and ERP remain the authority for signed-in ecosystem access. Only Connected Devices signs in to HCG Connect, and keeps that sign-in in this app's Keychain.";
@@ -280,6 +300,7 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
         case HCGSettingsSectionHandle: return 4;
         case HCGSettingsSectionMotion: return 2;
         case HCGSettingsSectionGlass: return 2;
+        case HCGSettingsSectionHaloBorder: return 2;
         case HCGSettingsSectionIntegrations: return self.context.isStandaloneApp ? (NSInteger)[self standaloneIntegrationIdentifiers].count : 3;
         case HCGSettingsSectionWorkspaces: return 2;
         case HCGSettingsSectionMaintenance: return 1;
@@ -365,6 +386,27 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
             UISegmentedControl *blur = [self segmentsWithItems:@[ @"Off", @"Light", @"Standard", @"Strong" ] selected:s.panelBlur action:@selector(panelBlurChanged:) label:@"Panel blur"];
             blur.enabled = ![HCGTheme reduceTransparency];
             return [self controlCell:@"Blur" control:blur stacked:YES];
+        }
+        case HCGSettingsSectionHaloBorder: {
+            HCGHaloBorderStatus *halo = self.context.haloBorderStatus ? self.context.haloBorderStatus() : nil;
+            if (indexPath.row == 0) {
+                UISwitch *toggle = [self switchOn:halo.switchOn action:@selector(haloBorderChanged:) label:@"Use HCG Halo border"];
+                toggle.enabled = halo.canSwitch;
+                return [self controlCell:@"Use HCG Halo border" control:toggle stacked:NO];
+            }
+            UITableViewCell *cell = [self styledCellWithStyle:UITableViewCellStyleSubtitle identifier:@"halostatus"];
+            cell.selectionStyle = UITableViewCellSelectionStyleNone;
+            if (!halo) {
+                cell.textLabel.text = @"Status: Not available here";
+                cell.detailTextLabel.text = @"HCG Halo works with the HCG Nexus jailbreak package only.";
+                return cell;
+            }
+            cell.textLabel.text = [@"Status: " stringByAppendingString:[HCGHaloBorderStatus titleForState:halo.state]];
+            cell.detailTextLabel.text = halo.switchNote.length && !halo.canSwitch
+                ? [NSString stringWithFormat:@"%@ %@", halo.detail, halo.switchNote] : halo.detail;
+            cell.imageView.image = [HCGTheme symbolNamed:halo.state == HCGHaloBorderStateActive ? @"sparkles" : @"square.dashed" pointSize:17];
+            cell.imageView.tintColor = halo.state == HCGHaloBorderStateActive ? [HCGTheme cyan] : [HCGTheme secondaryText];
+            return cell;
         }
         case HCGSettingsSectionMotion:
             if (indexPath.row == 0) return [self controlCell:@"Animations" control:[self switchOn:s.animationsEnabled action:@selector(animationsChanged:) label:@"Animations"] stacked:NO];

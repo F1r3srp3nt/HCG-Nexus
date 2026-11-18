@@ -1,8 +1,8 @@
-# Device checklist — HCG Nexus 0.3.1~beta1 (with HCG Halo 0.2.0~beta1) via HCG Repo Candidate
+# Device checklist — HCG Nexus 0.3.2~beta1 (with HCG Halo 0.2.1~beta1) via HCG Repo Candidate
 
 **Setup (owner-confirmed):** iPhone 13 Pro (`iPhone14,2`), iOS 16.5, Dopamine (rootless), ElleKit, Zebra.
-**Package:** `com.hakmicapitalgroup.hcgnexus_0.3.1~beta1_iphoneos-arm64.deb`. Its SHA-256 is recorded in
-`VALIDATION.md` (0.3.1~beta1). It is a free public demo in `https://repo.hakmicapitalgroup.com/repo/candidate/`.
+**Package:** `com.hakmicapitalgroup.hcgnexus_0.3.2~beta1_iphoneos-arm64.deb`. Its SHA-256 is recorded in
+`VALIDATION.md` (0.3.2~beta1). It is a free public demo in `https://repo.hakmicapitalgroup.com/repo/candidate/`.
 **Status: not yet device-tested.** The simulator screenshots show the standalone app, not SpringBoard.
 The 0.2.1~beta1 checklist is in git history (`claude/nexus-0.2.1-beta1`).
 
@@ -28,6 +28,12 @@ Apps. Tools › Restore Previous Layout undoes that.
 | 14 | With **HCG Halo 0.2.0~beta1** installed (either order, one respring): Settings › HCG Nexus › Appearance › **Halo border** | Opens HCG Halo's *Nexus Panel Border* page: *HCG Nexus 0.3.1~beta1 · compatible*; the preview shows the panel outline |
 | 15 | HCG Halo › Border Target **HCG Nexus Panel**, Enable HCG Halo on; open, drag-cancel and close the panel; switch workspace; open Command Mode | Light trace on open, border follows the panel, fades with it on close and while Command Mode is shown; one soft pulse on workspace change; no orphaned border; all panel controls respond |
 | 16 | Turn HCG Halo off with the panel open; then remove HCG Halo and respring | Border gone at once; Nexus looks and works as usual; Appearance › Halo border explains HCG Halo is not installed |
+| 17 | 0.3.2: Settings › HCG Nexus › Appearance with HCG Halo **0.2.1~beta1**, HCG Halo off | *Use HCG Halo border* off, Status **Disabled**. Turn it on: Status **Ready**; HCG Halo › Border Target becomes *HCG Nexus Panel*; the screen edge stays dark |
+| 18 | Open the panel; in the panel's Settings › *HCG Halo border* | Border drawn around the panel; Status **Active**. Close the panel: border gone; Settings › HCG Nexus shows **Ready** |
+| 19 | HCG Halo screen edge on (Target *Screen Edge*), then turn *Use HCG Halo border* on and off | On: Target *Both*, screen edge unchanged. Off: Target back to *Screen Edge*, screen edge unchanged |
+| 20 | Remove HCG Halo (respring); then install HCG Halo 0.2.0~beta1 only | Status **Not installed**, switch disabled, panel keeps Nexus's outline. With 0.2.0: switch disabled with "switched in HCG Halo › Border Target" |
+| 21 | HCG Products › HCG Terminal (and Unleashed, if installed) | Installed shows the real version (e.g. *Installed · 0.1.0*); Launch *Available*; Integration names the version and says it has no handoff yet; Session *Not shared*. *Open HCG Terminal* opens it; the toast says *Opened*, never *Connected*. Command Mode shows *Launch available* |
+| 22 | Only with an HCG Terminal build that has the Nexus handoff: Copy Link for HCG Nexus on a saved connection; HCG Products › *Open Saved Connection…*, paste | HCG Terminal opens that connection's screen and waits for you to tap Connect; no session starts and nothing runs by itself. A link with any extra parameter is refused in Nexus |
 
 Report back with: a pass or fail for each row, the pasted diagnostics report, and screenshots of rows 2, 3, 4 and 10.
 

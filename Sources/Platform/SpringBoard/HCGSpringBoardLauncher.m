@@ -9,6 +9,13 @@
 - (BOOL)openApplicationWithBundleID:(NSString *)bundleIdentifier;
 @end
 
+// Installed-app details (private LaunchServices API, verified at runtime).
+@interface NSObject (HCGLSApplicationProxy)
++ (id)applicationProxyForIdentifier:(NSString *)identifier;
+- (NSString *)shortVersionString;
+- (NSURL *)bundleURL;
+@end
+
 // SpringBoard's own launcher (private UIApplication API inside SpringBoard),
 // used only as a verified fallback when LaunchServices refuses.
 @interface UIApplication (HCGSpringBoardLaunch)
@@ -108,6 +115,48 @@
                                                     @"Install the app that handles this link, or edit the shortcut to use an https:// address."));
         });
     }];
+}
+
+#pragma mark HCG Terminal
+
+- (HCGTerminalAppFacts *)terminalFactsForVariant:(HCGTerminalVariant)variant {
+    HCGTerminalAppFacts *facts = [[HCGTerminalAppFacts alloc] init];
+    facts.variant = variant;
+    facts.canLaunchByBundle = _canOpenApps;
+    NSString *bundle = [HCGTerminalHandoff bundleIdentifierForVariant:variant];
+    if (!_canCheckInstalled || !bundle.length) return facts; // installedKnown stays NO
+    facts.installedKnown = YES;
+    facts.installed = [_workspace applicationIsInstalled:bundle];
+    if (!facts.installed) return facts;
+
+    Class proxyClass = NSClassFromString(@"LSApplicationProxy");
+    id proxy = [proxyClass respondsToSelector:@selector(applicationProxyForIdentifier:)] ? [proxyClass applicationProxyForIdentifier:bundle] : nil;
+    if ([proxy respondsToSelector:@selector(shortVersionString)]) {
+        id version = [proxy shortVersionString];
+        if ([version isKindOfClass:[NSString class]] && [version length]) facts.version = version;
+    }
+    NSURL *bundleURL = [proxy respondsToSelector:@selector(bundleURL)] ? [proxy bundleURL] : nil;
+    NSDictionary *info = [bundleURL isKindOfClass:[NSURL class]]
+        ? [NSDictionary dictionaryWithContentsOfURL:[bundleURL URLByAppendingPathComponent:@"Info.plist"]] : nil;
+    if ([info isKindOfClass:[NSDictionary class]]) {
+        if (!facts.version) {
+            id v = info[@"CFBundleShortVersionString"];
+            if ([v isKindOfClass:[NSString class]]) facts.version = v;
+        }
+        NSMutableArray *schemes = [NSMutableArray array];
+        id types = info[@"CFBundleURLTypes"];
+        for (id type in [types isKindOfClass:[NSArray class]] ? types : @[]) {
+            id list = [type isKindOfClass:[NSDictionary class]] ? type[@"CFBundleURLSchemes"] : nil;
+            for (id scheme in [list isKindOfClass:[NSArray class]] ? list : @[]) {
+                if ([scheme isKindOfClass:[NSString class]]) [schemes addObject:scheme];
+            }
+        }
+        facts.urlSchemes = schemes;
+        id handoff = info[HCGTerminalHandoffInfoKey];
+        if ([handoff isKindOfClass:[NSNumber class]]) facts.handoffVersion = [handoff integerValue];
+    }
+    facts.canOpenScheme = facts.handoffVersion > 0;
+    return facts;
 }
 
 @end

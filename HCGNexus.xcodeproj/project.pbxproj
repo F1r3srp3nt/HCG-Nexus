@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0192CCF29037F66E3B28B4F3 /* HCGTerminalHandoff.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = E29FAFF8DE9AF819E42695AF;
+		};
 		056FE5A114EA01184551B9ED /* HCGDeviceLink in Frameworks */ = {
 			isa = PBXBuildFile;
 			productRef = 7FE5DCB53787C133C7F8AA5C;
@@ -102,6 +106,10 @@
 		6EAE21116EFFC4F9AF2E3DD2 /* HCGNexusModel.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 086B95508381EB53B6ACA976;
+		};
+		6FADC1E9D5B4B52471645511 /* HCGHaloBorderLink.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 53327C653E6F3C12FD0ADA4B;
 		};
 		6FB811E50C5164543FAB9D80 /* HCGConstants.m in Sources */ = {
 			isa = PBXBuildFile;
@@ -511,6 +519,13 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGLinkReportViewController.h;
 			path = Sources/Platform/App/DeviceLink/HCGLinkReportViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		53327C653E6F3C12FD0ADA4B /* HCGHaloBorderLink.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGHaloBorderLink.m;
+			path = Sources/Core/HCGHaloBorderLink.m;
 			sourceTree = SOURCE_ROOT;
 		};
 		549DD0C3BE1F2717DF5D0CB7 /* HCGPanelSettingsViewController.m */ = {
@@ -961,6 +976,13 @@
 			path = Sources/Core/HCGPanelStateMachine.m;
 			sourceTree = SOURCE_ROOT;
 		};
+		CA6127718A2AB7651B90A427 /* HCGHaloBorderLink.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGHaloBorderLink.h;
+			path = Sources/Core/HCGHaloBorderLink.h;
+			sourceTree = SOURCE_ROOT;
+		};
 		CC04B3A72DFF9B7A7886F0AE /* HCGPanelTableViewController.h */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
@@ -989,6 +1011,13 @@
 			path = Sources/Panel/HCGWorkspaceDetailViewController.h;
 			sourceTree = SOURCE_ROOT;
 		};
+		D4EBFCC7FA742DD8967B7CA0 /* HCGTerminalHandoff.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGTerminalHandoff.h;
+			path = Sources/Core/HCGTerminalHandoff.h;
+			sourceTree = SOURCE_ROOT;
+		};
 		DF9C83BBE76AF761A4BFCBA0 /* HCGAppPlatform.m */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
@@ -1001,6 +1030,13 @@
 			lastKnownFileType = sourcecode.c.objc;
 			name = HCGDeviceStatusMonitor.m;
 			path = Sources/Panel/HCGDeviceStatusMonitor.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		E29FAFF8DE9AF819E42695AF /* HCGTerminalHandoff.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGTerminalHandoff.m;
+			path = Sources/Core/HCGTerminalHandoff.m;
 			sourceTree = SOURCE_ROOT;
 		};
 		E8D6DF94996D9EEBA9F617A5 /* HCGAppAccountProvider.h */ = {
@@ -1217,6 +1253,8 @@
 				67EE213C3F1743224FE903E3,
 				F90D1722EE8140719805CF13,
 				38F01A3CAEADC3AA86D51E53,
+				CA6127718A2AB7651B90A427,
+				53327C653E6F3C12FD0ADA4B,
 				A1811C38D20847BCBEE8F357,
 				9042FE5571141CAA0349E2F9,
 				6052C318C84108030BA0827D,
@@ -1237,6 +1275,8 @@
 				7E54E52E89E1165AF0EF238A,
 				FEEF4F3A1BAA702DCD372EF9,
 				9F42A85466F7E2D5F20DCEE9,
+				D4EBFCC7FA742DD8967B7CA0,
+				E29FAFF8DE9AF819E42695AF,
 				664EE36A0DC4025BD8116780,
 				3EA66240A171612E980737CF,
 				3CDF01D2A25E4EE40B827538,
@@ -1430,6 +1470,7 @@
 				6FB811E50C5164543FAB9D80,
 				703A2FCF13F45E4489E73A20,
 				C9382163EAAE1B7DF654F3F1,
+				6FADC1E9D5B4B52471645511,
 				AB9E6DC7C31FED85F6932247,
 				D267E31B775E4DAB97984534,
 				0817F77CEED62D43A2231F20,
@@ -1440,6 +1481,7 @@
 				DDFC0EECC4214499EC764E61,
 				4264A2B8F7C5F1F160B56169,
 				DEEAFD716FB7DB4E434394C5,
+				0192CCF29037F66E3B28B4F3,
 				7155FA6EFCC85A2F92C0EAD5,
 				B42A7AF819B521C15C7A2334,
 				5C803444F8AB813ACD73B0E4,
@@ -1612,7 +1654,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = App/Info.plist;
@@ -1621,7 +1663,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.1;
+				MARKETING_VERSION = 0.3.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1641,7 +1683,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = App/Info.plist;
@@ -1650,7 +1692,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.3.1;
+				MARKETING_VERSION = 0.3.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1669,11 +1711,11 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.3.1;
+				MARKETING_VERSION = 0.3.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1687,11 +1729,11 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.3.1;
+				MARKETING_VERSION = 0.3.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

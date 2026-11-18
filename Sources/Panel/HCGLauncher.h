@@ -1,5 +1,6 @@
 #import <Foundation/Foundation.h>
 #import "HCGIntegrations.h"
+#import "HCGTerminalHandoff.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -24,6 +25,10 @@ typedef void (^HCGLaunchCompletion)(NSError *_Nullable error);
 // Completion is always delivered on the main queue.
 - (void)openApplicationWithBundleIdentifier:(NSString *)bundleIdentifier completion:(HCGLaunchCompletion)completion;
 - (void)openURL:(NSURL *)url completion:(HCGLaunchCompletion)completion;
+@optional
+// What this host can read about an installed HCG Terminal variant: installation, version, declared URL
+// schemes and HCGNexusHandoff (SpringBoard), or only whether its link opens (sandboxed app).
+- (HCGTerminalAppFacts *)terminalFactsForVariant:(HCGTerminalVariant)variant;
 @end
 
 // Broadcasts persisted changes to other processes (Darwin notifications on

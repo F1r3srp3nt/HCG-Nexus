@@ -269,10 +269,14 @@ static HCGStatusDisplay *HCGMakeDisplay(NSString *title, NSString *value, NSStri
                                 detail = @"Reachable and signed in.";
                                 break;
                             case HCGIntegrationSessionNotApplicable:
-                                state = HCGConnectionDisplayStateConnected;
-                                detail = status.reachability == HCGIntegrationReachabilityNotApplicable
-                                    ? @"Nexus can open the app. No session or sync status is visible to Nexus."
-                                    : @"Reachable. No sign-in is needed.";
+                                if (status.reachability == HCGIntegrationReachabilityNotApplicable) {
+                                    // An app link: Nexus can open the app, nothing more is known.
+                                    state = HCGConnectionDisplayStateLaunchAvailable;
+                                    detail = @"Nexus can open the app. No session or sync status is visible to Nexus.";
+                                } else {
+                                    state = HCGConnectionDisplayStateConnected;
+                                    detail = @"Reachable. No sign-in is needed.";
+                                }
                                 break;
                             default:
                                 detail = @"Turned on; sign-in state was not reported.";
@@ -315,6 +319,7 @@ static HCGStatusDisplay *HCGMakeDisplay(NSString *title, NSString *value, NSStri
         case HCGConnectionDisplayStateDisconnected: return @"Disconnected";
         case HCGConnectionDisplayStateSignedOut: return @"Signed out";
         case HCGConnectionDisplayStateConnected: return @"Connected";
+        case HCGConnectionDisplayStateLaunchAvailable: return @"Launch available";
         default: return kUnknown;
     }
 }
@@ -337,6 +342,7 @@ static HCGStatusDisplay *HCGMakeDisplay(NSString *title, NSString *value, NSStri
         case HCGConnectionDisplayStateDisconnected: return @"exclamationmark.triangle";
         case HCGConnectionDisplayStateSignedOut: return @"person.crop.circle.badge.exclamationmark";
         case HCGConnectionDisplayStateConnected: return @"checkmark.circle";
+        case HCGConnectionDisplayStateLaunchAvailable: return @"arrow.up.forward.app";
         default: return @"questionmark.circle";
     }
 }

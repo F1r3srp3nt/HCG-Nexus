@@ -270,7 +270,7 @@ static void HCGWriteStoppedStatus(NSString *reason, NSString *startedBy) {
     if (!self.overlay) return @{ @"overlay" : self.enabled ? @"not created yet" : @"not created (disabled)" };
     NSMutableDictionary *overlay = [NSMutableDictionary dictionary];
     NSDictionary *diag = [self.overlay diagnostics];
-    for (NSString *key in @[ @"availability", @"deviceLocked", @"coverSheetVisible", @"screenBlanked", @"panelState", @"visible", @"installCount", @"overlayWindows", @"gestureRecognizers", @"opens", @"closes", @"forcedCloses" ]) {
+    for (NSString *key in @[ @"availability", @"deviceLocked", @"coverSheetVisible", @"screenBlanked", @"panelState", @"visible", @"installCount", @"overlayWindows", @"gestureRecognizers", @"opens", @"closes", @"forcedCloses", @"haloBorderAttached" ]) {
         if (diag[key]) overlay[key] = [diag[key] description];
     }
     [overlay addEntriesFromDictionary:[self.environment windowDiagnostics]];

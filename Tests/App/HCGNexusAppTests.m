@@ -128,8 +128,10 @@ static void HCGCollectAccessibilityLabels(UIView *view, NSMutableArray<NSString 
 - (void)testStandaloneSettingsHideOverlayControls {
     NSArray<NSNumber *> *app = HCGSettingsSectionsForMode(HCGPanelModeStandaloneApp);
     NSArray<NSNumber *> *overlay = HCGSettingsSectionsForMode(HCGPanelModeOverlay);
-    // Enable switch, edge handle and motion (overlay transitions) belong to the overlay.
-    for (NSNumber *overlayOnly in @[ @(HCGSettingsSectionGeneral), @(HCGSettingsSectionHandle), @(HCGSettingsSectionMotion) ]) {
+    // Enable switch, edge handle, motion (overlay transitions) and "Use HCG Halo border" (HCG Halo is a jailbreak
+    // package) belong to the overlay.
+    for (NSNumber *overlayOnly in @[ @(HCGSettingsSectionGeneral), @(HCGSettingsSectionHandle), @(HCGSettingsSectionMotion),
+                                     @(HCGSettingsSectionHaloBorder) ]) {
         XCTAssertFalse([app containsObject:overlayOnly], @"section %@ must not appear in the standalone app", overlayOnly);
         XCTAssertTrue([overlay containsObject:overlayOnly]);
     }

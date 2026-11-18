@@ -76,6 +76,17 @@
     return [self.simulatedInstalledApps containsObject:bundleIdentifier];
 }
 
+// SIMULATED: today's HCG Terminal 0.1.0 (no Nexus handoff) when the harness lists it as installed.
+- (HCGTerminalAppFacts *)terminalFactsForVariant:(HCGTerminalVariant)variant {
+    HCGTerminalAppFacts *facts = [[HCGTerminalAppFacts alloc] init];
+    facts.variant = variant;
+    facts.installedKnown = YES;
+    facts.installed = [self isApplicationInstalled:[HCGTerminalHandoff bundleIdentifierForVariant:variant]];
+    facts.version = facts.installed ? @"0.1.0 (simulated)" : nil;
+    facts.canLaunchByBundle = YES;
+    return facts;
+}
+
 - (void)openApplicationWithBundleIdentifier:(NSString *)bundleIdentifier completion:(HCGLaunchCompletion)completion {
     [_log addObject:[@"app:" stringByAppendingString:bundleIdentifier]];
     dispatch_async(dispatch_get_main_queue(), ^{ completion(nil); });

@@ -32,7 +32,7 @@ APP = "HCGNexus"
 TESTS = "HCGNexusTests"
 BUNDLE_ID = "com.hakmicapitalgroup.hcgnexus.app"
 DEPLOYMENT_TARGET = "14.0"
-MARKETING_VERSION = "0.3.1"
+MARKETING_VERSION = "0.3.2"
 
 # Directories whose sources form the app target, and files deliberately left out.
 # HCG Connect token verification (Nexus-owned Swift package, compiled straight into the app; its
@@ -48,6 +48,8 @@ APP_EXCLUDED_FILES = {
     "Sources/Panel/HCGEdgeHandleView.h",
     "Sources/Panel/HCGNexusBorderInterface.m",   # border interface for HCG Halo: overlay only
     "Sources/Panel/HCGNexusBorderInterface.h",
+    "Sources/Panel/HCGHaloBridge.m",             # HCG Halo switch/status: jailbreak package only
+    "Sources/Panel/HCGHaloBridge.h",
 }
 FORBIDDEN_PREFIXES = ("Sources/Platform/SpringBoard", "Sources/Platform/Preview", "Tweak", "Prefs", "PreviewHarness")
 TEST_SOURCE_DIRS = ["Tests/App"]
@@ -272,7 +274,7 @@ def build():
         "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
         "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "AccentColor",
         "CODE_SIGN_STYLE": "Automatic",
-        "CURRENT_PROJECT_VERSION": "4",
+        "CURRENT_PROJECT_VERSION": "5",
         "DEVELOPMENT_TEAM": "",
         "GENERATE_INFOPLIST_FILE": "NO",
         "INFOPLIST_FILE": "App/Info.plist",
@@ -293,7 +295,7 @@ def build():
     test_settings = {
         "BUNDLE_LOADER": "$(TEST_HOST)",
         "CODE_SIGN_STYLE": "Automatic",
-        "CURRENT_PROJECT_VERSION": "4",
+        "CURRENT_PROJECT_VERSION": "5",
         "DEVELOPMENT_TEAM": "",
         "GENERATE_INFOPLIST_FILE": "YES",
         "IPHONEOS_DEPLOYMENT_TARGET": DEPLOYMENT_TARGET,

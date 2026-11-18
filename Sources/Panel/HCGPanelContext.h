@@ -1,4 +1,5 @@
 #import <UIKit/UIKit.h>
+#import "HCGHaloBorderLink.h"
 #import "HCGNexusModel.h"
 #import "HCGActionRunner.h"
 
@@ -55,6 +56,13 @@ FOUNDATION_EXPORT NSString *HCGPanelModeName(HCGPanelMode mode);
 // on the rotated overlay canvas). When nil, the home screen presents it full
 // screen itself (standalone app).
 @property (nonatomic, copy, nullable) void (^presentCommandMode)(void);
+// SpringBoard overlay only: YES while a decoration (HCG Halo's border) is attached to the panel's border
+// host. Nexus's own observation, used for the "Active" state; nil elsewhere.
+@property (nonatomic, copy, nullable) BOOL (^borderDecorationAttached)(void);
+// "Use HCG Halo border" (jailbreak package only; nil in the standalone app): current status, and a switch
+// that asks HCG Halo's own API to turn its panel border on or off.
+@property (nonatomic, copy, nullable) HCGHaloBorderStatus *_Nonnull (^haloBorderStatus)(void);
+@property (nonatomic, copy, nullable) BOOL (^setHaloBorderEnabled)(BOOL enabled, NSString *_Nullable *_Nullable error);
 @property (nonatomic, readonly) BOOL insideOverlay;                  // closePanel != nil
 // YES only where the system-wide edge handle and overlay actually exist
 // (SpringBoard overlay, Settings bundle, preview simulation). NO in the

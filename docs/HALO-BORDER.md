@@ -1,4 +1,4 @@
-# HCG Halo border integration (HCG Nexus 0.3.1~beta1, interface 1, schema 1)
+# HCG Halo border integration (HCG Nexus 0.3.2~beta1, interface 1, schema 1, switch contract 1)
 
 > **Version note.** HCG Nexus **0.3.1~beta1** is the combined release: the 0.3.0~beta1 redesign line, plus Command
 > Mode, plus this border interface. It replaces both earlier candidates:
@@ -112,6 +112,32 @@ and returns when Command Mode closes. The panel stays *open* throughout, so no e
 Because Halo's view lives inside the border host, it inherits the panel's real position, slide transform,
 alpha, rotation and resizing at no cost. It disappears with the panel and cannot be orphaned. The events
 add the opening trace, the close behaviour and the workspace pulse, and keep the glow sized correctly.
+
+## Use HCG Halo border (0.3.2~beta1)
+
+The switch sits in Settings › HCG Nexus › Appearance and in the panel's own Settings (*HCG Halo border*).
+Nexus never writes HCG Halo's settings and contains none of its rendering code:
+
+- **Switching:** Nexus calls HCG Halo's `HaloNexusControl` (`+setNexusBorderEnabled:error:`, contract
+  `HCGHaloNexusControl` = 1 in `HCGHaloPrefs.bundle`'s Info.plist; HCG Halo 0.2.1~beta1 or later).
+  - HCG Halo decides how its own settings change, and never turns its screen-edge light on: HCG Halo off → panel
+    only; screen edge on → both; off → panel removed, screen edge untouched.
+  - It is refused while HCG Halo's kill switch or launch guard is active.
+  - With HCG Halo 0.2.0~beta1, which has no switch, Nexus shows the state and points to HCG Halo › Border Target.
+- **States** (`HCGHaloBorderStatus`, host-tested):
+
+| State | When |
+|---|---|
+| Not installed | no HCG Halo Settings bundle or dylib |
+| Incompatible | HCG Halo without the Nexus border (0.1.x); Nexus's `HaloBorder.plist` missing or for another version (respring after updating); HCG Halo reports it cannot attach (`nexusState` = unavailable, with its reason); HCG Halo reports an unsupported iOS |
+| Disabled | HCG Halo's panel border is off (master off or target *Screen Edge*), or HCG Halo is stopped (kill switch, launch guard, fault) |
+| Ready | the panel border is on in HCG Halo; it is drawn while the panel is open |
+| Active | Nexus itself sees a view attached to the open panel's border host (HCG Halo is drawing) |
+
+- **Active comes from Nexus, not from a guess.** In the panel it is measured live. Settings › HCG Nexus reads it
+  from the report SpringBoard writes (`haloBorderAttached`, `panelState`), so it shows *Ready* while the panel is
+  closed.
+- **Without HCG Halo**, Nexus keeps its own outline. The border host is non-interactive and empty.
 
 ## Settings entry
 

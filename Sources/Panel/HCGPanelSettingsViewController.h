@@ -26,6 +26,7 @@ typedef NS_ENUM(NSInteger, HCGSettingsSection) {
     HCGSettingsSectionAbout,        // HCG Repo product page (opens in Safari)
     HCGSettingsSectionConnectedDevices, // standalone app only: HCG Device Link (Connected Devices screen)
     HCGSettingsSectionGlass,        // panel opacity and blur (appended: raw values above are stable identifiers)
+    HCGSettingsSectionHaloBorder,   // "Use HCG Halo border" (jailbreak package; not in the standalone app)
 };
 
 // Section identifiers (HCGSettingsSection raw values) shown for a mode;

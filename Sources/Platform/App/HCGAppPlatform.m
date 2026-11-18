@@ -82,6 +82,17 @@ NSString *const HCGAppDataSuiteName = @"com.hakmicapitalgroup.hcgnexus.app.data"
     return NO;
 }
 
+// Sandboxed: installation is unknowable; only whether the variant's own link opens (LSApplicationQueriesSchemes
+// in App/Info.plist lists hcgterminal and hcgterminal-unleashed).
+- (HCGTerminalAppFacts *)terminalFactsForVariant:(HCGTerminalVariant)variant {
+    HCGTerminalAppFacts *facts = [[HCGTerminalAppFacts alloc] init];
+    facts.variant = variant;
+    NSURL *open = [HCGTerminalHandoff openURLForVariant:variant];
+    UIApplication *application = [self application];
+    facts.canOpenScheme = open && application && [application canOpenURL:open];
+    return facts;
+}
+
 - (void)openApplicationWithBundleIdentifier:(NSString *)bundleIdentifier completion:(HCGLaunchCompletion)completion {
     NSError *error = HCGMakeError(HCGErrorLauncherUnavailable,
                                   [NSString stringWithFormat:@"%@ can't be opened by bundle identifier here.", bundleIdentifier],

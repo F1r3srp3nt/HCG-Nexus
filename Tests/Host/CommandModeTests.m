@@ -106,13 +106,14 @@ static void testCatalogStatusesMapToDisplayStates(void) {
     HCG_CHECK_EQ_INT(Map(t), HCGConnectionDisplayStateOff);
     HCG_CHECK_EQ_INT(Map([HCGIntegrationCatalog statusForIdentifier:HCGIntegrationNews settings:off probe:device]), HCGConnectionDisplayStateOff);
 
-    // Turned on and installed → Connected (app link; no session claimed).
+    // Turned on and installed → Launch available (app link). Never "Connected": opening an app proves no session.
     t = [HCGIntegrationCatalog statusForIdentifier:HCGIntegrationTerminal settings:on probe:device];
     HCG_CHECK(t.configured, "terminal configured");
     HCG_CHECK_EQ_INT(t.reachability, HCGIntegrationReachabilityNotApplicable);
     HCG_CHECK_EQ_INT(t.session, HCGIntegrationSessionNotApplicable);
-    HCG_CHECK_EQ_INT(Map(t), HCGConnectionDisplayStateConnected);
+    HCG_CHECK_EQ_INT(Map(t), HCGConnectionDisplayStateLaunchAvailable);
     HCGStatusDisplay *d = [HCGCommandModeStatus displayForIntegrationStatus:t];
+    HCG_CHECK_EQ_STR(d.value, @"Launch available");
     HCG_CHECK([d.detail rangeOfString:@"No session or sync status"].location != NSNotFound, "connected app link says no session is visible: %s", [d.detail UTF8String]);
     HCG_CHECK_EQ_STR(d.title, @"HCG Terminal");
 
@@ -159,7 +160,11 @@ static void testReachabilityAndSessionStates(void) {
     HCG_CHECK_EQ_INT(Map(ReadyStatus(HCGIntegrationReachabilityNotApplicable, HCGIntegrationSessionSignedOut)), HCGConnectionDisplayStateSignedOut);
     HCG_CHECK_EQ_INT(Map(ReadyStatus(HCGIntegrationReachabilityReachable, HCGIntegrationSessionSignedIn)), HCGConnectionDisplayStateConnected);
     HCG_CHECK_EQ_INT(Map(ReadyStatus(HCGIntegrationReachabilityReachable, HCGIntegrationSessionNotApplicable)), HCGConnectionDisplayStateConnected);
-    HCG_CHECK_EQ_INT(Map(ReadyStatus(HCGIntegrationReachabilityNotApplicable, HCGIntegrationSessionNotApplicable)), HCGConnectionDisplayStateConnected);
+    // An app link (no service, no session): Launch available, never Connected.
+    HCG_CHECK_EQ_INT(Map(ReadyStatus(HCGIntegrationReachabilityNotApplicable, HCGIntegrationSessionNotApplicable)), HCGConnectionDisplayStateLaunchAvailable);
+    HCG_CHECK_EQ_STR([HCGCommandModeStatus labelForConnectionState:HCGConnectionDisplayStateLaunchAvailable], @"Launch available");
+    HCG_CHECK([HCGCommandModeStatus colorRoleForConnectionState:HCGConnectionDisplayStateLaunchAvailable] != HCGStatusColorRolePositive,
+              "launch available is not shown in the 'connected' colour");
     // Not reported → Unknown, never Connected.
     HCG_CHECK_EQ_INT(Map(ReadyStatus(HCGIntegrationReachabilityUnknown, HCGIntegrationSessionSignedIn)), HCGConnectionDisplayStateUnknown);
     HCG_CHECK_EQ_INT(Map(ReadyStatus(HCGIntegrationReachabilityReachable, HCGIntegrationSessionUnknown)), HCGConnectionDisplayStateUnknown);

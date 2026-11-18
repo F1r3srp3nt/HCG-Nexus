@@ -6,6 +6,7 @@
 #import "HCGPanelHomeViewController.h"
 #import "HCGCommandModeViewController.h"
 #import "HCGNexusBorderInterface.h"
+#import "HCGHaloBridge.h"
 
 #pragma mark - Pass-through views
 
@@ -187,7 +188,14 @@
     d[@"launcher"] = _model.launcher.launcherName ?: @"none";
     d[@"launcherCapabilities"] = [_model.launcher capabilitySummary] ?: @"none";
     d[@"droppedEntriesOnLoad"] = @(_model.workspaceStore.droppedEntriesOnLoad);
+    d[@"haloBorderAttached"] = @([self borderDecorationAttached]);
     return d;
+}
+
+// Nexus's own observation for "Use HCG Halo border": something (HCG Halo) has attached a view to the
+// panel's non-interactive border host.
+- (BOOL)borderDecorationAttached {
+    return _borderHost.subviews.count > 0;
 }
 
 #pragma mark HCGOverlayHost
@@ -243,6 +251,14 @@
     _context.closePanelImmediately = ^{ [weakSelf.coordinator requestCloseImmediately]; };
     _context.diagnosticsProvider = ^NSDictionary *{ return [weakSelf diagnostics] ?: @{}; };
     _context.presentCommandMode = ^{ [weakSelf presentCommandMode]; };
+    _context.borderDecorationAttached = ^BOOL { return [weakSelf borderDecorationAttached]; };
+    // The in-panel Settings are inside the open panel, so it is visible whenever they ask.
+    _context.haloBorderStatus = ^HCGHaloBorderStatus * {
+        return [HCGHaloBridge statusWithBorderAttached:[weakSelf borderDecorationAttached] panelVisible:YES];
+    };
+    _context.setHaloBorderEnabled = ^BOOL(BOOL enabled, NSString **error) {
+        return [HCGHaloBridge setPanelBorderEnabled:enabled error:error];
+    };
 
     _home = [[HCGPanelHomeViewController alloc] initWithContext:_context];
     _navigation = [[UINavigationController alloc] initWithRootViewController:_home];

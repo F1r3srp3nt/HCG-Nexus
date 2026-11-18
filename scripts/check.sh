@@ -35,7 +35,9 @@ check  "No maintainer scripts in layout" test ! -e layout/DEBIAN/postinst -a ! -
 absent "No method hooks in the SpringBoard layer" '%hook|MSHookMessageEx|MSHookFunction|method_exchangeImplementations|method_setImplementation' Tweak Sources
 absent "No embedded credentials" '(password|passwd|secret|api[_-]?key|bearer)[[:space:]]*[:=][[:space:]]*@?"[^"]+' Sources Prefs PreviewHarness Tweak
 absent "No HCG Server admin endpoints or tokens" '127\.0\.0\.1|:7600|:7610|/api/v1|#token=' Sources Prefs Tweak
-absent "No invented HCG URL schemes" '(hcgterminal|hcgnews|hcgserver|hcgnexus)://' Sources Prefs Tweak PreviewHarness
+absent "No invented HCG URL schemes" '(hcgnews|hcgserver|hcgnexus)://' Sources Prefs Tweak PreviewHarness
+# HCG Terminal defines exactly two routes for Nexus (HCG-Terminal docs/NEXUS-HANDOFF.md); nothing else may appear.
+check  "Only HCG Terminal's documented handoff routes (open, connection)" sh -c '! grep -rEoh "hcgterminal(-unleashed)?://[A-Za-z]*" Sources Prefs Tweak PreviewHarness | grep -vxE "hcgterminal(-unleashed)?://(open|connection)?" | grep -q .'
 absent "Device Link stays out of shared, tweak, Settings and preview sources" 'HCGLinkServic|HCGLinkTypes|HCGDeviceLink|HCGConnectedDevices' Sources/Core Sources/Panel Sources/Platform/SpringBoard Sources/Platform/Preview Tweak Prefs PreviewHarness
 absent "Theos builds never compile Device Link or Swift" 'DeviceLink|\.swift' Makefile Prefs/Makefile PreviewHarness/Makefile
 check  "Tweak filter targets only SpringBoard" grep -qx '{ Filter = { Bundles = ( "com.apple.springboard" ); }; }' HCGNexus.plist
@@ -55,7 +57,9 @@ sys.exit(0 if any(i.get("key")=="enabled" and i.get("default") is False for i in
 check "inspect-package.py self-test (filter plist formats)" python3 -I scripts/inspect-package.py --self-test
 check "Halo border definition validator self-test" python3 -I scripts/check_halo_border.py --self-test
 check "Halo border definition valid, nexusVersion == control Version" python3 -I scripts/check_halo_border.py Prefs/Resources/HaloBorder.plist --version "$CONTROL_VERSION"
-absent "Nexus never references HCG Halo code (independent package)" '#import.*Halo|HaloRenderer|HaloPreferences' Sources Tweak Prefs PreviewHarness
+# Nexus's own HCGHalo* files are allowed; HCG Halo's headers (Halo*) and renderer classes are not: Nexus talks
+# to HCG Halo only through the documented interface, definition and HaloNexusControl (by name, at runtime).
+absent "Nexus never references HCG Halo code (independent package)" '#import.*"Halo|HaloRenderer|HaloPreferences|HaloPanelBorderView|HaloOverlayView|CAShapeLayer.*lineDashPhase' Sources Tweak Prefs PreviewHarness
 
 echo "== Standalone app (HCGNexus.xcodeproj) =="
 check "HCGDeviceLink is an unmodified vendored copy (VENDORED.sha256)" sh -c 'cd HCGDeviceLink && shasum -a 256 -c VENDORED.sha256'

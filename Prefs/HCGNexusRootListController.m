@@ -7,6 +7,7 @@
 #import "HCGWorkspaceManagerViewController.h"
 #import "HCGPanelSettingsViewController.h"
 #import "HCGSystemInfo.h"
+#import "HCGHaloBridge.h"
 
 static NSString *const kStatusGroupID = @"status";
 static NSString *const kAppearanceGroupID = @"appearanceGroup";
@@ -47,10 +48,15 @@ static NSString *const kDiagnosticsGroupID = @"diagnostics";
         NSArray *status = [self statusSpecifiers];
         [specs insertObjects:status atIndexes:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(insertAt, status.count)]];
         [specs addObjectsFromArray:[self diagnosticsSpecifiers]];
+        HCGHaloBorderStatus *halo = [self haloBorderStatus];
         for (PSSpecifier *spec in specs) {
+            if ([spec.identifier isEqualToString:@"useHaloBorder"]) {
+                [spec setProperty:@(halo.canSwitch) forKey:@"enabled"];
+            }
             if (![spec.identifier isEqualToString:kAppearanceGroupID]) continue;
             NSString *footer = [spec propertyForKey:@"footerText"] ?: @"";
-            [spec setProperty:[NSString stringWithFormat:@"%@\n\n%@", footer, [self haloAvailabilityText]] forKey:@"footerText"];
+            NSString *state = halo.switchNote.length && !halo.canSwitch ? [NSString stringWithFormat:@"%@ %@", halo.detail, halo.switchNote] : halo.detail;
+            [spec setProperty:[NSString stringWithFormat:@"%@\n\n%@", footer, state] forKey:@"footerText"];
         }
         _specifiers = specs;
     }
@@ -105,6 +111,36 @@ static NSString *const kDiagnosticsGroupID = @"diagnostics";
 }
 
 #pragma mark Halo border (separate HCG Halo package)
+
+// "Active" needs the panel to be open with HCG Halo's view attached; Settings sees that only through the
+// report SpringBoard writes (requestFreshStatus), never by guessing.
+- (HCGHaloBorderStatus *)haloBorderStatus {
+    NSDictionary *overlay = [[self runtimeStatus][HCGStatusOverlay] isKindOfClass:[NSDictionary class]] ? [self runtimeStatus][HCGStatusOverlay] : nil;
+    BOOL attached = [[overlay[@"haloBorderAttached"] description] isEqualToString:@"1"];
+    BOOL open = [[overlay[@"panelState"] description] isEqualToString:@"open"];
+    return [HCGHaloBridge statusWithBorderAttached:attached panelVisible:open];
+}
+
+- (id)haloBorderSwitchValue:(PSSpecifier *)specifier {
+    return @([self haloBorderStatus].switchOn);
+}
+
+- (id)haloBorderStatusValue:(PSSpecifier *)specifier {
+    return [HCGHaloBorderStatus titleForState:[self haloBorderStatus].state];
+}
+
+- (void)setHaloBorderSwitchValue:(id)value specifier:(PSSpecifier *)specifier {
+    NSString *error = nil;
+    if (![HCGHaloBridge setPanelBorderEnabled:[value boolValue] error:&error]) {
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Use HCG Halo border"
+                                                                       message:error ?: @"HCG Halo did not accept the change."
+                                                                preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+        [self presentViewController:alert animated:YES completion:nil];
+    }
+    // Show HCG Halo's real result (or revert the switch) once it has applied the change and written its status.
+    [self requestFreshStatus];
+}
 
 - (nullable NSString *)haloBundlePath {
     NSString *ours = [NSBundle bundleForClass:[self class]].bundlePath;

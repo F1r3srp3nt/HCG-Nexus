@@ -170,9 +170,31 @@
 			<key>id</key>
 			<string>appearanceGroup</string>
 			<key>footerText</key>
-			<string>HCG Halo can draw an animated light border around this panel. Lighting, colours and presets are set in HCG Halo, which is a separate package; without it Nexus looks as usual.</string>
+			<string>HCG Halo, a separate package, can draw an animated border around this panel; Nexus provides the panel's shape and open/close events. The switch asks HCG Halo to light the panel only and never turns on its screen-edge light. Colours, effects and presets are under HCG Halo border settings. Without HCG Halo, Nexus keeps its own outline.</string>
 			<key>label</key>
 			<string>Appearance</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>id</key>
+			<string>useHaloBorder</string>
+			<key>get</key>
+			<string>haloBorderSwitchValue:</string>
+			<key>set</key>
+			<string>setHaloBorderSwitchValue:specifier:</string>
+			<key>label</key>
+			<string>Use HCG Halo border</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSTitleValueCell</string>
+			<key>id</key>
+			<string>haloBorderStatus</string>
+			<key>get</key>
+			<string>haloBorderStatusValue:</string>
+			<key>label</key>
+			<string>Status</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -182,7 +204,7 @@
 			<key>id</key>
 			<string>haloBorder</string>
 			<key>label</key>
-			<string>Halo border</string>
+			<string>HCG Halo border settings</string>
 		</dict>
 		<dict>
 			<key>cell</key>

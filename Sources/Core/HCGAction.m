@@ -1,4 +1,5 @@
 #import "HCGAction.h"
+#import "HCGTerminalHandoff.h"
 #import "HCGConstants.h"
 #import "HCGIntegrations.h"
 
@@ -110,6 +111,19 @@ static NSString *HCGTrim(NSString *value) {
             }
             return nil;
         case HCGActionKindURL: {
+            // HCG Terminal links: only what HCG Terminal itself defines (<scheme>://open or a saved-connection
+            // link), matched as exact text so nothing that could carry a command gets through.
+            NSString *terminalSchemes[2] = { [HCGTerminalHandoff urlSchemeForVariant:HCGTerminalVariantStandard],
+                                             [HCGTerminalHandoff urlSchemeForVariant:HCGTerminalVariantUnleashed] };
+            for (int i = 0; i < 2; i++) {
+                if (![[target lowercaseString] hasPrefix:[terminalSchemes[i] stringByAppendingString:@"://"]]) continue;
+                if ([target isEqualToString:[terminalSchemes[i] stringByAppendingString:@"://open"]]) return nil;
+                NSString *reason = nil;
+                if (![HCGTerminalHandoff validatedConnectionLink:target variant:NULL reason:&reason]) {
+                    return HCGMakeError(HCGErrorInvalidTarget, @"HCG Terminal can't open this link.", reason ?: @"");
+                }
+                return nil;
+            }
             NSURL *url = [NSURL URLWithString:target];
             NSString *scheme = [url.scheme lowercaseString];
             if (url == nil || scheme.length == 0) {

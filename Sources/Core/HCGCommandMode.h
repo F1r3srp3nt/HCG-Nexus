@@ -28,7 +28,10 @@ typedef NS_ENUM(NSInteger, HCGConnectionDisplayState) {
     HCGConnectionDisplayStateOff = 2,           // available but not turned on in settings
     HCGConnectionDisplayStateDisconnected = 3,  // configured, but its service is not reachable
     HCGConnectionDisplayStateSignedOut = 4,     // configured and reachable, but needs sign-in
-    HCGConnectionDisplayStateConnected = 5,     // configured and usable from this device
+    HCGConnectionDisplayStateConnected = 5,     // configured, reachable and (where it applies) signed in
+    // An app Nexus can open but which reports no service or session (HCG Terminal, HCG News): opening it is
+    // never shown as "Connected". Appended: raw values above are stable.
+    HCGConnectionDisplayStateLaunchAvailable = 6,
 };
 
 typedef NS_ENUM(NSInteger, HCGBatteryChargeState) {

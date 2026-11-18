@@ -123,12 +123,12 @@ static NSString *const kNotConnected = @"Not connected";
         if (settings.terminalVariant == HCGTerminalVariantStandard) bundle = HCGTerminalBundleIdentifier;
         if (settings.terminalVariant == HCGTerminalVariantUnleashed) bundle = HCGTerminalUnleashedBundleIdentifier;
         if (bundle == nil) {
-            status.detail = @"Choose HCG Terminal or HCG Terminal Unleashed in HCG Nexus settings. Nexus can open the app; HCG Terminal publishes no deep links or status interface.";
+            status.detail = @"Choose HCG Terminal or HCG Terminal Unleashed in HCG Nexus settings. Nexus opens the app; HCG Terminal reports no session state to Nexus.";
             return status;
         }
         status.configured = YES;
         [self applyAppBundle:bundle toStatus:status probe:probe
-                 openingNote:@"Opens the app. HCG Terminal publishes no deep links, so sessions and build history stay inside the app."];
+                 openingNote:@"Opens the app; it never runs a command. Saved-connection links need an HCG Terminal build with the Nexus handoff. Sessions stay inside HCG Terminal."];
         return status;
     }
 
