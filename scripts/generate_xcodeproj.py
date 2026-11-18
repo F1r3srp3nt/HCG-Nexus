@@ -25,7 +25,7 @@ APP = "HCGNexus"
 TESTS = "HCGNexusTests"
 BUNDLE_ID = "com.hakmicapitalgroup.hcgnexus.app"
 DEPLOYMENT_TARGET = "14.0"
-MARKETING_VERSION = "0.3.0"
+MARKETING_VERSION = "0.2.2"
 
 # Directories whose sources form the app target, and files deliberately left out.
 APP_SOURCE_DIRS = ["App", "Sources/Core", "Sources/Panel", "Sources/Platform/App"]

@@ -1,4 +1,10 @@
-# HCG Halo border integration (HCG Nexus 0.3.0~beta1, interface 1, schema 1)
+# HCG Halo border integration (HCG Nexus 0.2.2~beta1, interface 1, schema 1)
+
+> **Version note.** This integration is built on the 0.2.1~beta1 candidate code, so its version is
+> **0.2.2~beta1**. A separate HCG Nexus line already uses 0.3.0~beta1 (branch `claude/hcg-nexus-tweak-yb1ii2`) for
+> different work that does **not** contain this interface. Until the two are merged, Halo treats that build as
+> incompatible: it shows *Requires compatible HCG Nexus* and turns the panel border off. A package manager may also
+> offer 0.3.0~beta1 as an "upgrade" from 0.2.2~beta1. Installing it removes the border interface.
 
 HCG Halo (`com.hakmicapitalgroup.halo`, a separate package) can draw its animated border around the live HCG
 Nexus panel. Nexus provides **where and when**: a declarative definition file and a small runtime interface.
@@ -15,9 +21,9 @@ Halo provides **how it looks**: the renderer, colours, glow, modes, presets, ani
 
 | HCG Nexus | HCG Halo | Result |
 |---|---|---|
-| 0.3.0~beta1 or later (interface 1, schema 1) | 0.2.0~beta1 or later | Panel border available (Halo › Border Target) |
-| 0.2.1~beta1 or earlier | any | Halo shows *Requires compatible HCG Nexus*; its screen-edge border works as before |
-| 0.3.0~beta1 | absent, or 0.1.0~beta1 | Normal Nexus appearance; Settings › HCG Nexus › Appearance › Halo border explains what is needed |
+| 0.2.2~beta1, or any later build that contains interface 1 and `HaloBorder.plist` | 0.2.0~beta1 or later | Panel border available (Halo › Border Target) |
+| 0.2.1~beta1 or earlier, or any build without the border interface | any | Halo shows *Requires compatible HCG Nexus*; its screen-edge border works as before |
+| 0.2.2~beta1 | absent, or 0.1.0~beta1 | Normal Nexus appearance; Settings › HCG Nexus › Appearance › Halo border explains what is needed |
 
 Install order does not matter, and neither package depends on the other. Respring once after installing or
 updating either package, because both are loaded only at SpringBoard launch. If Nexus is updated without a
@@ -55,7 +61,7 @@ How it is located (no install prefix is assumed):
 | `schemaVersion` | integer | `1` |
 | `interfaceVersion` | integer | `1` |
 | `interfaceClass` | string | `HCGNexusBorderInterface` |
-| `nexusVersion` | string | the package version, e.g. `0.3.0~beta1` (must equal `control`) |
+| `nexusVersion` | string | the package version, e.g. `0.2.2~beta1` (must equal `control`) |
 | `shape` | dict | `kind` = `rounded-rect`; `cornerRadius` 0…64 pt; `cornerCurve` = `continuous` or `circular` |
 | `anchors` | dict | `host` = `panel`; `outset` 0…12 pt (gap from the panel edge to the light); `glowMargin` 8…64 pt; `clipInterior` bool |
 | `capabilities` | array | subset of `live-geometry`, `open-close-events`, `presentation-progress`, `workspace-events`, `orientation`, `keyboard-resize` |
@@ -136,9 +142,9 @@ Settings › HCG Nexus › **Appearance › Halo border**:
 
 ### Device steps (manual; nothing is installed automatically)
 
-1. Install HCG Nexus 0.3.0~beta1 and HCG Halo 0.2.0~beta1 from HCG Repo Candidate, in either order. Respring.
+1. Install HCG Nexus 0.2.2~beta1 and HCG Halo 0.2.0~beta1 from HCG Repo Candidate, in either order. Respring.
 2. In Settings › HCG Nexus, turn on Enable. Then go to Appearance › Halo border. The page should show
-   *HCG Nexus 0.3.0~beta1 · compatible*.
+   *HCG Nexus 0.2.2~beta1 · compatible*.
 3. In HCG Halo, turn on Enable HCG Halo and set the Border Target to **HCG Nexus Panel**. Open and close the
    panel. Drag the handle and cancel. Switch workspaces. Rotate. Type in a panel text field (keyboard). Lock
    the phone with the panel open.

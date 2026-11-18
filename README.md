@@ -75,7 +75,7 @@ gmake package FINALPACKAGE=1 HCG_ENV=rootless   # same package, plain Theos (GNU
 scripts/check.sh                   # add THEOS=… to also compile/link the app target
 ```
 
-## Optional HCG Halo panel border (0.3.0~beta1)
+## Optional HCG Halo panel border (0.2.2~beta1)
 
 The jailbreak package publishes a versioned, declarative **border definition**
 (`<jbroot>/Library/PreferenceBundles/HCGNexusPrefs.bundle/HaloBorder.plist`) and a

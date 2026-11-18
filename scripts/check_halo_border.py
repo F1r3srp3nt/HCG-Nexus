@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Validates HCG Nexus's border definition for HCG Halo (docs/HALO-BORDER.md).
 
-    python3 scripts/check_halo_border.py [path/to/HaloBorder.plist] [--version 0.3.0~beta1]
+    python3 scripts/check_halo_border.py [path/to/HaloBorder.plist] [--version 0.2.2~beta1]
     python3 scripts/check_halo_border.py --self-test
 
 Schema 1 is strict: every key, type and range below is required exactly; unknown

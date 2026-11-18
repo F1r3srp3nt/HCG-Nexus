@@ -1,6 +1,6 @@
 Package: com.hakmicapitalgroup.hcgnexus
 Name: HCG Nexus
-Version: 0.3.0~beta1
+Version: 0.2.2~beta1
 Architecture: iphoneos-arm
 Description: HCG command panel behind a configurable cyan edge handle. With HCG Halo 0.2.0~beta1 or later installed, Halo can draw an animated border around the panel (optional). Off after installation; enable it in Settings > HCG Nexus. Development build, not yet verified on a physical device.
 Maintainer: Hakmi Capital Group
