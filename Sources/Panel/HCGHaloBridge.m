@@ -9,12 +9,13 @@ static NSString *const kHaloDylibRelative = @"Library/MobileSubstrate/DynamicLib
 static NSString *const kHaloDylibRelativeTweakInject = @"usr/lib/TweakInject/HCGHalo.dylib";
 static NSString *const kPreferenceBundlesRelative = @"Library/PreferenceBundles";
 
+static NSString *HCGOwnImagePath(void);
+
 @implementation HCGHaloBridge
 
 + (NSString *)jailbreakRoot {
-    Dl_info info;
-    if (!dladdr((const void *)&HCGNexusBorderEventNotification, &info) || !info.dli_fname) return nil;
-    NSString *image = [NSString stringWithUTF8String:info.dli_fname];
+    NSString *image = HCGOwnImagePath();
+    if (!image) return nil;
     for (NSString *suffix in @[ @"/Library/MobileSubstrate/DynamicLibraries/HCGNexus.dylib",
                                 @"/usr/lib/TweakInject/HCGNexus.dylib",
                                 @"/Library/PreferenceBundles/HCGNexusPrefs.bundle/HCGNexusPrefs" ]) {
@@ -23,8 +24,25 @@ static NSString *const kPreferenceBundlesRelative = @"Library/PreferenceBundles"
     return nil;
 }
 
-+ (NSString *)haloPrefsBundlePathInRoot:(NSString *)root {
-    return [[root stringByAppendingPathComponent:kPreferenceBundlesRelative] stringByAppendingPathComponent:HCGHaloPrefsBundleName];
+static NSString *HCGOwnImagePath(void) {
+    Dl_info info;
+    if (!dladdr((const void *)&HCGNexusBorderEventNotification, &info) || !info.dli_fname) return nil;
+    return [NSString stringWithUTF8String:info.dli_fname];
+}
+
+// The folder that holds Nexus's Settings bundle, and HCG Halo's next to it: derived from where Nexus's own
+// image really is (the Settings bundle itself, or <jbroot>/Library/PreferenceBundles for the tweak), so it
+// also holds for a relocated install such as Halo's Settings preview.
++ (NSString *)preferenceBundlesDirectory {
+    NSString *image = HCGOwnImagePath();
+    NSString *bundleSuffix = @"/HCGNexusPrefs.bundle/HCGNexusPrefs";
+    if ([image hasSuffix:bundleSuffix]) return [image substringToIndex:image.length - bundleSuffix.length];
+    NSString *root = [self jailbreakRoot];
+    return root ? [root stringByAppendingPathComponent:kPreferenceBundlesRelative] : nil;
+}
+
++ (NSString *)haloPrefsBundlePath {
+    return [[self preferenceBundlesDirectory] stringByAppendingPathComponent:HCGHaloPrefsBundleName];
 }
 
 static id HCGCopyPreference(NSString *key, NSString *domain) {
@@ -36,7 +54,9 @@ static NSInteger HCGIntegerValue(id value) {
 }
 
 + (NSString *)definitionProblem {
-    NSString *path = [HCGNexusBorderInterface borderDefinitionPath];
+    NSString *directory = [self preferenceBundlesDirectory];
+    NSString *path = directory ? [[directory stringByAppendingPathComponent:@"HCGNexusPrefs.bundle"] stringByAppendingPathComponent:@"HaloBorder.plist"] : nil;
+    if (path && ![[NSFileManager defaultManager] fileExistsAtPath:path]) path = nil;
     if (!path) return @"HaloBorder.plist is missing from HCG Nexus's Settings bundle";
     NSDictionary *d = [NSDictionary dictionaryWithContentsOfFile:path];
     if (![d isKindOfClass:[NSDictionary class]]) return @"HaloBorder.plist cannot be read";
@@ -49,14 +69,14 @@ static NSInteger HCGIntegerValue(id value) {
     HCGHaloBorderFacts *facts = [[HCGHaloBorderFacts alloc] init];
     facts.borderAttached = attached;
     facts.panelVisible = visible;
-    NSString *root = [self jailbreakRoot];
-    if (!root) return facts; // not the jailbreak package: Halo does not apply
+    NSString *directory = [self preferenceBundlesDirectory];
+    if (!directory) return facts; // not the jailbreak package: Halo does not apply
 
     NSFileManager *fm = [NSFileManager defaultManager];
-    NSString *bundle = [self haloPrefsBundlePathInRoot:root];
-    NSDictionary *info = [NSDictionary dictionaryWithContentsOfFile:[bundle stringByAppendingPathComponent:@"Info.plist"]];
-    BOOL dylib = [fm fileExistsAtPath:[root stringByAppendingPathComponent:kHaloDylibRelative]] ||
-                 [fm fileExistsAtPath:[root stringByAppendingPathComponent:kHaloDylibRelativeTweakInject]];
+    NSString *root = [self jailbreakRoot];
+    NSDictionary *info = [NSDictionary dictionaryWithContentsOfFile:[[self haloPrefsBundlePath] stringByAppendingPathComponent:@"Info.plist"]];
+    BOOL dylib = root && ([fm fileExistsAtPath:[root stringByAppendingPathComponent:kHaloDylibRelative]] ||
+                          [fm fileExistsAtPath:[root stringByAppendingPathComponent:kHaloDylibRelativeTweakInject]]);
     facts.haloInstalled = [info isKindOfClass:[NSDictionary class]] || dylib;
     if (!facts.haloInstalled) return facts;
     if ([info isKindOfClass:[NSDictionary class]]) {
@@ -91,9 +111,8 @@ static NSInteger HCGIntegerValue(id value) {
     Class cls = NSClassFromString(HCGHaloControlClassName);
     if (cls) return cls;
     if (!NSClassFromString(@"PSListController")) return Nil; // not the Settings app
-    NSString *root = [self jailbreakRoot];
-    if (!root) return Nil;
-    NSBundle *bundle = [NSBundle bundleWithPath:[self haloPrefsBundlePathInRoot:root]];
+    if (![self preferenceBundlesDirectory]) return Nil;
+    NSBundle *bundle = [NSBundle bundleWithPath:[self haloPrefsBundlePath]];
     if (![bundle isLoaded] && ![bundle loadAndReturnError:NULL]) return Nil;
     return NSClassFromString(HCGHaloControlClassName);
 }
