@@ -23,9 +23,27 @@ Change: the card takes blur and opacity from the same settings, by the panel's r
 * **Reduce Transparency overrides the setting**: no blur, opaque surface (unchanged behaviour);
 * a settings change rebuilds the card's glass live, only when what it uses changed.
 
-Nothing else changes from 0.3.2~beta1. Local checks on this commit: lint + 27,833 Core host checks (13 new), app target
-compiled and linked against iPhoneOS 14.5 and 16.5, Theos rootless package built. CI evidence is recorded when the
-*Build package* run completes.
+Nothing else changes from 0.3.2~beta1.
+
+| | |
+|---|---|
+| File | `com.hakmicapitalgroup.hcgnexus_0.3.3~beta1_iphoneos-arm64.deb` (1,199,034 bytes) |
+| **SHA-256** | **`e42efb6da782fba82d48ee678495dfdb5df4cc0c501da9383102b3e2d25e9c6f`** |
+| Built from | `a58ff705d685…` on `claude/nexus-0.3.3-command-glass` |
+| Workflow | *Build package* run **#30**, ID 44569229745, route `both`, layout `rootless`: https://github.com/F1r3srp3nt/HCG-Nexus/actions/runs/44569229745 |
+| Artifact | `hcg-nexus-rootless-deb`, ID 14553841955, zip SHA-256 `4610089e2529d22be0033fafeb9334ae728d43e1cbdcbc86bc45668a39d6c24f`, expires 2026-11-26 |
+| HCG Repo request | none yet (needs the owner's approval) |
+
+Compatibility with HCG Halo and HCG Terminal is the same as 0.3.2~beta1 (tables below, read *0.3.3~beta1* for *0.3.2~beta1*).
+
+**Simulator / CI (no device):** run #30, all 4 jobs green: lint + 27,833 Core host checks (13 new, for the card's
+glass), HCG Device Link and HCGConnectVerify (Linux and macOS), app XCTests on the simulator, section screenshots
+(standard, largest text, increased contrast), unsigned device build and archive, Theos jailbreak build. Re-checked
+here on the downloaded `.deb`: package inspector all OK (arm64 + arm64e with the versioned ptrauth ABI, `%ctor`,
+SpringBoard filter, root:wheel, permissions); control `Version: 0.3.3~beta1`; `HaloBorder.plist` `nexusVersion`
+0.3.3~beta1, interface 1; the tweak contains the new card-glass code.
+
+**Phone:** not tested (pending, row 23).
 
 ## 0.3.2~beta1 — run #29: HCG Halo border switch + HCG Terminal states (recorded 2026-11-18)
 
