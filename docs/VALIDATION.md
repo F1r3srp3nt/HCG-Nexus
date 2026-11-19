@@ -6,10 +6,32 @@ substituted for one another. Only section 4 can show that the tweak works.
 Reproduce sections 1 and 3 with
 `THEOS=… HCG_ENV=rootless scripts/check.sh` (and again with `HCG_ENV=rootful`).
 
+## 0.3.3~beta1 — Command Mode keeps the configured panel glass (recorded 2026-11-19)
+
+**Status: built on branch `claude/nexus-0.3.3-command-glass`; not imported or published** (needs the owner's separate
+approval). Not device-tested: `DEVICE-CHECKLIST.md` row 23.
+
+Finding on 0.3.2~beta1 (and every earlier build with Command Mode): the Command Mode card ignored *Panel glass*. It
+always used an ultra-thin blur and a fixed 0.64 tint (0.86 with Increase Contrast), so with blur *Off*, *Strong* or a
+custom opacity it did not match the panel.
+
+Change: the card takes blur and opacity from the same settings, by the panel's rules
+(`HCGCommandModeStatus +cardBlurForSettings:reduceTransparency:` / `+cardTintAlphaForSettings:…`):
+* configured blur (Off / Light / Standard / Strong → same materials as the panel) and opacity are kept;
+* with blur Off the panel's readability floor (0.6) applies;
+* Increase Contrast raises the tint to at least 0.86 and never lowers a higher one;
+* **Reduce Transparency overrides the setting**: no blur, opaque surface (unchanged behaviour);
+* a settings change rebuilds the card's glass live, only when what it uses changed.
+
+Nothing else changes from 0.3.2~beta1. Local checks on this commit: lint + 27,833 Core host checks (13 new), app target
+compiled and linked against iPhoneOS 14.5 and 16.5, Theos rootless package built. CI evidence is recorded when the
+*Build package* run completes.
+
 ## 0.3.2~beta1 — run #29: HCG Halo border switch + HCG Terminal states (recorded 2026-11-18)
 
-**Status: built and verified; not imported or published** (waits for the owner's explicit approval, together with
-HCG Halo 0.3.1~beta1). Not yet device-tested: `DEVICE-CHECKLIST.md` rows 17–22, HCG Halo rows N18–N23.
+**Status: published 2026-11-19 in HCG Repo Candidate** (HCG-repo PR #12, `cecfcf0`; *Publish* run 44467733378), together
+with HCG Halo 0.3.1~beta1. The live `.deb` matches the SHA-256 below. Not yet device-tested: `DEVICE-CHECKLIST.md` rows
+17–22, HCG Halo rows N18–N23.
 
 | | |
 |---|---|
@@ -18,7 +40,7 @@ HCG Halo 0.3.1~beta1). Not yet device-tested: `DEVICE-CHECKLIST.md` rows 17–22
 | Built from | `cd81084a48b5…` on `claude/nexus-0.3.2-integrations` (build ID `cd81084a48`, `rootless-release`) |
 | Workflow | *Build package* run **#29**, ID 44389550508, route `both`, layout `rootless`: https://github.com/F1r3srp3nt/HCG-Nexus/actions/runs/44389550508 |
 | Artifact | `hcg-nexus-rootless-deb`, ID 14467701677, zip SHA-256 `9137184b05e2af663ae59b2f23bba89a929ab46c05e09921015e6e6ae269cb92`, expires 2026-11-25 |
-| HCG Repo request | HCG-repo `claude/candidates-nexus-0.3.2-halo-0.3.1`, `pending-imports/hcg-nexus-0.3.2-beta1-rootless.toml` (held) |
+| HCG Repo request | HCG-repo `imports/hcg-nexus-0.3.2-beta1-rootless.toml` (merged in PR #12, published) |
 
 ### Compatibility
 

@@ -97,6 +97,8 @@
 
 @implementation HCGCommandModeViewController {
     HCGPanelContext *_context;
+    double _appliedCardTint;      // the panel glass the card was last built with, so a settings change
+    HCGPanelBlur _appliedCardBlur; // that leaves it alone does not rebuild it
     HCGDeviceStatusMonitor *_monitor;
     HCGDeviceStatusSnapshot *_snapshot;
     UIView *_scrim;
@@ -263,7 +265,7 @@
     };
 
     NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
-    [nc addObserver:self selector:@selector(reloadContent) name:HCGNexusModelDidChangeNotification object:_context.model];
+    [nc addObserver:self selector:@selector(modelChanged) name:HCGNexusModelDidChangeNotification object:_context.model];
     [nc addObserver:self selector:@selector(reloadContent) name:UIContentSizeCategoryDidChangeNotification object:nil];
     [nc addObserver:self selector:@selector(accessibilityChanged) name:UIAccessibilityReduceTransparencyStatusDidChangeNotification object:nil];
     [nc addObserver:self selector:@selector(accessibilityChanged) name:UIAccessibilityDarkerSystemColorsStatusDidChangeNotification object:nil];
@@ -425,12 +427,18 @@
     return text;
 }
 
-// The card: translucent obsidian over a blur (solid with Reduce
-// Transparency), brushed-chrome border, a faint rim light and static
-// scanlines. Nothing here moves.
+// The card: the panel glass the user chose (HCG Nexus › Panel glass: blur and
+// opacity, by the panel's own rules), solid with Reduce Transparency, with a
+// brushed-chrome border, a faint rim light and static scanlines. Nothing here moves.
 - (UIView *)makeCardBackground {
     BOOL reduceTransparency = [HCGTheme reduceTransparency];
     BOOL contrast = [HCGTheme increaseContrast];
+    HCGSettings *settings = _context.model.settings;
+    HCGPanelBlur blurSetting = [HCGCommandModeStatus cardBlurForSettings:settings reduceTransparency:reduceTransparency];
+    double tintAlpha = [HCGCommandModeStatus cardTintAlphaForSettings:settings reduceTransparency:reduceTransparency
+                                                     increaseContrast:contrast];
+    _appliedCardBlur = blurSetting;
+    _appliedCardTint = tintAlpha;
     UIView *container = [[UIView alloc] init];
     container.userInteractionEnabled = NO;
     container.layer.cornerRadius = 24;
@@ -438,15 +446,17 @@
     container.clipsToBounds = YES;
     UIViewAutoresizing fill = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 
-    if (!reduceTransparency) {
-        UIVisualEffectView *blur = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleSystemUltraThinMaterialDark]];
+    if (blurSetting != HCGPanelBlurOff) {
+        UIBlurEffectStyle style = blurSetting == HCGPanelBlurLight ? UIBlurEffectStyleSystemUltraThinMaterialDark
+                                : (blurSetting == HCGPanelBlurStrong ? UIBlurEffectStyleSystemThickMaterialDark : UIBlurEffectStyleSystemThinMaterialDark);
+        UIVisualEffectView *blur = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:style]];
         blur.frame = container.bounds;
         blur.autoresizingMask = fill;
         [container addSubview:blur];
     }
     UIView *tint = [[UIView alloc] initWithFrame:container.bounds];
     tint.autoresizingMask = fill;
-    tint.backgroundColor = reduceTransparency ? [HCGTheme surface] : [[HCGTheme obsidian] colorWithAlphaComponent:contrast ? 0.86 : 0.64];
+    tint.backgroundColor = reduceTransparency ? [HCGTheme surface] : [[HCGTheme obsidian] colorWithAlphaComponent:(CGFloat)tintAlpha];
     [container addSubview:tint];
 
     if (!reduceTransparency && !contrast) {
@@ -502,6 +512,17 @@
 
 - (void)accessibilityChanged {
     [self applyAppearance];
+    [self reloadContent];
+}
+
+// A settings change can be the panel glass: rebuild the card's glass only when what it would use changed.
+- (void)modelChanged {
+    BOOL reduceTransparency = [HCGTheme reduceTransparency];
+    HCGSettings *settings = _context.model.settings;
+    HCGPanelBlur blur = [HCGCommandModeStatus cardBlurForSettings:settings reduceTransparency:reduceTransparency];
+    double tint = [HCGCommandModeStatus cardTintAlphaForSettings:settings reduceTransparency:reduceTransparency
+                                                increaseContrast:[HCGTheme increaseContrast]];
+    if (_cardBackground && (blur != _appliedCardBlur || tint != _appliedCardTint)) [self applyAppearance];
     [self reloadContent];
 }
 

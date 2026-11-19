@@ -34,6 +34,7 @@ Apps. Tools › Restore Previous Layout undoes that.
 | 20 | Remove HCG Halo (respring); then install HCG Halo 0.3.0~beta1 only | Status **Not installed**, switch disabled, panel keeps Nexus's outline. With 0.3.0 (no switch API): switch disabled with "switched in HCG Halo › Border Target" |
 | 21 | HCG Products › HCG Terminal (and Unleashed, if installed) | Installed shows the real version (e.g. *Installed · 0.1.0*); Launch *Available*; Integration names the version and says it has no handoff yet; Session *Not shared*. *Open HCG Terminal* opens it; the toast says *Opened*, never *Connected*. Command Mode shows *Launch available* |
 | 22 | Only with an HCG Terminal build that has the Nexus handoff: Copy Link for HCG Nexus on a saved connection; HCG Products › *Open Saved Connection…*, paste | HCG Terminal opens that connection's screen and waits for you to tap Connect; no session starts and nothing runs by itself. A link with any extra parameter is refused in Nexus |
+| 23 | 0.3.3~beta1: Settings › HCG Nexus › Panel glass: blur **Off** with opacity 0.4, then **Strong** with 1.0; open Command Mode after each (and change it while Command Mode is open). Then turn on Accessibility › Reduce Transparency | The Command Mode card matches the panel each time (blur Off: no blur, tint at the 0.6 floor; Strong: thick blur, opaque); a change shows without reopening. With Reduce Transparency: no blur, opaque card, whatever the setting |
 
 Report back with: a pass or fail for each row, the pasted diagnostics report, and screenshots of rows 2, 3, 4 and 10.
 

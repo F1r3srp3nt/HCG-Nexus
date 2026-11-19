@@ -17,7 +17,7 @@ Nothing below has run on a physical device. A section works in both builds unles
 
 | Feature | Tweak (jailbreak) | Standalone app | Status / evidence |
 |---|---|---|---|
-| Smoked-glass panel: opacity 0.35–1.0, blur Off / Light / Standard / Strong | yes (panel + Settings › HCG Nexus) | yes (app panel) | Clamping, readability floor without blur and the Reduce Transparency override are host-tested. Rendering is device-unverified |
+| Smoked-glass panel: opacity 0.35–1.0, blur Off / Light / Standard / Strong | yes (panel + Settings › HCG Nexus) | yes (app panel) | Clamping, readability floor without blur and the Reduce Transparency override are host-tested; Command Mode's card uses the same glass from 0.3.3~beta1. Rendering is device-unverified |
 | Reduce Transparency / Reduce Motion / Increase Contrast | yes | yes | Opaque panel, no decorative motion, thicker borders. Increased-contrast screenshot from CI; device-unverified in SpringBoard |
 | Official HCG logo (header) and Nexus emblem (Overview) | bundled in `<prefix>/Library/Application Support/HCGNexus` | asset catalog | The inspector checks both files are in the package; provenance in `Resources/Branding/README.md` |
 | Official HCG Nexus banner (Overview hero, shown whole) | bundled in `<prefix>/Library/Application Support/HCGNexus` | asset catalog | Founder-approved banner from the HCG Store (provenance in `Resources/Branding/README.md`); the inspector checks it is in the package |

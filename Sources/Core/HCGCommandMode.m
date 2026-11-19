@@ -202,6 +202,19 @@ static HCGStatusDisplay *HCGMakeDisplay(NSString *title, NSString *value, NSStri
     return increaseContrast ? 0.35 : 0.30;
 }
 
++ (double)cardTintAlphaForSettings:(HCGSettings *)settings reduceTransparency:(BOOL)reduceTransparency
+                  increaseContrast:(BOOL)increaseContrast {
+    HCGSettings *s = settings ? settings : [HCGSettings defaultSettings];
+    double tint = [s effectivePanelOpacityWithReduceTransparency:reduceTransparency];
+    if (increaseContrast && tint < 0.86) tint = 0.86;
+    return tint;
+}
+
++ (HCGPanelBlur)cardBlurForSettings:(HCGSettings *)settings reduceTransparency:(BOOL)reduceTransparency {
+    HCGSettings *s = settings ? settings : [HCGSettings defaultSettings];
+    return [s effectivePanelBlurWithReduceTransparency:reduceTransparency];
+}
+
 + (BOOL)animatesTransitionsWithReduceMotion:(BOOL)reduceMotion animationsEnabled:(BOOL)animationsEnabled {
     return animationsEnabled && !reduceMotion;
 }

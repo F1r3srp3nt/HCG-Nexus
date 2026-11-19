@@ -1,5 +1,6 @@
 #import <Foundation/Foundation.h>
 #import "HCGIntegrations.h"
+#import "HCGSettings.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -133,6 +134,12 @@ typedef NS_ENUM(NSInteger, HCGNetworkInterfaceKind) {
 // Home Screen wallpaper) by a restrained 30% (35% with Increase Contrast).
 // With Reduce Transparency it becomes a nearly opaque obsidian surface.
 + (double)scrimAlphaReducingTransparency:(BOOL)reduceTransparency increaseContrast:(BOOL)increaseContrast;
+// Command Mode's card uses the panel glass the user chose (HCG Nexus › Panel glass), by the same rules as the
+// panel: Reduce Transparency makes it opaque and unblurred; with blur off it never goes below the panel's
+// readability floor; Increase Contrast raises the tint to at least 0.86. nil settings mean the defaults.
++ (double)cardTintAlphaForSettings:(nullable HCGSettings *)settings reduceTransparency:(BOOL)reduceTransparency
+                  increaseContrast:(BOOL)increaseContrast;
++ (HCGPanelBlur)cardBlurForSettings:(nullable HCGSettings *)settings reduceTransparency:(BOOL)reduceTransparency;
 // Opening and closing are animated only when the user allows animations in
 // HCG Nexus settings and Reduce Motion is off; otherwise they are instant.
 + (BOOL)animatesTransitionsWithReduceMotion:(BOOL)reduceMotion animationsEnabled:(BOOL)animationsEnabled;

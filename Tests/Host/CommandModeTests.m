@@ -376,8 +376,50 @@ static void testPresentationPolicy(void) {
     HCG_CHECK(![HCGCommandModeStatus animatesTransitionsWithReduceMotion:YES animationsEnabled:NO], "both off: no animation");
 }
 
+// Command Mode's card follows the panel glass the user chose, by the panel's own rules.
+static void testCardGlassFollowsPanelSettings(void) {
+    HCGSettings *s = [HCGSettings defaultSettings];
+    s.panelOpacity = 0.4;
+    s.panelBlur = HCGPanelBlurLight;
+    HCG_CHECK([HCGCommandModeStatus cardBlurForSettings:s reduceTransparency:NO] == HCGPanelBlurLight, "configured blur kept");
+    HCG_CHECK([HCGCommandModeStatus cardTintAlphaForSettings:s reduceTransparency:NO increaseContrast:NO] == 0.4, "configured opacity kept");
+    s.panelBlur = HCGPanelBlurStrong;
+    s.panelOpacity = 0.9;
+    HCG_CHECK([HCGCommandModeStatus cardBlurForSettings:s reduceTransparency:NO] == HCGPanelBlurStrong, "strong blur kept");
+    HCG_CHECK([HCGCommandModeStatus cardTintAlphaForSettings:s reduceTransparency:NO increaseContrast:NO] == 0.9, "high opacity kept");
+    HCG_CHECK([HCGCommandModeStatus cardTintAlphaForSettings:s reduceTransparency:NO increaseContrast:YES] == 0.9,
+              "increase contrast never lowers a higher opacity");
+
+    // Blur off: the panel's readability floor applies to the card too.
+    s.panelBlur = HCGPanelBlurOff;
+    s.panelOpacity = 0.4;
+    double unblurred = [HCGCommandModeStatus cardTintAlphaForSettings:s reduceTransparency:NO increaseContrast:NO];
+    HCG_CHECK(unblurred == [s effectivePanelOpacityWithReduceTransparency:NO] && unblurred > 0.4, "unblurred floor: %.2f", unblurred);
+    HCG_CHECK([HCGCommandModeStatus cardBlurForSettings:s reduceTransparency:NO] == HCGPanelBlurOff, "blur off kept");
+
+    // Increase Contrast raises a thin tint to a readable minimum.
+    s.panelBlur = HCGPanelBlurStandard;
+    s.panelOpacity = 0.4;
+    HCG_CHECK([HCGCommandModeStatus cardTintAlphaForSettings:s reduceTransparency:NO increaseContrast:YES] == 0.86, "contrast minimum");
+
+    // Reduce Transparency overrides the configured glass: opaque and unblurred.
+    s.panelBlur = HCGPanelBlurStrong;
+    s.panelOpacity = 0.4;
+    HCG_CHECK([HCGCommandModeStatus cardBlurForSettings:s reduceTransparency:YES] == HCGPanelBlurOff, "reduce transparency: no blur");
+    HCG_CHECK([HCGCommandModeStatus cardTintAlphaForSettings:s reduceTransparency:YES increaseContrast:NO] == 1.0, "reduce transparency: opaque");
+    HCG_CHECK([HCGCommandModeStatus cardTintAlphaForSettings:s reduceTransparency:YES increaseContrast:YES] == 1.0, "reduce transparency wins");
+
+    // Same answer as the panel for the defaults, and nil settings mean the defaults.
+    HCGSettings *d = [HCGSettings defaultSettings];
+    HCG_CHECK([HCGCommandModeStatus cardTintAlphaForSettings:nil reduceTransparency:NO increaseContrast:NO] ==
+              [d effectivePanelOpacityWithReduceTransparency:NO], "nil settings: default opacity");
+    HCG_CHECK([HCGCommandModeStatus cardBlurForSettings:nil reduceTransparency:NO] == [d effectivePanelBlurWithReduceTransparency:NO],
+              "nil settings: default blur");
+}
+
 void HCGRunCommandModeTests(void) {
     HCG_RUN(testPresentationPolicy);
+    HCG_RUN(testCardGlassFollowsPanelSettings);
     HCG_RUN(testConnectionStatesAreDistinct);
     HCG_RUN(testCatalogStatusesMapToDisplayStates);
     HCG_RUN(testReachabilityAndSessionStates);

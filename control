@@ -1,6 +1,6 @@
 Package: com.hakmicapitalgroup.hcgnexus
 Name: HCG Nexus
-Version: 0.3.2~beta1
+Version: 0.3.3~beta1
 Architecture: iphoneos-arm
 Description: HCG command panel behind a configurable cyan edge handle: Overview, Workspaces, Tools, HCG Products, Apps and Account. Command Mode shows device status and HCG integration states. Use HCG Halo border (Appearance) switches HCG Halo 0.3.1~beta1's animated panel border on or off without its screen-edge light; Nexus keeps its own outline without HCG Halo. HCG Products opens HCG Terminal and, with a Terminal build that supports it, a saved connection you then connect yourself. Off after installation; enable it in Settings > HCG Nexus. Candidate build, not yet verified on a physical device.
 Maintainer: Hakmi Capital Group
