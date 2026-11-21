@@ -8,8 +8,8 @@ Reproduce sections 1 and 3 with
 
 ## 0.3.3~beta1 — Command Mode keeps the configured panel glass (recorded 2026-11-19)
 
-**Status: built on branch `claude/nexus-0.3.3-command-glass`; not imported or published** (needs the owner's separate
-approval). Not device-tested: `DEVICE-CHECKLIST.md` row 23.
+**Status: published 2026-11-21 in HCG Repo Candidate** (owner approval 21 Nov 2026; HCG-repo PR #17, `ade4a55`). The
+live `.deb` matches the SHA-256 below. Not device-tested: `DEVICE-CHECKLIST.md` row 23.
 
 Finding on 0.3.2~beta1 (and every earlier build with Command Mode): the Command Mode card ignored *Panel glass*. It
 always used an ultra-thin blur and a fixed 0.64 tint (0.86 with Increase Contrast), so with blur *Off*, *Strong* or a
@@ -32,7 +32,7 @@ Nothing else changes from 0.3.2~beta1.
 | Built from | `a58ff705d685…` on `claude/nexus-0.3.3-command-glass` |
 | Workflow | *Build package* run **#30**, ID 44569229745, route `both`, layout `rootless`: https://github.com/F1r3srp3nt/HCG-Nexus/actions/runs/44569229745 |
 | Artifact | `hcg-nexus-rootless-deb`, ID 14553841955, zip SHA-256 `4610089e2529d22be0033fafeb9334ae728d43e1cbdcbc86bc45668a39d6c24f`, expires 2026-11-26 |
-| HCG Repo request | none yet (needs the owner's approval) |
+| HCG Repo request | HCG-repo `imports/hcg-nexus-0.3.3-beta1-rootless.toml` (merged in PR #17, published) |
 
 Compatibility with HCG Halo and HCG Terminal is the same as 0.3.2~beta1 (tables below, read *0.3.3~beta1* for *0.3.2~beta1*).
 
