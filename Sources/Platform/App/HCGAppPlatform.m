@@ -85,6 +85,12 @@ NSString *const HCGAppDataSuiteName = @"com.hakmicapitalgroup.hcgnexus.app.data"
 // Sandboxed: installation is unknowable; only whether a product's own link opens (LSApplicationQueriesSchemes
 // in App/Info.plist lists hcgterminal, hcgterminal-unleashed and hcgsentinel).
 - (NSArray *)ecosystemFacts {
+    if (![NSThread isMainThread]) {
+        // canOpenURL: belongs on the main thread; callers read facts on a background queue.
+        __block NSArray *facts = nil;
+        dispatch_sync(dispatch_get_main_queue(), ^{ facts = [self ecosystemFacts]; });
+        return facts;
+    }
     UIApplication *application = [self application];
     NSString *os = [[UIDevice currentDevice] systemVersion];
     NSMutableArray *all = [NSMutableArray array];

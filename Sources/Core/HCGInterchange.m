@@ -581,8 +581,11 @@ static NSString *HCGHealthForState(NSString *state, HCGHIPAvailability *availabi
 static NSArray *gRegistry = nil;
 
 + (NSArray *)registry {
-    if (!gRegistry) gRegistry = [[NSArray alloc] initWithArray:HCGBuildRegistry()];
-    return gRegistry;
+    // Read from the main thread and from the background scan: built once, under a lock.
+    @synchronized(self) {
+        if (!gRegistry) gRegistry = [[NSArray alloc] initWithArray:HCGBuildRegistry()];
+        return gRegistry;
+    }
 }
 
 + (HCGHIPProductDescriptor *)descriptorForProductID:(NSString *)productID {
