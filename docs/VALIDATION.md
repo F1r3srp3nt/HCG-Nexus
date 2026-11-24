@@ -6,6 +6,34 @@ substituted for one another. Only section 4 can show that the tweak works.
 Reproduce sections 1 and 3 with
 `THEOS=… HCG_ENV=rootless scripts/check.sh` (and again with `HCG_ENV=rootful`).
 
+## 0.4.0~beta1 — HCG Ecosystem dashboard and HCG Interchange Protocol (recorded 2026-11-24)
+
+**Status: built from `claude/hcg-nexus-tweak-yb1ii2`; not imported or published** (needs the owner's approval of the
+exact SHA-256). Not device-tested: `DEVICE-CHECKLIST.md` rows 24–31.
+
+What changed (docs/INTERCHANGE.md):
+* **HCG Interchange Protocol v1**: a registry of 14 HCG products with package and bundle IDs, links, iOS
+  requirements, capabilities (verified / available / planned / unavailable) and permissions; a read-only scan
+  (dpkg status, HCG Repo package lists, LaunchServices, each tweak's own status and preferences); declarations that
+  can only narrow.
+* **HCG Terminal**: Nexus now uses HCG Terminal's real `TerminalDeepLink` contract (`<scheme>://open/<screen>`).
+  It shows the installed version and build, compatibility (iOS 17 for Unleashed) and verified capabilities. It
+  opens 8 screens, and packages, processes and jailbreak diagnostics through Unleashed Tools until a Terminal build
+  declares direct links. The never-shipped saved-connection handoff of 0.3.2 is retired.
+* **Ecosystem dashboard** (the panel's *Ecosystem* section, formerly *HCG Products*): device overview, product
+  cards with state, version, compatibility, capabilities and updates; per-product pages with shortcuts, read-only
+  current settings, capabilities and identifiers; integration diagnostics; activity history. Cards rise in once,
+  except with Reduce Motion or Animations off.
+* **Opening Nexus**: `HCGNexusPortalInterface` v1 (the interface HCG Portal already calls) and Darwin requests
+  `com.hakmicapitalgroup.hcgnexus/open/…` from HCG apps; unlocked only, rate-limited, *Let HCG Apps Open Nexus*
+  (Settings › HCG Nexus, default on).
+* HCG Halo: the existing border switch is unchanged and now also on HCG Halo's page; Halo's colours, animation,
+  brightness and speed are shown read-only.
+
+Local checks on this commit: `scripts/check.sh` with the Theos toolchain, rootless and rootful: lint and
+28,200 Core host checks, 0 failures. The Theos rootless package, the preview harness and the app target
+(iPhoneOS 14.5 and 16.5 SDKs) all built. CI evidence is recorded below when the *Build package* run completes.
+
 ## 0.3.3~beta1 — Command Mode keeps the configured panel glass (recorded 2026-11-19)
 
 **Status: published 2026-11-21 in HCG Repo Candidate** (owner approval 21 Nov 2026; HCG-repo PR #17, `ade4a55`). The

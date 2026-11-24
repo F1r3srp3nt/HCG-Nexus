@@ -35,6 +35,10 @@ FOUNDATION_EXPORT NSNotificationName const HCGNexusModelDidChangeNotification;
 // Call after any HCGWorkspaceStore mutation (the store already persisted).
 - (void)workspacesDidChange;
 - (void)clearRecents;
+// The HCG Ecosystem activity history, newest first (HCGEcosystemActivity entries).
+- (NSArray<NSDictionary *> *)ecosystemActivity;
+- (void)recordEcosystemActivity:(NSString *)text productID:(nullable NSString *)productID;
+- (void)clearEcosystemActivity;
 // Call after any HCGAppLibrary mutation (the library already persisted).
 - (void)appsDidChange;
 // Tools › Import Workspace Shortcuts: returns how many entries were added.

@@ -35,6 +35,7 @@ void HCGRunOverlayTests(void);
 void HCGRunDiagnosticsTests(void);
 void HCGRunRedesignTests(void);
 void HCGRunCommandModeTests(void);
-void HCGRunCompanionTests(void);   // HCG Halo border state + HCG Terminal handoff
+void HCGRunCompanionTests(void);   // HCG Halo border state + HCG Terminal links
+void HCGRunEcosystemTests(void);   // HCG Interchange Protocol, package versions, activity log
 
 #define HCG_RUN(fn) do { HCGCurrentTest = #fn; fn(); } while (0)

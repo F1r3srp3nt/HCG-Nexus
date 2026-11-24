@@ -76,15 +76,56 @@
     return [self.simulatedInstalledApps containsObject:bundleIdentifier];
 }
 
-// SIMULATED: today's HCG Terminal 0.1.0 (no Nexus handoff) when the harness lists it as installed.
-- (HCGTerminalAppFacts *)terminalFactsForVariant:(HCGTerminalVariant)variant {
-    HCGTerminalAppFacts *facts = [[HCGTerminalAppFacts alloc] init];
-    facts.variant = variant;
-    facts.installedKnown = YES;
-    facts.installed = [self isApplicationInstalled:[HCGTerminalHandoff bundleIdentifierForVariant:variant]];
-    facts.version = facts.installed ? @"0.1.0 (simulated)" : nil;
-    facts.canLaunchByBundle = YES;
-    return facts;
+// SIMULATED ecosystem: HCG Terminal Unleashed 0.2.0~rc2 (no direct diagnostics links), HCG Halo 0.3.1~beta1 on and
+// drawing, HCG Vortex on, HCG Portal off with an update offered, HCG Sentinel installed, Animation Center absent,
+// Zebra present, iOS 17.4. Every value is labelled simulated in the dashboard.
+- (NSArray *)ecosystemFacts {
+    NSMutableArray *all = [NSMutableArray array];
+    for (HCGHIPProductDescriptor *d in [HCGInterchange registry]) {
+        HCGHIPFacts *f = [[HCGHIPFacts alloc] init];
+        f.productID = d.productID;
+        f.simulated = YES;
+        f.hostCanInspect = YES;
+        f.hostCanLaunchApps = YES;
+        f.osVersion = @"17.4";
+        f.packageManagers = @[ @"zebra" ];
+        f.settingsBundlePresent = d.settingsBundleName.length > 0;
+        if ([d.productID isEqualToString:HCGHIPProductNexus]) {
+            f.packageVersion = HCG_NEXUS_VERSION;
+        } else if ([d.productID isEqualToString:HCGHIPProductTerminalUnleashed]) {
+            f.packageVersion = @"0.2.0~rc2";
+            f.appInstalled = YES;
+            f.appVersion = @"0.2.0";
+            f.appBuild = @"2";
+            f.declaredSchemes = @[ @"hcgterminal-unleashed" ];
+        } else if ([d.productID isEqualToString:HCGHIPProductHalo]) {
+            f.packageVersion = @"0.3.1~beta1";
+            f.preferences = @{ @"enabled" : @YES, @"target" : @"nexus", @"mode" : @"flow" };
+            f.statusRecord = @{ @"status" : @{ @"state" : @"active" } };
+        } else if ([d.productID isEqualToString:HCGHIPProductVortex]) {
+            f.packageVersion = @"0.3.1~beta1";
+            f.statusRecord = @{ @"state" : @"active" };
+        } else if ([d.productID isEqualToString:HCGHIPProductPortal]) {
+            f.packageVersion = @"0.1.0~beta3";
+            f.offeredVersion = @"0.1.0~beta4";
+        } else if ([d.productID isEqualToString:HCGHIPProductSentinel]) {
+            f.packageVersion = @"0.1.0~beta1";
+            f.appInstalled = YES;
+            f.appVersion = @"0.1.0";
+            f.appBuild = @"1";
+            f.declaredSchemes = @[ @"hcgsentinel" ];
+        } else if ([d.productID isEqualToString:HCGHIPProductAnimationCenter]) {
+            f.settingsBundlePresent = NO;
+            f.offeredVersion = @"0.1.0~beta1";
+        }
+        [all addObject:f];
+    }
+    return all;
+}
+
+- (NSArray *)ecosystemDeviceOverview {
+    return @[ @[ @"Device", @"iPhone 11 Pro Max (simulated)" ], @[ @"iOS", @"17.4 (simulated)" ],
+              @[ @"Jailbreak", @"Rootless (/var/jb) · simulated" ] ];
 }
 
 - (void)openApplicationWithBundleIdentifier:(NSString *)bundleIdentifier completion:(HCGLaunchCompletion)completion {

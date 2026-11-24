@@ -1,4 +1,5 @@
 #import "HCGOverlayController.h"
+#import "HCGNexusPortalInterface.h"
 #import "HCGEdgeHandleView.h"
 #import "HCGTheme.h"
 #import "HCGPanelContext.h"
@@ -95,6 +96,9 @@
     // Border interface for HCG Halo (docs/HALO-BORDER.md). Nexus draws nothing here.
     HCGBorderHostView *_borderHost;
     HCGNexusBorderInterface *_borderInterface;
+    // HCGNexusPortalInterface v1 (HCG Portal) and Darwin open requests from HCG apps (docs/INTERCHANGE.md).
+    HCGNexusPortalInterface *_portalInterface;
+    NSDate *_lastOpenRequest;
     CGSize _borderHostSize;
     NSString *_activeWorkspaceIdentifier;
 }
@@ -121,6 +125,9 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     if (_borderInterface && [HCGNexusBorderInterface activeInterface] == _borderInterface) {
         [HCGNexusBorderInterface setActiveInterface:nil];
+    }
+    if (_portalInterface && [HCGNexusPortalInterface activeInterface] == _portalInterface) {
+        [HCGNexusPortalInterface setActiveInterface:nil];
     }
 }
 
@@ -297,6 +304,70 @@
 
     _borderInterface = [[HCGNexusBorderInterface alloc] initWithBorderHostView:_borderHost panelView:_panelHost cornerRadius:22];
     [HCGNexusBorderInterface setActiveInterface:_borderInterface];
+
+    _portalInterface = [[HCGNexusPortalInterface alloc] initWithCanOpen:^BOOL {
+        return [weakSelf canOpenForRequestReason:NULL];
+    } open:^(NSString *source, HCGNexusPortalOpenCompletion completion) {
+        [weakSelf openPanelForRequestFromSource:source productID:nil completion:completion];
+    }];
+    [HCGNexusPortalInterface setActiveInterface:_portalInterface];
+}
+
+#pragma mark Requests from other HCG products (navigation only)
+
+- (BOOL)canOpenForRequestReason:(NSString **)reason {
+    HCGSettings *settings = _model.settings;
+    NSString *why = nil;
+    if (!settings.enabled) why = @"HCG Nexus is turned off.";
+    else if (!settings.companionOpenAllowed) why = @"Opening HCG Nexus from other HCG apps is turned off in HCG Nexus settings.";
+    else if (!_coordinator.installed) why = @"HCG Nexus has not built its panel yet.";
+    if (reason) *reason = why;
+    return why == nil;
+}
+
+- (void)openPanelForRequestFromSource:(NSString *)source productID:(NSString *)productID completion:(void (^)(BOOL, NSString *))completion {
+    void (^finish)(BOOL, NSString *) = completion ?: ^(BOOL opened, NSString *reason) {};
+    NSString *reason = nil;
+    if (![self canOpenForRequestReason:&reason]) {
+        finish(NO, reason);
+        return;
+    }
+    NSDate *now = [NSDate date];
+    if (_lastOpenRequest && [now timeIntervalSinceDate:_lastOpenRequest] < HCGNexusOpenRequestMinimumInterval) {
+        finish(NO, @"Asked again too soon.");
+        return;
+    }
+    _lastOpenRequest = now;
+    [self attemptOpenFromSource:source productID:productID deadline:[now dateByAddingTimeInterval:3.0] completion:finish];
+}
+
+- (void)attemptOpenFromSource:(NSString *)source productID:(NSString *)productID deadline:(NSDate *)deadline
+                   completion:(void (^)(BOOL, NSString *))completion {
+    if (self.beforeActivation) self.beforeActivation(); // re-read lock and cover-sheet state
+    BOOL enabled = _model.settings.enabled;
+    HCGOverlayDecision decision = HCGDecideOverlay(enabled, _coordinator.signals, _coordinator.stateMachine.isPresented);
+    if (!decision.panelAllowed) {
+        if ([deadline timeIntervalSinceNow] > 0) {
+            __weak typeof(self) weakSelf = self;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.25 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [weakSelf attemptOpenFromSource:source productID:productID deadline:deadline completion:completion];
+            });
+            return;
+        }
+        completion(NO, [@"Not opened: " stringByAppendingString:HCGOverlayReason(enabled, _coordinator.signals)]);
+        return;
+    }
+    if (!_coordinator.stateMachine.isPresented && ![_coordinator handleActivated]) {
+        completion(NO, @"HCG Nexus could not open its panel right now.");
+        return;
+    }
+    [_home showEcosystemProductID:productID];
+    NSString *who = [source isEqualToString:@"hcg-portal"] ? @"HCG Portal" : @"An HCG app";
+    HCGHIPProductDescriptor *product = [HCGInterchange descriptorForProductID:productID];
+    NSString *text = product ? [NSString stringWithFormat:@"%@ opened HCG Nexus at %@", who, product.name]
+                             : [NSString stringWithFormat:@"%@ opened the HCG Ecosystem dashboard", who];
+    [_model recordEcosystemActivity:text productID:product.productID];
+    completion(YES, nil);
 }
 
 - (void)overlaySetVisible:(BOOL)visible {

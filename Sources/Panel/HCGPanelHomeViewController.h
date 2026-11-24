@@ -12,6 +12,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)resetTransientState;
 - (nullable id)accessibilityFocusElement;
 - (void)selectSection:(NSInteger)section;
+// The HCG Ecosystem dashboard, and that product's page when productID names a registry product.
+- (void)showEcosystemProductID:(nullable NSString *)productID;
 @property (nonatomic, readonly) NSInteger selectedSection;
 // The overlay calls these when the panel opens/closes; decorative motion and
 // battery monitoring run only in between.

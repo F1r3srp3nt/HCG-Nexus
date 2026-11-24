@@ -6,6 +6,7 @@
 #import "HCGWorkspaceManagerViewController.h"
 #import "HCGToolsViewController.h"
 #import "HCGProductsViewController.h"
+#import "HCGProductDetailViewController.h"
 #import "HCGDevicesInfoViewController.h"
 #import "HCGAppsViewController.h"
 #import "HCGAccountViewController.h"
@@ -256,6 +257,13 @@
     if (self.navigationController.topViewController != self) [self.navigationController popToViewController:self animated:NO];
     _selected = section;
     if (self.isViewLoaded) [self showSection:section];
+}
+
+- (void)showEcosystemProductID:(NSString *)productID {
+    [self selectSection:HCGNexusSectionProducts];
+    if (!productID || ![HCGInterchange descriptorForProductID:productID]) return;
+    HCGProductDetailViewController *detail = [[HCGProductDetailViewController alloc] initWithContext:_context productID:productID];
+    [self.navigationController pushViewController:detail animated:NO];
 }
 
 - (void)showSection:(NSInteger)section {

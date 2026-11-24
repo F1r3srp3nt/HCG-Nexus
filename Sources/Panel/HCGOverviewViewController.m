@@ -20,6 +20,7 @@ typedef NS_ENUM(NSInteger, HCGOverviewRowGroup) {
     NSArray<NSNumber *> *_groups;
     NSArray<HCGAction *> *_quickActions;
     NSArray<NSArray<NSString *> *> *_deviceRows;
+    NSString *_ecosystemSummary;
     UIScrollView *_chips;
     BOOL _visible;
     BOOL _noticeDismissed;
@@ -176,6 +177,7 @@ typedef NS_ENUM(NSInteger, HCGOverviewRowGroup) {
     }
     _quickActions = quick;
     _deviceRows = [HCGDeviceFacts rows];
+    [self refreshEcosystemSummary];
     NSMutableArray *groups = [NSMutableArray array];
     if (model.lastMigrationOutcome == HCGLayoutMigrationMigrated && !_noticeDismissed) [groups addObject:@(HCGOverviewGroupNotice)];
     [groups addObjectsFromArray:@[ @(HCGOverviewGroupWorkspace), @(HCGOverviewGroupQuickActions), @(HCGOverviewGroupStatus), @(HCGOverviewGroupDevice) ]];
@@ -344,7 +346,7 @@ typedef NS_ENUM(NSInteger, HCGOverviewRowGroup) {
                 cell.detailTextLabel.text = account ? [account connectionSummary] : @"In the standalone app";
                 cell.imageView.image = [HCGTheme symbolNamed:@"link" pointSize:17];
             } else {
-                cell.textLabel.text = @"HCG Products";
+                cell.textLabel.text = @"HCG Ecosystem";
                 cell.detailTextLabel.text = [self productsSummary];
                 cell.imageView.image = [HCGTheme symbolNamed:@"cube.box" pointSize:17];
             }
@@ -362,18 +364,41 @@ typedef NS_ENUM(NSInteger, HCGOverviewRowGroup) {
     return [self styledCellWithStyle:UITableViewCellStyleDefault identifier:@"x"];
 }
 
+// Counted from the HCG Interchange facts, read off the main thread (file reads in SpringBoard).
 - (NSString *)productsSummary {
-    id<HCGAppInstallationProbe> probe = self.context.model.launcher;
-    NSUInteger phoneApps = 0, installed = 0, unknown = 0;
-    for (HCGProductInfo *product in [HCGProductCatalog allProducts]) {
-        if (!product.hasPhoneApp) continue;
-        phoneApps++;
-        HCGProductInstallState state = [HCGProductCatalog installStateForProduct:product probe:probe];
-        if (state == HCGProductInstallStateInstalled) installed++;
-        if (state == HCGProductInstallStateUnknown) unknown++;
+    return _ecosystemSummary ?: @"Checking…";
+}
+
+- (void)refreshEcosystemSummary {
+    id<HCGLauncher> launcher = self.context.model.launcher;
+    if (![launcher respondsToSelector:@selector(ecosystemFacts)]) {
+        _ecosystemSummary = @"Open the dashboard";
+        return;
     }
-    if (unknown == phoneApps) return @"Installation unknown here";
-    return [NSString stringWithFormat:@"%lu of %lu apps installed", (unsigned long)installed, (unsigned long)phoneApps];
+    __weak typeof(self) weakSelf = self;
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        NSUInteger installed = 0, attention = 0, updates = 0, unknown = 0, total = 0;
+        for (HCGHIPFacts *facts in [launcher ecosystemFacts]) {
+            HCGHIPProductDescriptor *d = [HCGInterchange descriptorForProductID:facts.productID];
+            if (!d || d.kind == HCGHIPProductKindHub || d.unavailableReason.length || d.kind == HCGHIPProductKindRepository) continue;
+            HCGHIPProductStatus *status = [HCGInterchange statusForDescriptor:d facts:facts];
+            total++;
+            if (status.installed) installed++;
+            if (status.availability == HCGHIPAvailabilityAttention || status.availability == HCGHIPAvailabilityNeedsUpdate) attention++;
+            if (status.updateAvailable) updates++;
+            if (status.availability == HCGHIPAvailabilityUnknown) unknown++;
+        }
+        NSString *summary = unknown == total ? @"Installation unknown here"
+            : [NSString stringWithFormat:@"%lu installed%@%@", (unsigned long)installed,
+               updates ? [NSString stringWithFormat:@" · %lu update%@", (unsigned long)updates, updates == 1 ? @"" : @"s"] : @"",
+               attention ? [NSString stringWithFormat:@" · %lu need%@ attention", (unsigned long)attention, attention == 1 ? @"s" : @""] : @""];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            typeof(self) strongSelf = weakSelf;
+            if (!strongSelf) return;
+            strongSelf->_ecosystemSummary = summary;
+            [strongSelf.tableView reloadData];
+        });
+    });
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {

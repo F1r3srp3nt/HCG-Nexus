@@ -13,6 +13,10 @@ Sources inspected on 2026-11-12, at the default branches as shallow clones:
 `F1r3srp3nt/HCG-Terminal`, `F1r3srp3nt/HCG-Server`, `F1r3srp3nt/HCG-News`,
 `F1r3srp3nt/HCG-Executable-Maker`.
 
+> **0.4.0~beta1:** the product layer is now the HCG Interchange Protocol (docs/INTERCHANGE.md). The HCG Terminal
+> notes below about a saved-connection handoff describe 0.3.2–0.3.3 and are superseded: HCG Terminal's shipped
+> contract is `<scheme>://open/<screen>`.
+
 ## What exists
 
 | Integration | Platform | Contract usable from an iPhone | Nexus behaviour |

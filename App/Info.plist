@@ -30,6 +30,7 @@
 	<array>
 		<string>hcgterminal</string>
 		<string>hcgterminal-unleashed</string>
+		<string>hcgsentinel</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>

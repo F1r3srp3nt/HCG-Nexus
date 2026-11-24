@@ -40,6 +40,13 @@ NS_ASSUME_NONNULL_BEGIN
 // can re-read lock / cover-sheet state that has no change notification.
 @property (nonatomic, copy, nullable) void (^beforeActivation)(void);
 
+// Opens the panel at the HCG Ecosystem dashboard (or one product's page) for another HCG product: HCG Portal through
+// HCGNexusPortalInterface, HCG apps through the Darwin requests in HCGInterchange.h. Navigation only; refused when
+// Nexus is off, "Let HCG Apps Open Nexus" is off, the request comes within 2 s of the last one, or the iPhone stays
+// locked for 3 s. The completion is called once, on the main thread.
+- (void)openPanelForRequestFromSource:(NSString *)source productID:(nullable NSString *)productID
+                           completion:(nullable void (^)(BOOL opened, NSString *_Nullable reason))completion;
+
 - (NSUInteger)installedGestureRecognizerCount;
 - (NSDictionary *)diagnostics;
 

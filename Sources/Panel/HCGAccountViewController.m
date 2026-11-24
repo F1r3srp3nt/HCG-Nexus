@@ -111,7 +111,7 @@ typedef NS_ENUM(NSInteger, HCGAccountSection) {
     UITableViewCell *cell = [self styledCellWithStyle:UITableViewCellStyleSubtitle identifier:@"access"];
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
     if (indexPath.section == HCGAccountSectionLocal) {
-        cell.textLabel.text = @"Workspaces, Apps, Tools, HCG Products and appearance";
+        cell.textLabel.text = @"Workspaces, Apps, Tools, HCG Ecosystem and appearance";
         cell.detailTextLabel.text = @"Stored on this device only. No account, no network.";
         cell.imageView.image = [HCGTheme symbolNamed:@"lock.open" pointSize:17];
         return cell;

@@ -76,6 +76,24 @@ NSNotificationName const HCGNexusModelDidChangeNotification = @"HCGNexusModelDid
     [self notifyLocal];
 }
 
+- (NSArray *)ecosystemActivity {
+    return [HCGEcosystemActivity entriesFromStoredValue:[_store objectForKey:HCGEcosystemActivityStoreKey]];
+}
+
+// Kept in Nexus's own preferences without a change notification: the history is shown, never acted on.
+- (void)recordEcosystemActivity:(NSString *)text productID:(NSString *)productID {
+    NSDictionary *entry = [HCGEcosystemActivity entryWithText:text productID:productID time:[NSDate date]];
+    if (!entry) return;
+    [_store setObject:[HCGEcosystemActivity entries:[_store objectForKey:HCGEcosystemActivityStoreKey] byAdding:entry]
+               forKey:HCGEcosystemActivityStoreKey];
+    [_store flush];
+}
+
+- (void)clearEcosystemActivity {
+    [_store setObject:nil forKey:HCGEcosystemActivityStoreKey];
+    [_store flush];
+}
+
 - (void)clearRecents {
     [_recents clear];
     [_notifier postWorkspacesChanged];

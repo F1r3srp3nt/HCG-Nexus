@@ -1,6 +1,7 @@
 #import <Foundation/Foundation.h>
 #import "HCGIntegrations.h"
 #import "HCGTerminalHandoff.h"
+#import "HCGInterchange.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -26,9 +27,12 @@ typedef void (^HCGLaunchCompletion)(NSError *_Nullable error);
 - (void)openApplicationWithBundleIdentifier:(NSString *)bundleIdentifier completion:(HCGLaunchCompletion)completion;
 - (void)openURL:(NSURL *)url completion:(HCGLaunchCompletion)completion;
 @optional
-// What this host can read about an installed HCG Terminal variant: installation, version, declared URL
-// schemes and HCGNexusHandoff (SpringBoard), or only whether its link opens (sandboxed app).
-- (HCGTerminalAppFacts *)terminalFactsForVariant:(HCGTerminalVariant)variant;
+// HCG Interchange facts for every registry product (HCGInterchange.h), read without side effects: the full set
+// in SpringBoard (HCGEcosystemScanner), only "does its link open" in the sandboxed app, a labelled simulation in
+// the preview harness. May be slow (file reads): call off the main thread.
+- (NSArray<HCGHIPFacts *> *)ecosystemFacts;
+// (title, value) rows for the dashboard's device overview, read from the device.
+- (NSArray<NSArray<NSString *> *> *)ecosystemDeviceOverview;
 @end
 
 // Broadcasts persisted changes to other processes (Darwin notifications on

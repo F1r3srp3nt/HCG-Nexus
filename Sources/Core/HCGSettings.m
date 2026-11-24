@@ -7,6 +7,7 @@ NSString *const HCGSettingHandleOpacity = @"handleOpacity";
 NSString *const HCGSettingKeyboardSafeZone = @"keyboardSafeZone";
 NSString *const HCGSettingAnimations = @"animationsEnabled";
 NSString *const HCGSettingHaptics = @"hapticsEnabled";
+NSString *const HCGSettingCompanionOpen = @"companionOpenAllowed";
 NSString *const HCGSettingTerminalVariant = @"terminalVariant";
 NSString *const HCGSettingNewsConnected = @"newsConnected";
 NSString *const HCGSettingSentinelConnected = @"sentinelConnected";
@@ -54,6 +55,7 @@ static NSInteger HCGReadInteger(id<HCGKeyValueStore> store, NSString *key, NSInt
 @synthesize keyboardSafeZone = _keyboardSafeZone;
 @synthesize animationsEnabled = _animationsEnabled;
 @synthesize hapticsEnabled = _hapticsEnabled;
+@synthesize companionOpenAllowed = _companionOpenAllowed;
 @synthesize terminalVariant = _terminalVariant;
 @synthesize newsConnected = _newsConnected;
 @synthesize sentinelConnected = _sentinelConnected;
@@ -90,6 +92,7 @@ static NSInteger HCGReadInteger(id<HCGKeyValueStore> store, NSString *key, NSInt
     _keyboardSafeZone = YES;
     _animationsEnabled = YES;
     _hapticsEnabled = YES;
+    _companionOpenAllowed = YES;
     _panelOpacity = kDefaultPanelOpacity;
     _panelBlur = HCGPanelBlurStandard;
 }
@@ -141,6 +144,7 @@ static NSInteger HCGReadInteger(id<HCGKeyValueStore> store, NSString *key, NSInt
     copy.keyboardSafeZone = self.keyboardSafeZone;
     copy.animationsEnabled = self.animationsEnabled;
     copy.hapticsEnabled = self.hapticsEnabled;
+    copy.companionOpenAllowed = self.companionOpenAllowed;
     copy.terminalVariant = self.terminalVariant;
     copy.newsConnected = self.newsConnected;
     copy.sentinelConnected = self.sentinelConnected;
@@ -167,6 +171,7 @@ static NSInteger HCGReadInteger(id<HCGKeyValueStore> store, NSString *key, NSInt
     settings.keyboardSafeZone = HCGReadBool(store, HCGSettingKeyboardSafeZone, YES);
     settings.animationsEnabled = HCGReadBool(store, HCGSettingAnimations, YES);
     settings.hapticsEnabled = HCGReadBool(store, HCGSettingHaptics, YES);
+    settings.companionOpenAllowed = HCGReadBool(store, HCGSettingCompanionOpen, YES);
     settings.terminalVariant = (HCGTerminalVariant)HCGReadInteger(store, HCGSettingTerminalVariant, HCGTerminalVariantNone);
     settings.newsConnected = HCGReadBool(store, HCGSettingNewsConnected, NO);
     settings.sentinelConnected = HCGReadBool(store, HCGSettingSentinelConnected, NO);
@@ -184,6 +189,7 @@ static NSInteger HCGReadInteger(id<HCGKeyValueStore> store, NSString *key, NSInt
     [dict setObject:[NSNumber numberWithBool:self.keyboardSafeZone] forKey:HCGSettingKeyboardSafeZone];
     [dict setObject:[NSNumber numberWithBool:self.animationsEnabled] forKey:HCGSettingAnimations];
     [dict setObject:[NSNumber numberWithBool:self.hapticsEnabled] forKey:HCGSettingHaptics];
+    [dict setObject:[NSNumber numberWithBool:self.companionOpenAllowed] forKey:HCGSettingCompanionOpen];
     [dict setObject:[NSNumber numberWithInteger:self.terminalVariant] forKey:HCGSettingTerminalVariant];
     [dict setObject:[NSNumber numberWithBool:self.newsConnected] forKey:HCGSettingNewsConnected];
     [dict setObject:[NSNumber numberWithBool:self.sentinelConnected] forKey:HCGSettingSentinelConnected];

@@ -111,17 +111,11 @@ static NSString *HCGTrim(NSString *value) {
             }
             return nil;
         case HCGActionKindURL: {
-            // HCG Terminal links: only what HCG Terminal itself defines (<scheme>://open or a saved-connection
-            // link), matched as exact text so nothing that could carry a command gets through.
-            NSString *terminalSchemes[2] = { [HCGTerminalHandoff urlSchemeForVariant:HCGTerminalVariantStandard],
-                                             [HCGTerminalHandoff urlSchemeForVariant:HCGTerminalVariantUnleashed] };
-            for (int i = 0; i < 2; i++) {
-                if (![[target lowercaseString] hasPrefix:[terminalSchemes[i] stringByAppendingString:@"://"]]) continue;
-                if ([target isEqualToString:[terminalSchemes[i] stringByAppendingString:@"://open"]]) return nil;
-                NSString *reason = nil;
-                if (![HCGTerminalHandoff validatedConnectionLink:target variant:NULL reason:&reason]) {
-                    return HCGMakeError(HCGErrorInvalidTarget, @"HCG Terminal can't open this link.", reason ?: @"");
-                }
+            // HCG Terminal links: only the screens in the HCG Interchange registry, matched as exact text so
+            // nothing that could carry a command gets through.
+            if ([HCGTerminalHandoff isTerminalLinkText:target]) {
+                NSString *problem = [HCGTerminalHandoff problemWithLinkText:target];
+                if (problem) return HCGMakeError(HCGErrorInvalidTarget, @"HCG Terminal can't open this link.", problem);
                 return nil;
             }
             NSURL *url = [NSURL URLWithString:target];
@@ -142,7 +136,7 @@ static NSString *HCGTrim(NSString *value) {
                 if (problem != nil) return HCGMakeError(HCGErrorInvalidTarget, @"HCG Sentinel can't open this link.", problem);
                 return nil;
             }
-                        if (([scheme isEqualToString:@"http"] || [scheme isEqualToString:@"https"]) && url.host.length == 0) {
+            if (([scheme isEqualToString:@"http"] || [scheme isEqualToString:@"https"]) && url.host.length == 0) {
                 return HCGMakeError(HCGErrorInvalidTarget, @"The web link has no host.", @"Use a full address such as https://example.com.");
             }
             return nil;

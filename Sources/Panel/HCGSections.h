@@ -19,7 +19,7 @@ static inline NSString *HCGSectionTitle(HCGNexusSection section) {
         case HCGNexusSectionOverview: return @"Overview";
         case HCGNexusSectionWorkspaces: return @"Workspaces";
         case HCGNexusSectionTools: return @"Tools";
-        case HCGNexusSectionProducts: return @"HCG Products";
+        case HCGNexusSectionProducts: return @"Ecosystem";
         case HCGNexusSectionDevices: return @"Devices";
         case HCGNexusSectionApps: return @"Apps";
         case HCGNexusSectionAccount: return @"Account";

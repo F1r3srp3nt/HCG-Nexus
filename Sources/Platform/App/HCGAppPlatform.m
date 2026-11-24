@@ -82,15 +82,29 @@ NSString *const HCGAppDataSuiteName = @"com.hakmicapitalgroup.hcgnexus.app.data"
     return NO;
 }
 
-// Sandboxed: installation is unknowable; only whether the variant's own link opens (LSApplicationQueriesSchemes
-// in App/Info.plist lists hcgterminal and hcgterminal-unleashed).
-- (HCGTerminalAppFacts *)terminalFactsForVariant:(HCGTerminalVariant)variant {
-    HCGTerminalAppFacts *facts = [[HCGTerminalAppFacts alloc] init];
-    facts.variant = variant;
-    NSURL *open = [HCGTerminalHandoff openURLForVariant:variant];
+// Sandboxed: installation is unknowable; only whether a product's own link opens (LSApplicationQueriesSchemes
+// in App/Info.plist lists hcgterminal, hcgterminal-unleashed and hcgsentinel).
+- (NSArray *)ecosystemFacts {
     UIApplication *application = [self application];
-    facts.canOpenScheme = open && application && [application canOpenURL:open];
-    return facts;
+    NSString *os = [[UIDevice currentDevice] systemVersion];
+    NSMutableArray *all = [NSMutableArray array];
+    for (HCGHIPProductDescriptor *d in [HCGInterchange registry]) {
+        HCGHIPFacts *f = [[HCGHIPFacts alloc] init];
+        f.productID = d.productID;
+        f.osVersion = os;
+        if (d.urlScheme.length && application) {
+            NSURL *probe = [NSURL URLWithString:[d.urlScheme stringByAppendingString:@"://open/dashboard"]];
+            f.canOpenScheme = probe && [application canOpenURL:probe];
+        }
+        [all addObject:f];
+    }
+    return all;
+}
+
+- (NSArray *)ecosystemDeviceOverview {
+    UIDevice *device = [UIDevice currentDevice];
+    return @[ @[ @"Device", device.model ?: @"iPhone" ], @[ @"iOS", device.systemVersion ?: @"—" ],
+              @[ @"Jailbreak", @"Not visible to this app (standalone build)" ] ];
 }
 
 - (void)openApplicationWithBundleIdentifier:(NSString *)bundleIdentifier completion:(HCGLaunchCompletion)completion {

@@ -53,6 +53,21 @@ static void HCGStatusRequestCallback(CFNotificationCenterRef center, void *obser
     dispatch_async(dispatch_get_main_queue(), ^{ [gBootstrap writeRuntimeStatusForced:YES]; });
 }
 
+// An HCG app asks to bring up Nexus (docs/INTERCHANGE.md, "Opening Nexus"). The name is the whole request: no
+// payload is read. Navigation only; the overlay applies the rules (enabled, setting, unlocked, rate limit).
+static void HCGOpenRequestCallback(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef info) {
+    NSString *request = [(__bridge NSString *)name copy];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        HCGOverlayController *overlay = gBootstrap.overlay;
+        if (!overlay) return;
+        NSString *productID = [HCGInterchange productIDForOpenDarwinNotification:request];
+        if (!productID && ![request isEqualToString:HCGNexusOpenEcosystemDarwinNotification]) return;
+        [overlay openPanelForRequestFromSource:@"hcg-app" productID:productID completion:^(BOOL opened, NSString *reason) {
+            if (!opened) os_log_info(HCGLog(), "HCG Nexus: open request not honoured: %{public}@", reason ?: @"");
+        }];
+    });
+}
+
 // Evidence for which injector loaded us: injector libraries present in this
 // process' loaded images (not marker files on disk).
 static NSString *HCGInjectorEvidence(void) {
@@ -154,6 +169,15 @@ static void HCGWriteStoppedStatus(NSString *reason, NSString *startedBy) {
     CFNotificationCenterAddObserver(darwin, (__bridge const void *)self, HCGStatusRequestCallback,
                                     (__bridge CFStringRef)HCGNexusStatusRequestDarwinNotification, NULL,
                                     CFNotificationSuspensionBehaviorDeliverImmediately);
+    NSMutableArray *openRequests = [NSMutableArray arrayWithObject:HCGNexusOpenEcosystemDarwinNotification];
+    for (HCGHIPProductDescriptor *product in [HCGInterchange registry]) {
+        NSString *name = [HCGInterchange openProductDarwinNotificationForProductID:product.productID];
+        if (name) [openRequests addObject:name];
+    }
+    for (NSString *name in openRequests) {
+        CFNotificationCenterAddObserver(darwin, (__bridge const void *)self, HCGOpenRequestCallback, (__bridge CFStringRef)name, NULL,
+                                        CFNotificationSuspensionBehaviorDeliverImmediately);
+    }
     // Defer the first preference read until SpringBoard's launch work is done.
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [self preferencesChanged];

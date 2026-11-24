@@ -167,6 +167,24 @@
 		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>HCG Terminal and HCG Portal can bring up this panel at the HCG Ecosystem dashboard. They can only open it: never change a setting, run anything or read your data. Only while the iPhone is unlocked.</string>
+			<key>label</key>
+			<string>HCG Ecosystem</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>key</key>
+			<string>companionOpenAllowed</string>
+			<key>label</key>
+			<string>Let HCG Apps Open Nexus</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
 			<key>id</key>
 			<string>appearanceGroup</string>
 			<key>footerText</key>

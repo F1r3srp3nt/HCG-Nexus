@@ -277,38 +277,6 @@ static void testToolAvailability(void) {
 
 #pragma mark - Products
 
-static void testProductStatesAreSeparate(void) {
-    HCGProductInfo *terminal = [HCGProductCatalog productWithIdentifier:HCGProductTerminal];
-    HCGProductInfo *server = [HCGProductCatalog productWithIdentifier:HCGProductServer];
-    HCGProductInfo *sentinel = [HCGProductCatalog productWithIdentifier:HCGProductSentinel];
-    HCG_CHECK(terminal && server && sentinel, "catalog");
-
-    HCGRedesignProbe *springboard = [[HCGRedesignProbe alloc] initWithInstalled:[NSSet setWithObject:HCGTerminalBundleIdentifier] canDetermine:YES canLaunch:YES];
-    HCGRedesignProbe *sandbox = [[HCGRedesignProbe alloc] initWithInstalled:[NSSet set] canDetermine:NO canLaunch:NO];
-    HCGRedesignProbe *blind = [[HCGRedesignProbe alloc] initWithInstalled:[NSSet set] canDetermine:NO canLaunch:YES];
-
-    HCG_CHECK_EQ_INT([HCGProductCatalog installStateForProduct:terminal probe:springboard], HCGProductInstallStateInstalled);
-    HCG_CHECK_EQ_INT([HCGProductCatalog installStateForProduct:sentinel probe:springboard], HCGProductInstallStateNotInstalled);
-    HCG_CHECK_EQ_INT([HCGProductCatalog installStateForProduct:terminal probe:sandbox], HCGProductInstallStateUnknown);
-    HCG_CHECK_EQ_INT([HCGProductCatalog installStateForProduct:terminal probe:nil], HCGProductInstallStateUnknown);
-    HCG_CHECK_EQ_INT([HCGProductCatalog installStateForProduct:server probe:springboard], HCGProductInstallStateNotPhoneApp);
-
-    HCG_CHECK_EQ_INT([HCGProductCatalog launchStateForProduct:terminal probe:springboard], HCGProductLaunchStateAvailable);
-    HCG_CHECK_EQ_INT([HCGProductCatalog launchStateForProduct:sentinel probe:springboard], HCGProductLaunchStateAppMissing);
-    HCG_CHECK_EQ_INT([HCGProductCatalog launchStateForProduct:terminal probe:sandbox], HCGProductLaunchStateUnavailableHere);
-    HCG_CHECK_EQ_INT([HCGProductCatalog launchStateForProduct:terminal probe:blind], HCGProductLaunchStateAttempt);
-    HCG_CHECK_EQ_INT([HCGProductCatalog launchStateForProduct:server probe:springboard], HCGProductLaunchStateNoPhoneApp);
-
-    // Installed never implies a connected account.
-    NSString *account = [HCGProductCatalog accountStateTextForProduct:terminal];
-    HCG_CHECK([account rangeOfString:@"Not shared"].location != NSNotFound, "account not inferred");
-    HCG_CHECK([[HCGProductCatalog titleForInstallState:HCGProductInstallStateUnknown] isEqualToString:@"Unable to determine"], "unknown title");
-    HCG_CHECK([[HCGProductCatalog nextStepForProduct:server launchState:HCGProductLaunchStateNoPhoneApp] rangeOfString:@"Connected Devices"].location != NSNotFound,
-              "server points to Connected Devices");
-}
-
-#pragma mark - Account and authentication boundaries
-
 static void testAccountConfiguration(void) {
     HCGAccountConfiguration *none = [HCGAccountConfiguration configurationWithClientID:@"" redirectURI:@""];
     HCG_CHECK(!none.isConfigured && none.problem.length > 0, "empty Info.plist values: not configured");
@@ -390,7 +358,6 @@ void HCGRunRedesignTests(void) {
     HCG_RUN(testFreshInstallMigration);
     HCG_RUN(testRestoreWithoutBackupFails);
     HCG_RUN(testToolAvailability);
-    HCG_RUN(testProductStatesAreSeparate);
     HCG_RUN(testAccountConfiguration);
     HCG_RUN(testPermissionCheckIsStrict);
     HCG_RUN(testAccountSummaryCarriesNoCredentials);
