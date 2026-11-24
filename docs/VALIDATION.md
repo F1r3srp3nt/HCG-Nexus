@@ -8,8 +8,7 @@ Reproduce sections 1 and 3 with
 
 ## 0.4.0~beta1 — HCG Ecosystem dashboard and HCG Interchange Protocol (recorded 2026-11-24)
 
-**Status: built from `claude/hcg-nexus-tweak-yb1ii2`; not imported or published** (needs the owner's approval of the
-exact SHA-256). Not device-tested: `DEVICE-CHECKLIST.md` rows 24–31.
+**Status: built and verified; not imported or published** (needs the owner's approval of the exact SHA-256 below). Not device-tested: `DEVICE-CHECKLIST.md` rows 24–31.
 
 What changed (docs/INTERCHANGE.md):
 * **HCG Interchange Protocol v1**: a registry of 14 HCG products with package and bundle IDs, links, iOS
@@ -30,9 +29,29 @@ What changed (docs/INTERCHANGE.md):
 * HCG Halo: the existing border switch is unchanged and now also on HCG Halo's page; Halo's colours, animation,
   brightness and speed are shown read-only.
 
-Local checks on this commit: `scripts/check.sh` with the Theos toolchain, rootless and rootful: lint and
-28,200 Core host checks, 0 failures. The Theos rootless package, the preview harness and the app target
-(iPhoneOS 14.5 and 16.5 SDKs) all built. CI evidence is recorded below when the *Build package* run completes.
+| | |
+|---|---|
+| File | `com.hakmicapitalgroup.hcgnexus_0.4.0~beta1_iphoneos-arm64.deb` (1,387,236 bytes) |
+| **SHA-256** | **`86a0ed3cbd09a162a4d3165141748ec4a2ee5715950507dab2114a3735fa43ff`** |
+| Built from | `72f7de826c94…` on `claude/hcg-nexus-tweak-yb1ii2` (build ID `72f7de826c`, `rootless-release`) |
+| Workflow | *Build package* run **#32**, ID 45467080416, route `both`, layout `rootless`: https://github.com/F1r3srp3nt/HCG-Nexus/actions/runs/45467080416 |
+| Artifact | `hcg-nexus-rootless-deb`, ID 14956744051, zip SHA-256 `9ac56c324709ae0c31c76840903c14596642f724476c39df00af4b6ae9c6845c`, expires 2026-12-01 |
+| Depends | `mobilesubstrate \| ellekit, preferenceloader` (no firmware change: still installs on the iPhone 13 Pro, iOS 16.5) |
+| HCG Repo request | HCG-repo `claude/candidate-nexus-0.4.0`, `pending-imports/hcg-nexus-0.4.0-beta1-rootless.toml` (held until approved) |
+
+**Simulator / CI (no device):** run #32, all 4 jobs green: lint + 28,200 Core host checks (HIP registry invariants,
+Debian version ordering, dpkg/Packages parsing, Terminal Unleashed rc2 on iOS 17.4 and 16.5, declarations that try
+to add routes or capabilities, tweak states, prepared adapters claiming nothing, open requests, activity log); HCG
+Device Link and HCGConnectVerify (Linux and macOS); app XCTests on the Simulator; launch screenshot and screenshots of
+every section (the Ecosystem dashboard in the sandboxed app); unsigned device build and archive; Theos jailbreak
+package and preview harness. Local: `scripts/check.sh` with the Theos toolchain, rootless and rootful; app target
+against iPhoneOS 14.5 and 16.5.
+Re-checked here on the downloaded `.deb`: `inspect-package.py --require-new-arm64e-abi` 16/16 OK; control
+`Version: 0.4.0~beta1`; `HaloBorder.plist` `nexusVersion` 0.4.0~beta1, interface 1; the tweak contains
+`HCGNexusPortalInterface`, `HCGEcosystemScanner`, the open requests and the new setting.
+
+**Phone:** not tested (pending, rows 24–31). HCG Terminal's direct links (HCG-Terminal `claude/nexus-interchange`)
+are not in an installable Terminal build; with 0.2.0~rc2 Nexus uses Unleashed Tools for those three screens.
 
 ## 0.3.3~beta1 — Command Mode keeps the configured panel glass (recorded 2026-11-19)
 
