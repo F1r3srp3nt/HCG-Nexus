@@ -41,4 +41,4 @@ clang \
     -o "$OUT/hcg-host-tests" \
     $(gnustep-config --base-libs) -lm
 
-"$OUT/hcg-host-tests"
+HCG_TEST_FIXTURES="$ROOT/Tests/Host/Fixtures" "$OUT/hcg-host-tests"

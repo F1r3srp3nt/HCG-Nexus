@@ -1,0 +1,119 @@
+{
+  "format": "hcg.release-passport",
+  "formatVersion": 1,
+  "product": {
+    "key": "hcg-terminal-unleashed",
+    "name": "HCG Terminal Unleashed",
+    "store_slug": "hcg-terminal",
+    "central_id": null
+  },
+  "edition": "unleashed",
+  "platform": "ios-jailbreak-rootless",
+  "architecture": "iphoneos-arm64",
+  "package": "com.hakmicapitalgroup.hcgterminal.unleashed",
+  "version": "0.2.0~rc1",
+  "source": {
+    "repository": "F1r3srp3nt/HCG-Terminal",
+    "commit": "1cc76a791cf785f80f4bd742224cd681c612d806",
+    "branch": null
+  },
+  "build": {
+    "provider": "github-actions",
+    "toolchain": null,
+    "built_at": null,
+    "run_id": 45051075163,
+    "artifact": "hcg-terminal-unleashed-rootless-rc"
+  },
+  "artifact": {
+    "filename": "com.hakmicapitalgroup.hcgterminal.unleashed_0.2.0~rc1_iphoneos-arm64.deb",
+    "sha256": "02626804763200f9e29d651a213bdb92330351d3052073e6a52cb86d62fc5a28",
+    "size": 7020986
+  },
+  "validation": {
+    "levels": {
+      "static_inspection": {
+        "state": "passed",
+        "note": "passed HCG Repo's import validation (before v2)"
+      },
+      "maintainer_script_review": {
+        "state": "not-recorded"
+      },
+      "script_free_lifecycle": {
+        "state": "not-recorded"
+      },
+      "device_installation": {
+        "state": "passed",
+        "evidence": [
+          "docs/device-tests/hcg-terminal-unleashed-0.2.0-rc1.md"
+        ]
+      },
+      "application_launch": {
+        "state": "failed",
+        "evidence": [
+          "docs/device-tests/hcg-terminal-unleashed-0.2.0-rc1.md"
+        ]
+      },
+      "runtime_verification": {
+        "state": "not-recorded",
+        "evidence": []
+      }
+    }
+  },
+  "device_evidence": [
+    {
+      "device": "iPhone 11 Pro Max",
+      "ios": "17.4",
+      "jailbreak": "Dopamine (rootless)",
+      "date": "2026-11-24",
+      "stage": "install",
+      "result": "pass",
+      "evidence": "docs/device-tests/hcg-terminal-unleashed-0.2.0-rc1.md"
+    },
+    {
+      "device": "iPhone 11 Pro Max",
+      "ios": "17.4",
+      "jailbreak": "Dopamine (rootless)",
+      "date": "2026-11-24",
+      "stage": "runtime",
+      "result": "fail",
+      "evidence": "docs/device-tests/hcg-terminal-unleashed-0.2.0-rc1.md"
+    }
+  ],
+  "compatibility_status": "Known incompatible",
+  "approvals": [
+    {
+      "kind": "free-demo-approval",
+      "record": "Owner approved 2026-11-24: free public Candidate-only distribution of HCG Terminal Unleashed 0.2.0~rc1 for physical-device and repository-access testing. Separately, owner approved 2026-11-24: 0.2.0~rc2 (SHA-256 597eb8f11519c9a91a0daa8c72eb9f70f5e38c4fc2e1ffaba469d8420606ff84) as a free public Candidate-only demo.",
+      "scope": "this version, Candidate only"
+    }
+  ],
+  "distribution": {
+    "channel": "candidate",
+    "access": "public"
+  },
+  "repository_signing": {
+    "scope": "repository metadata (Release, InRelease, Release.gpg) of the channel that serves this package; not the application",
+    "configured": false,
+    "fingerprint": null,
+    "status": "unsigned: no production repository signing key configured yet"
+  },
+  "code_signing": {
+    "scope": "application code inside the package (Mach-O); independent of repository signing",
+    "method_claimed": null,
+    "binaries": 3,
+    "all_signed": true,
+    "entitlements": {
+      "var/jb/Applications/HCGTerminalUnleashed.app/HCGTerminalUnleashed": [
+        "com.apple.private.security.no-sandbox"
+      ]
+    }
+  },
+  "publication": {
+    "record_status": "published",
+    "in_index_builds": true,
+    "deployed": "not checked here: the Publish workflow deploys; bin/hcgrepo verify checks the live source",
+    "imported_at": "2026-11-24T00:50:31Z",
+    "withdrawn_at": null,
+    "withdrawn_reason": null
+  }
+}

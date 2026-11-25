@@ -1,0 +1,431 @@
+Package: com.hakmicapitalgroup.animationcenter
+Name: HCG Animation Center (Beta)
+Description: Free public beta demo. HCG Animation Center plays your own videos and GIFs as animated backgrounds behind the Home Screen icons and, experimentally, on the Lock Screen. Import from Photos or Files, trim, choose fill, fit or crop, loop, speed and a still fallback, and preview before applying. Always muted; pauses when hidden or the screen is off; follows Reduce Motion and Low Power Mode. Off after installation; enable it in Settings. Your system wallpaper is never changed: turning it off or removing it shows your normal wallpaper again. Not yet device-tested.
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Tweaks
+Depends: mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)
+Tag: purpose::extension, role::enduser
+Architecture: iphoneos-arm64
+Version: 0.1.0~beta1
+Installed-Size: 1136
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.animationcenter/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.animationcenter/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.animationcenter/icon.png
+Filename: debs/com.hakmicapitalgroup.animationcenter_0.1.0~beta1_iphoneos-arm64.deb
+Size: 360342
+MD5sum: 46544b1bf3bf63e79a60113b796cf722
+SHA1: ad8c597253c88dfda02bc31561a617dd47c9077d
+SHA256: 27a161b3cc323f09940211553b058873218697b49c995812f04e579f97429f60
+SHA512: 95b86f5304a87ed45c6edd2b9a8079588a568b6a61ad1151c30cc1babeba7f9db9f20c98f1965e98092c11cab817fe44d7bef371caa87ad73b5bb6c4c065ac73
+
+Package: com.hakmicapitalgroup.halo
+Name: HCG Halo (Beta)
+Description: Free public beta demo — not yet device-tested. HCG Halo draws an animated neon light border around the Home Screen edges: Static, Breathing, Colour Flow, Orbit and Sci-Fi Circuit modes, custom colours and gradients, presets and an iPhone 11 Pro Max device profile. Off after installation; enable it in Settings.
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Tweaks
+Depends: mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)
+Tag: purpose::extension, role::enduser
+Architecture: iphoneos-arm64
+Version: 0.1.0~beta1
+Installed-Size: 860
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.halo/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.halo/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.halo/icon.png
+Filename: debs/com.hakmicapitalgroup.halo_0.1.0~beta1_iphoneos-arm64.deb
+Size: 264782
+MD5sum: c42b789faab53573a225f949f43c8a7a
+SHA1: 12ad2b96142a0b562085ce186539a946cfb87196
+SHA256: c0a3301c9b38cdac812d439fb919c3a77bfcb7999c52ea174d799e88ba24c9af
+SHA512: 9fe58c87edcec3dce8cdbac3e8bac4336ab303167d9d14b856d88061647eded51d6089b05601b66e688953b92f9d1da0f32ad5f413fd9401898e812f23ec4e67
+
+Package: com.hakmicapitalgroup.halo
+Name: HCG Halo (Beta)
+Description: Free public beta demo. HCG Halo draws an animated neon light border around the Home Screen edges and, optionally, around the HCG Nexus panel (needs HCG Nexus 0.2.2~beta1 or a later build with its border interface): Static, Breathing, Colour Flow, Orbit and Sci-Fi Circuit modes, custom colours and gradients, presets and an iPhone 11 Pro Max device profile. Off after installation; enable it in Settings. The Nexus panel border is not yet device-tested.
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Tweaks
+Depends: mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)
+Tag: purpose::extension, role::enduser
+Architecture: iphoneos-arm64
+Version: 0.2.0~beta1
+Installed-Size: 1144
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.halo/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.halo/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.halo/icon.png
+Filename: debs/com.hakmicapitalgroup.halo_0.2.0~beta1_iphoneos-arm64.deb
+Size: 391074
+MD5sum: b2c643399045f59cce276d1b9550a185
+SHA1: 9c80d426e0fc437b452340edd6e7b739fc82b361
+SHA256: 391a4421de98225169e0f1ba37b63bd3b7cc4b5321d00dbed7b689be85ae6e54
+SHA512: 272199a52a44c533231cf9a1b9631467115c2a544b9073c583d66061da9fdbafb726a279a05751e34b105cbb2d061827998db99fa7f00341e68889e18831276c
+
+Package: com.hakmicapitalgroup.halo
+Name: HCG Halo (Beta)
+Description: Free public beta demo. HCG Halo draws an animated neon light border around the screen edges (Home Screen only by default; optionally in one chosen app, everywhere, everywhere except the Lock Screen, or everywhere while the display is lit) and, optionally, around the HCG Nexus panel (needs HCG Nexus 0.2.2~beta1 or a later build with its border interface): Static, Breathing, Colour Flow, Orbit and Sci-Fi Circuit modes, custom colours and gradients, presets and an iPhone 11 Pro Max device profile. Off after installation; enable it in Settings. Show Halo on and the Nexus panel border are not yet device-tested.
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Tweaks
+Depends: mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)
+Tag: purpose::extension, role::enduser
+Architecture: iphoneos-arm64
+Version: 0.3.0~beta1
+Installed-Size: 1296
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.halo/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.halo/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.halo/icon.png
+Filename: debs/com.hakmicapitalgroup.halo_0.3.0~beta1_iphoneos-arm64.deb
+Size: 431720
+MD5sum: b54fffd5607db36da313c3b219f91114
+SHA1: 662cbe719e9c5e16685b1bba8c16c573bd5e813c
+SHA256: bd8a926667b8ebec5b2a200fc8d8a14bcd21a9a2919e0475ec97a479381defc5
+SHA512: 014df9f17ef1bf0781cbad2830f1daa3f15b035059f0c3decd555b822ab797a58222fb5e69a641ad6101f258ed3cdae4cd94a97b9e0190e8655e09606775b313
+
+Package: com.hakmicapitalgroup.halo
+Name: HCG Halo (Beta)
+Description: Free public beta demo. HCG Halo draws an animated neon light border around the screen edges (Home Screen only by default; optionally in one chosen app, everywhere, everywhere except the Lock Screen, or everywhere while the display is lit) and, optionally, around the HCG Nexus panel (needs HCG Nexus 0.2.2~beta1 or a later build with its border interface): Static, Breathing, Colour Flow, Orbit and Sci-Fi Circuit modes, custom colours and gradients, presets and an iPhone 11 Pro Max device profile. Off after installation; enable it in Settings. Show Halo on and the Nexus panel border are not yet device-tested.
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Tweaks
+Depends: mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)
+Tag: purpose::extension, role::enduser
+Architecture: iphoneos-arm64
+Version: 0.3.1~beta1
+Installed-Size: 1296
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.halo/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.halo/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.halo/icon.png
+Filename: debs/com.hakmicapitalgroup.halo_0.3.1~beta1_iphoneos-arm64.deb
+Size: 436608
+MD5sum: e09f76036bbc9fc9c284768610a6da53
+SHA1: b42f77dde07cd65e60a55057b2e32b3071a040e3
+SHA256: 6a2117b381cb2a562f1d4adc76e7ae8c74f85c0f6951b0f4b41df069d802a23b
+SHA512: d183eb903d21cec6560ec9d69269d46fab0af5ddf3f6372186998b1f6e892aa8e470734a6fef258c63255294ee138978cfec26ba8f7b2b5bf2873f3088854f67
+
+Package: com.hakmicapitalgroup.hcgmail.unleashed
+Name: HCG Mail Unleashed
+Version: 0.1.0~beta1
+Architecture: iphoneos-arm64
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Applications
+Depends: firmware (>= 16.0), uikittools
+Installed-Size: 108507
+Description: Private email for your own IMAP/SMTP mailbox. Candidate beta of HCG Mail, packaged for rootless jailbreaks, with its own data and Keychain, separate from HCG Mail.
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.hcgmail.unleashed/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.hcgmail.unleashed/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.hcgmail.unleashed/icon.png
+Filename: debs/com.hakmicapitalgroup.hcgmail.unleashed_0.1.0~beta1_iphoneos-arm64.deb
+Size: 43663718
+MD5sum: a5cc0f2919aa39bc9aeb491d651b26fe
+SHA1: 9ebbe0c89276f3293f9755c457cb38a0ab98e21b
+SHA256: ac4b31b10dbdf9f060b6e02274c3123c4e95045b8ba3b458f77f99387563099a
+SHA512: 3099d54cb8781776a33ed92cd6b1f0104897a65d7aed13fd099591f1bc40cd90e931c51cec4cf36afef4fd6813df79b30f3d402c8ab8f72f4c0177bf4e868be9
+
+Package: com.hakmicapitalgroup.hcgnexus
+Name: HCG Nexus
+Description: HCG command panel behind a configurable cyan edge handle. Off after installation; enable it in Settings > HCG Nexus. Development build, not yet verified on a physical device.
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Tweaks
+Depends: mobilesubstrate | ellekit, preferenceloader
+Architecture: iphoneos-arm64
+Version: 0.2.1~beta1
+Installed-Size: 1460
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.hcgnexus/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.hcgnexus/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.hcgnexus/icon.png
+Filename: debs/com.hakmicapitalgroup.hcgnexus_0.2.1~beta1_iphoneos-arm64.deb
+Size: 450270
+MD5sum: f57986971991a732155c50e44596bed2
+SHA1: 8b983b6a88737b8243f64767a3d438ec9a67e111
+SHA256: 948465eaa30fd8cf1bc9fd98141362fe08c4e24ab0b23d788a39fa65d8ac17af
+SHA512: 4ee3ce1fe6176d65882ff16ee4f359fc6b3bc8027fc26003a56807832e40d4a6572fe5a6e559c480d4bcbd88ec1ac3598f3982b340f88618c9561b92b13ead52
+
+Package: com.hakmicapitalgroup.hcgnexus
+Name: HCG Nexus
+Description: HCG command panel behind a configurable cyan edge handle. With HCG Halo 0.2.0~beta1 or later installed, Halo can draw an animated border around the panel (optional). Off after installation; enable it in Settings > HCG Nexus. Development build, not yet verified on a physical device.
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Tweaks
+Depends: mobilesubstrate | ellekit, preferenceloader
+Architecture: iphoneos-arm64
+Version: 0.2.2~beta1
+Installed-Size: 1528
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.hcgnexus/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.hcgnexus/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.hcgnexus/icon.png
+Filename: debs/com.hakmicapitalgroup.hcgnexus_0.2.2~beta1_iphoneos-arm64.deb
+Size: 466766
+MD5sum: 504c150c24fe121f9f9c4d68f0f26f30
+SHA1: 11d9aa6b50791df97242b15c3eae8e15a7bd505b
+SHA256: 696b15849e6fcf60c8216e9187a353a3cb1256e1a88b57e968660d5138fb3f52
+SHA512: 5492299ec80d13e282dc820137bb23f247f7263205f5387fae0d82a308bb61b44b8cf2aacf98637f1e5dd699e6a4ea7a5b22197f28e8ea58f825e03d7e697db7
+
+Package: com.hakmicapitalgroup.hcgnexus
+Name: HCG Nexus
+Description: HCG command panel behind a configurable cyan edge handle: Overview, Workspaces, Tools, HCG Products, Apps and Account. Command Mode shows device status and HCG integration states. With HCG Halo 0.2.0~beta1 or later installed, Halo can draw an animated border around the panel (optional). Off after installation; enable it in Settings > HCG Nexus. Candidate build, not yet verified on a physical device.
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Tweaks
+Depends: mobilesubstrate | ellekit, preferenceloader
+Architecture: iphoneos-arm64
+Version: 0.3.1~beta1
+Installed-Size: 2636
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.hcgnexus/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.hcgnexus/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.hcgnexus/icon.png
+Filename: debs/com.hakmicapitalgroup.hcgnexus_0.3.1~beta1_iphoneos-arm64.deb
+Size: 1143570
+MD5sum: 54e51484e4f500944ac1189b5ecce6df
+SHA1: 003d81078cdbe5dbbf29aaa8610a23930f4f4f71
+SHA256: b6750cf12d7ab4ebcf5542cef0496945211d8226152a4c45e57e40adaf6741c3
+SHA512: 3971997ef0a512fd9fb9914c1772783013b1184301493a2acbc137430bc45f4616b3b842a08695be0b4f4148b74ca92ebf73af3c7f1e69cb0171a67925428573
+
+Package: com.hakmicapitalgroup.hcgnexus
+Name: HCG Nexus
+Description: HCG command panel behind a configurable cyan edge handle: Overview, Workspaces, Tools, HCG Products, Apps and Account. Command Mode shows device status and HCG integration states. Use HCG Halo border (Appearance) switches HCG Halo 0.3.1~beta1's animated panel border on or off without its screen-edge light; Nexus keeps its own outline without HCG Halo. HCG Products opens HCG Terminal and, with a Terminal build that supports it, a saved connection you then connect yourself. Off after installation; enable it in Settings > HCG Nexus. Candidate build, not yet verified on a physical device.
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Tweaks
+Depends: mobilesubstrate | ellekit, preferenceloader
+Architecture: iphoneos-arm64
+Version: 0.3.2~beta1
+Installed-Size: 2760
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.hcgnexus/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.hcgnexus/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.hcgnexus/icon.png
+Filename: debs/com.hakmicapitalgroup.hcgnexus_0.3.2~beta1_iphoneos-arm64.deb
+Size: 1197154
+MD5sum: 27a614c10eefb6255a10ca257d4f08b2
+SHA1: de7ae39205e72b8569c99c2ee80d9fa479e7d1b3
+SHA256: e5e5f0f46b2023470d9d76070d7d666339735e9c31b4aa19b5eae3684a38ad56
+SHA512: e421ebffd04df30ab9b5cdc55e748f699d20c5d957f63948b6645106dac9a32a4f5ca82440e697e87cbef927ba533025330551d6cf7ef845ccb15a2eb888a123
+
+Package: com.hakmicapitalgroup.hcgnexus
+Name: HCG Nexus
+Description: HCG command panel behind a configurable cyan edge handle: Overview, Workspaces, Tools, HCG Products, Apps and Account. Command Mode shows device status and HCG integration states. Use HCG Halo border (Appearance) switches HCG Halo 0.3.1~beta1's animated panel border on or off without its screen-edge light; Nexus keeps its own outline without HCG Halo. HCG Products opens HCG Terminal and, with a Terminal build that supports it, a saved connection you then connect yourself. Off after installation; enable it in Settings > HCG Nexus. Candidate build, not yet verified on a physical device.
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Tweaks
+Depends: mobilesubstrate | ellekit, preferenceloader
+Architecture: iphoneos-arm64
+Version: 0.3.3~beta1
+Installed-Size: 2760
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.hcgnexus/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.hcgnexus/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.hcgnexus/icon.png
+Filename: debs/com.hakmicapitalgroup.hcgnexus_0.3.3~beta1_iphoneos-arm64.deb
+Size: 1199034
+MD5sum: b8744e70dde96f74b18f6df49db072da
+SHA1: e04bdfd1003b92efac2b998ffaec75a290c47ac8
+SHA256: e42efb6da782fba82d48ee678495dfdb5df4cc0c501da9383102b3e2d25e9c6f
+SHA512: d8c283a1c7f0c2da7dca58b5f8ea4ae7aada846cc9bcaf54ac173f6cfb93ddfed809fbb21005c889891da540b0cfbf5287366a2b07052fdd4d1609ee6a0f988b
+
+Package: com.hakmicapitalgroup.hcgsentinel
+Name: HCG Sentinel
+Version: 0.1.0~beta1
+Architecture: iphoneos-arm64
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Applications
+Depends: firmware (>= 15.0), uikittools
+Installed-Size: 6496
+Description: Toolkit for authorised testing of your own devices, networks and services. Candidate beta of the standard app, packaged for rootless jailbreaks.
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.hcgsentinel/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.hcgsentinel/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.hcgsentinel/icon.png
+Filename: debs/com.hakmicapitalgroup.hcgsentinel_0.1.0~beta1_iphoneos-arm64.deb
+Size: 4899018
+MD5sum: d7a1fe3b7347549d08829bbfd1e765ea
+SHA1: 08b3b3a3ad49b5d319b8ac45bef106049155562c
+SHA256: f1111fef7ab0b5da000c6134905b29f571597b98938b6ce09e11f75643e73846
+SHA512: 59fd8d88caf1c6101537bf159da5192c4b679b8b2f1034114a18cb8e2a69da64d411dd7bb96e84ad72a6e92ba6ff62b47f232da3da19a8ea76db340b17a56c49
+
+Package: com.hakmicapitalgroup.hcgterminal.unleashed
+Name: HCG Terminal Unleashed
+Version: 0.2.0~rc1
+Architecture: iphoneos-arm64
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Terminal_Support
+Depends: firmware (>= 17.0), uikittools
+Description: Jailbreak edition of HCG Terminal: a local shell in a pseudo-terminal with job control, using only the access the device already grants. Never elevates by itself. App 0.2.0 (1), revision 1cc76a791cf7.
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.hcgterminal.unleashed/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.hcgterminal.unleashed/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.hcgterminal.unleashed/icon.png
+Header: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.hcgterminal.unleashed/header.jpg
+Filename: debs/com.hakmicapitalgroup.hcgterminal.unleashed_0.2.0~rc1_iphoneos-arm64.deb
+Size: 7020986
+MD5sum: ead25d8aaf0ada6e7850f1d4fc792763
+SHA1: 7da391256d3eb5aabc2f53f42d4325f6e555fff5
+SHA256: 02626804763200f9e29d651a213bdb92330351d3052073e6a52cb86d62fc5a28
+SHA512: 2c80a821c699beadcef9282f59f3882c75fcb4b9a8416b26b8af0c1306dcb165d69a8e74e95b3eab9976f1897b63a86e4f17a3e234810062d8f8116b7d6f06f6
+
+Package: com.hakmicapitalgroup.hcgterminal.unleashed
+Name: HCG Terminal Unleashed
+Version: 0.2.0~rc2
+Architecture: iphoneos-arm64
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Terminal_Support
+Depends: firmware (>= 17.0), uikittools
+Description: Jailbreak edition of HCG Terminal: a local shell in a pseudo-terminal with job control, using only the access the device already grants. Never elevates by itself. App 0.2.0 (2), revision 22912b4c7dc0.
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.hcgterminal.unleashed/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.hcgterminal.unleashed/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.hcgterminal.unleashed/icon.png
+Header: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.hcgterminal.unleashed/header.jpg
+Filename: debs/com.hakmicapitalgroup.hcgterminal.unleashed_0.2.0~rc2_iphoneos-arm64.deb
+Size: 7053756
+MD5sum: f48a194fecc463c1de3b6799476e3219
+SHA1: e53cfcbd2a5c7cd2507e87cb61323a3cd0bbdcda
+SHA256: 597eb8f11519c9a91a0daa8c72eb9f70f5e38c4fc2e1ffaba469d8420606ff84
+SHA512: e6d68b07fd005150c70166ac6a08400ceffa048e88a8f8e2d8279f306b9028af808f4585ea932c4b8954efc0b17babd701b1b9bc6699eae9134625fb78b55bee
+
+Package: com.hakmicapitalgroup.portal
+Name: HCG Portal (Beta)
+Description: Free public beta demo. HCG Portal adds a luminous, interactive portal to the Lock Screen, below the clock and above notifications: a dark translucent centre with slowly turning cyan-and-violet energy rings. Tap it for a radial menu (Nexus, Backgrounds, Devices, HCG Apps); every destination asks for Face ID, Touch ID or your passcode first, and cancelling opens nothing. Adjustable position, size, colour, brightness, speed and intensity, with a live preview. Moves, shrinks or collapses around notifications, media controls, the flashlight and the camera. Off after installation; enable it in Settings. Not yet device-tested.
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Tweaks
+Depends: mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)
+Tag: purpose::extension, role::enduser
+Architecture: iphoneos-arm64
+Version: 0.1.0~beta1
+Installed-Size: 880
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.portal/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.portal/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.portal/icon.png
+Filename: debs/com.hakmicapitalgroup.portal_0.1.0~beta1_iphoneos-arm64.deb
+Size: 273714
+MD5sum: 8211c2d54a72bcf24921800316dec3c7
+SHA1: ee32747135b521982eac8e2930167220aa8e9bbd
+SHA256: 9ccfeb9b6b832edb3e8745c8e1774d93cc5623ebde1023102cf95bb139220dae
+SHA512: 0654d42522b5c84ac604b0144bd038ca897e7f8fca57bacea382fc9a721c84726eff8fe32660916ddaba4c93de83217763c7ea39809fe20ab355afc5f7f61d62
+
+Package: com.hakmicapitalgroup.portal
+Name: HCG Portal (Beta)
+Description: Free public beta demo. HCG Portal adds a luminous, interactive portal to the Lock Screen, below the clock and above notifications: a dark translucent centre with slowly turning cyan-and-violet energy rings. Tap it for a radial menu (Nexus, Backgrounds, Devices, HCG Apps); every destination asks for Face ID, Touch ID or your passcode first, and cancelling opens nothing. Adjustable position, size, colour, brightness, speed and intensity, with a live preview. Moves, shrinks or collapses around notifications, media controls, the flashlight and the camera. Off after installation; enable it in Settings. Lock Screen lifecycle hardening test build. Real-device verification pending.
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Tweaks
+Depends: mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)
+Tag: purpose::extension, role::enduser
+Architecture: iphoneos-arm64
+Version: 0.1.0~beta3
+Installed-Size: 896
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.portal/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.portal/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.portal/icon.png
+Filename: debs/com.hakmicapitalgroup.portal_0.1.0~beta3_iphoneos-arm64.deb
+Size: 284190
+MD5sum: 86f60969f6afe57fa3d3e2cc003a6767
+SHA1: e2f13fb758b8d6330d3279067bd6bc9970a5d04e
+SHA256: 9af1575a368d53537c7c094240d030704c1b45d3bc0b7616de945abe9a8dcb34
+SHA512: 616e5b56696e7eef0a3a9e116effd9777fb7d15d3a564c87da8df7c1fd138990308cbd2d1206137d0283c82597b0ca10766c99e36d63161a8b556fb0f3437fd4
+
+Package: com.hakmicapitalgroup.portal
+Name: HCG Portal (Beta)
+Description: Beta test build. HCG Portal adds a luminous, interactive portal to the Cover Sheet of an unlocked iPhone, below the clock and above notifications: a dark translucent centre with slowly turning cyan-and-violet energy rings. It appears only after iOS has unlocked the iPhone (Face ID, Touch ID or passcode) and never on the locked Lock Screen; locking removes it at once. Tap it for a radial menu (Nexus, Backgrounds, Devices, HCG Apps). Adjustable position, size, colour, brightness, speed and intensity, with a live preview. Moves, shrinks or collapses around notifications, media controls, the flashlight and the camera. Off after installation; enable it in Settings. Unlock gating and touch repair development build. Real-device verification pending.
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Tweaks
+Depends: mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)
+Tag: purpose::extension, role::enduser
+Architecture: iphoneos-arm64
+Version: 0.1.0~beta4
+Installed-Size: 912
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.portal/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.portal/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.portal/icon.png
+Filename: debs/com.hakmicapitalgroup.portal_0.1.0~beta4_iphoneos-arm64.deb
+Size: 293942
+MD5sum: 5d21fdf40845a7195bff121ce8c18eaa
+SHA1: fd26a53f3ce9dd8419ac5b3c8feae40f3d393283
+SHA256: 8a186d99a63d38c2bc4fb25d40bcfd773bbc042e5309063e0a87fc4d584164e4
+SHA512: 9a85dd4fb3a080ce2ba0b9cb2afda698022d4d1f42a27b49e8788df5948b460d972419fde3a72f31dc31ebf4194975f95e3437ae7feec44e238ea9a991999b4f
+
+Package: com.hakmicapitalgroup.vortex
+Name: HCG Vortex (Beta)
+Description: Free experimental beta. HCG Vortex is an advanced Home Screen animation engine featuring directional overrides, customizable transitions, and modular animation effects.
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Tweaks
+Depends: mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)
+Tag: purpose::extension, role::enduser
+Architecture: iphoneos-arm64
+Version: 0.1.0~beta1
+Installed-Size: 564
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.vortex/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.vortex/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.vortex/icon.png
+Filename: debs/com.hakmicapitalgroup.vortex_0.1.0~beta1_iphoneos-arm64.deb
+Size: 81650
+MD5sum: 9f5e3ef9f85706d7ffa5b8c99dc62179
+SHA1: 379a8926d458562a0cae3069698368e9cc9e68ca
+SHA256: bb0af72745a36158d4022c1b97ebc9800847cf4b1fb42ca14d05b9fc07673eea
+SHA512: fd0915ee7f204fe48925b9812cf000fe3213c221a63019fa6940bebff0d1b854bfbdb628b4d929ceed441a3c6ae8c673714dd46a1166c6fce8f18bc2c9cb5932
+
+Package: com.hakmicapitalgroup.vortex
+Name: HCG Vortex (Beta)
+Description: Packaging compatibility candidate — installation fix not yet device-verified. Free experimental beta. HCG Vortex is an advanced Home Screen animation engine featuring directional overrides, customizable transitions, and modular animation effects.
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Tweaks
+Depends: mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)
+Tag: purpose::extension, role::enduser
+Architecture: iphoneos-arm64
+Version: 0.1.0~beta2
+Installed-Size: 564
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.vortex/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.vortex/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.vortex/icon.png
+Filename: debs/com.hakmicapitalgroup.vortex_0.1.0~beta2_iphoneos-arm64.deb
+Size: 136634
+MD5sum: 9fc97060bc18e2666397782a5ab42ebe
+SHA1: d119b4e953146d5541bfe4615844eb3361654918
+SHA256: a326759a697899ee938b3db3ccc62521994c01084880b43802c0769f90179395
+SHA512: 68e45cc26c3db1c4d3e8a438df24d71b5afaebfb736fbbc4e2d425e9df55cd8130447c4ca9e9664502337b6e9529ffc2c7dae7f59b4460242cfc4617ecf8689a
+
+Package: com.hakmicapitalgroup.vortex
+Name: HCG Vortex (Beta)
+Description: Free experimental beta: Tornado, Orbital, Warp, Holographic Layers, Circuit Flow and Magnetic Grid icon effects. Not yet tested on a device. HCG Vortex is an advanced Home Screen animation engine featuring directional overrides, customizable transitions, and modular animation effects.
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Tweaks
+Depends: mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)
+Tag: purpose::extension, role::enduser
+Architecture: iphoneos-arm64
+Version: 0.3.0~beta1
+Installed-Size: 784
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.vortex/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.vortex/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.vortex/icon.png
+Filename: debs/com.hakmicapitalgroup.vortex_0.3.0~beta1_iphoneos-arm64.deb
+Size: 223676
+MD5sum: 82d6e038e484b956eeb2be85ab42fc10
+SHA1: 2111cdee78e45069b020792698ce06eb9dfd8fa0
+SHA256: 0711465af25edbeff302baa7dbedfc5725bb0f0ca77b1b15133a82f7fc5e55d6
+SHA512: 7212ff7b145bb8e026e6d5553528269bc3ee78ee4c3fd5083fccc190d8bc05b1413ccbd19ad6d9831884874cd6fa61c694a5e66e73ce93cb6844af164f0d5a1a
+
+Package: com.hakmicapitalgroup.vortex
+Name: HCG Vortex (Beta)
+Description: Free experimental beta (polish and fixes): Tornado, Orbital, Warp, Holographic Layers, Circuit Flow and Magnetic Grid icon effects. Partially tested on one device. HCG Vortex is an advanced Home Screen animation engine featuring directional overrides, customizable transitions, and modular animation effects.
+Maintainer: Hakmi Capital Group
+Author: Hakmi Capital Group
+Section: Tweaks
+Depends: mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)
+Tag: purpose::extension, role::enduser
+Architecture: iphoneos-arm64
+Version: 0.3.1~beta1
+Installed-Size: 804
+Depiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.vortex/
+SileoDepiction: https://repo.hakmicapitalgroup.com/repo/candidate/depictions/com.hakmicapitalgroup.vortex/sileo.json
+Icon: https://repo.hakmicapitalgroup.com/repo/candidate/assets/com.hakmicapitalgroup.vortex/icon.png
+Filename: debs/com.hakmicapitalgroup.vortex_0.3.1~beta1_iphoneos-arm64.deb
+Size: 227306
+MD5sum: d798528638bfac876a6830ab3d627b92
+SHA1: 70361b38054f436849ba2371aee0401da1d76c43
+SHA256: ff1d1b5f78ec79b149460f93c5735505ae04270f2a57a592debf440f62f19e42
+SHA512: 9ee0fc0b794ba08f16f8b341d3fd386c6f9748dbf4e3c9b863726d715b48f35d412eca484dba3a85912826498ec61c9a784086aa78c305bc573ea0a5fc889fc1

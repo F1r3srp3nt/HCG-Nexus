@@ -1,0 +1,866 @@
+{
+  "format": "hcg.repo.compatibility",
+  "formatVersion": 1,
+  "levels": [
+    "static_inspection",
+    "maintainer_script_review",
+    "script_free_lifecycle",
+    "device_installation",
+    "application_launch",
+    "runtime_verification"
+  ],
+  "note": "script_free_lifecycle ran dpkg on a copy without maintainer scripts; it does not prove the scripts or the app work. Device levels come only from recorded device tests.",
+  "packages": [
+    {
+      "last_launched_version": null,
+      "last_verified_version": null,
+      "name": "HCG Animation Center",
+      "package": "com.hakmicapitalgroup.animationcenter",
+      "product": "hcg-animation-center",
+      "versions": [
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.animationcenter_0.1.0~beta1_iphoneos-arm64.deb",
+            "sha256": "27a161b3cc323f09940211553b058873218697b49c995812f04e579f97429f60",
+            "size": 360342,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [],
+          "label": "Experimental beta \u2014 Simulator-tested; not yet device-tested.",
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.1.0~beta1"
+        }
+      ]
+    },
+    {
+      "last_launched_version": null,
+      "last_verified_version": "0.1.0~beta1",
+      "name": null,
+      "package": "com.hakmicapitalgroup.halo",
+      "product": null,
+      "versions": [
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.halo_0.1.0~beta1_iphoneos-arm64.deb",
+            "sha256": "c0a3301c9b38cdac812d439fb919c3a77bfcb7999c52ea174d799e88ba24c9af",
+            "size": 264782,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [
+            {
+              "date": "2026-11-18",
+              "device": "iPhone 11 Pro Max",
+              "ios": "17.4 (owner-confirmed setup of this phone, 17 Nov 2026; not shown in the recording)",
+              "jailbreak": "Dopamine 2.x (rootless)",
+              "result": "partial",
+              "stage": "runtime"
+            }
+          ],
+          "label": "Free public beta demo \u2014 seen running on an iPhone 11 Pro Max (owner report and recording); partial, not a full device test.",
+          "levels": {
+            "application_launch": "partial",
+            "device_installation": "passed",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Physical installation passed",
+          "tested_jailbreaks": [
+            "Dopamine 2.x (rootless)"
+          ],
+          "version": "0.1.0~beta1"
+        },
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.halo_0.2.0~beta1_iphoneos-arm64.deb",
+            "sha256": "391a4421de98225169e0f1ba37b63bd3b7cc4b5321d00dbed7b689be85ae6e54",
+            "size": 391074,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [],
+          "label": "Free public beta demo \u2014 adds the optional HCG Nexus panel border; simulator-tested, real-device testing pending.",
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.2.0~beta1"
+        },
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.halo_0.3.0~beta1_iphoneos-arm64.deb",
+            "sha256": "bd8a926667b8ebec5b2a200fc8d8a14bcd21a9a2919e0475ec97a479381defc5",
+            "size": 431720,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [],
+          "label": "Free public beta demo \u2014 adds Show Halo on and the Display Zoom fix; simulator-tested, real-device testing pending.",
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.3.0~beta1"
+        },
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.halo_0.3.1~beta1_iphoneos-arm64.deb",
+            "sha256": "6a2117b381cb2a562f1d4adc76e7ae8c74f85c0f6951b0f4b41df069d802a23b",
+            "size": 436608,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [],
+          "label": null,
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.3.1~beta1"
+        }
+      ]
+    },
+    {
+      "last_launched_version": null,
+      "last_verified_version": null,
+      "name": null,
+      "package": "com.hakmicapitalgroup.hcgmail.unleashed",
+      "product": null,
+      "versions": [
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.hcgmail.unleashed_0.1.0~beta1_iphoneos-arm64.deb",
+            "sha256": "ac4b31b10dbdf9f060b6e02274c3123c4e95045b8ba3b458f77f99387563099a",
+            "size": 43663718,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [
+            {
+              "date": "2026-11-25",
+              "device": "Owner's jailbroken iPhone (model not yet reported)",
+              "ios": "not yet reported",
+              "jailbreak": "rootless (version not yet reported), Zebra",
+              "result": "fail",
+              "stage": "runtime"
+            }
+          ],
+          "label": "Failed physical-device launch test (owner's jailbroken iPhone, 25 Nov 2026): installs, then closes at launch.",
+          "levels": {
+            "application_launch": "failed",
+            "device_installation": "passed",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "passed",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "firmware (>= 16.0), uikittools",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "16.0"
+          },
+          "status": "Known incompatible",
+          "tested_jailbreaks": [
+            "rootless (version not yet reported), Zebra"
+          ],
+          "version": "0.1.0~beta1"
+        }
+      ]
+    },
+    {
+      "last_launched_version": null,
+      "last_verified_version": null,
+      "name": "HCG Nexus",
+      "package": "com.hakmicapitalgroup.hcgnexus",
+      "product": "hcg-nexus",
+      "versions": [
+        {
+          "access": "paid",
+          "architecture": "iphoneos-arm64",
+          "available": false,
+          "channel": "stable",
+          "download": null,
+          "known_failures": [],
+          "label": null,
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "mobilesubstrate | ellekit, preferenceloader",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.2.0"
+        },
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.hcgnexus_0.2.1~beta1_iphoneos-arm64.deb",
+            "sha256": "948465eaa30fd8cf1bc9fd98141362fe08c4e24ab0b23d788a39fa65d8ac17af",
+            "size": 450270,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [],
+          "label": "Free public beta demo \u2014 owner reports Nexus running on iPhone 13 Pro (version not stated); not yet a recorded device test.",
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "mobilesubstrate | ellekit, preferenceloader",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.2.1~beta1"
+        },
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.hcgnexus_0.2.2~beta1_iphoneos-arm64.deb",
+            "sha256": "696b15849e6fcf60c8216e9187a353a3cb1256e1a88b57e968660d5138fb3f52",
+            "size": 466766,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [],
+          "label": "Superseded by 0.3.1~beta1 \u2014 0.2.1~beta1 plus the HCG Halo border interface; not yet device-tested.",
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "mobilesubstrate | ellekit, preferenceloader",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.2.2~beta1"
+        },
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.hcgnexus_0.3.1~beta1_iphoneos-arm64.deb",
+            "sha256": "b6750cf12d7ab4ebcf5542cef0496945211d8226152a4c45e57e40adaf6741c3",
+            "size": 1143570,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [],
+          "label": "Free public demo \u2014 redesign + Command Mode + HCG Halo border interface; simulator-tested, real-device testing pending.",
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "mobilesubstrate | ellekit, preferenceloader",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.3.1~beta1"
+        },
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.hcgnexus_0.3.2~beta1_iphoneos-arm64.deb",
+            "sha256": "e5e5f0f46b2023470d9d76070d7d666339735e9c31b4aa19b5eae3684a38ad56",
+            "size": 1197154,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [],
+          "label": null,
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "mobilesubstrate | ellekit, preferenceloader",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.3.2~beta1"
+        },
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.hcgnexus_0.3.3~beta1_iphoneos-arm64.deb",
+            "sha256": "e42efb6da782fba82d48ee678495dfdb5df4cc0c501da9383102b3e2d25e9c6f",
+            "size": 1199034,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [],
+          "label": null,
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "mobilesubstrate | ellekit, preferenceloader",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.3.3~beta1"
+        }
+      ]
+    },
+    {
+      "last_launched_version": null,
+      "last_verified_version": null,
+      "name": "HCG Sentinel",
+      "package": "com.hakmicapitalgroup.hcgsentinel",
+      "product": "hcg-sentinel",
+      "versions": [
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.hcgsentinel_0.1.0~beta1_iphoneos-arm64.deb",
+            "sha256": "f1111fef7ab0b5da000c6134905b29f571597b98938b6ce09e11f75643e73846",
+            "size": 4899018,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [],
+          "label": null,
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "firmware (>= 15.0), uikittools",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.1.0~beta1"
+        }
+      ]
+    },
+    {
+      "last_launched_version": null,
+      "last_verified_version": null,
+      "name": "HCG Terminal Unleashed",
+      "package": "com.hakmicapitalgroup.hcgterminal.unleashed",
+      "product": "hcg-terminal-unleashed",
+      "versions": [
+        {
+          "access": "connect",
+          "architecture": "iphoneos-arm64",
+          "available": false,
+          "channel": "stable",
+          "download": null,
+          "known_failures": [],
+          "label": null,
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "firmware (>= 17.0)",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "17.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.1.0-1"
+        },
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.hcgterminal.unleashed_0.2.0~rc1_iphoneos-arm64.deb",
+            "sha256": "02626804763200f9e29d651a213bdb92330351d3052073e6a52cb86d62fc5a28",
+            "size": 7020986,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [
+            {
+              "date": "2026-11-24",
+              "device": "iPhone 11 Pro Max",
+              "ios": "17.4",
+              "jailbreak": "Dopamine (rootless)",
+              "result": "fail",
+              "stage": "runtime"
+            }
+          ],
+          "label": "Failed physical-device launch test (iPhone 11 Pro Max, iOS 17.4, Dopamine, 2026-11-24): closes at launch. Use 0.2.0~rc2.",
+          "levels": {
+            "application_launch": "failed",
+            "device_installation": "passed",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "firmware (>= 17.0), uikittools",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "17.0"
+          },
+          "status": "Known incompatible",
+          "tested_jailbreaks": [
+            "Dopamine (rootless)"
+          ],
+          "version": "0.2.0~rc1"
+        },
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.hcgterminal.unleashed_0.2.0~rc2_iphoneos-arm64.deb",
+            "sha256": "597eb8f11519c9a91a0daa8c72eb9f70f5e38c4fc2e1ffaba469d8420606ff84",
+            "size": 7053756,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [],
+          "label": "Experimental, pending device verification: free Candidate-only test build with startup recovery and Safe Mode.",
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "firmware (>= 17.0), uikittools",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "17.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.2.0~rc2"
+        }
+      ]
+    },
+    {
+      "last_launched_version": null,
+      "last_verified_version": null,
+      "name": null,
+      "package": "com.hakmicapitalgroup.portal",
+      "product": null,
+      "versions": [
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.portal_0.1.0~beta1_iphoneos-arm64.deb",
+            "sha256": "9ccfeb9b6b832edb3e8745c8e1774d93cc5623ebde1023102cf95bb139220dae",
+            "size": 273714,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [],
+          "label": "Superseded by 0.1.0~beta3 \u2014 SpringBoard Safe Mode reported during installation (cause not confirmed).",
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.1.0~beta1"
+        },
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.portal_0.1.0~beta3_iphoneos-arm64.deb",
+            "sha256": "9af1575a368d53537c7c094240d030704c1b45d3bc0b7616de945abe9a8dcb34",
+            "size": 284190,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [],
+          "label": "Superseded by 0.1.0~beta4 \u2014 Lock Screen build; the portal may be drawn but not respond to taps. Simulator validated only.",
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.1.0~beta3"
+        },
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.portal_0.1.0~beta4_iphoneos-arm64.deb",
+            "sha256": "8a186d99a63d38c2bc4fb25d40bcfd773bbc042e5309063e0a87fc4d584164e4",
+            "size": 293942,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [],
+          "label": "Experimental beta \u2014 works only after iOS unlocks; touch repair; Simulator validated, physical iPhone validation pending.",
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.1.0~beta4"
+        }
+      ]
+    },
+    {
+      "last_launched_version": null,
+      "last_verified_version": null,
+      "name": "HCG Vortex",
+      "package": "com.hakmicapitalgroup.vortex",
+      "product": "hcg-vortex",
+      "versions": [
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.vortex_0.1.0~beta1_iphoneos-arm64.deb",
+            "sha256": "bb0af72745a36158d4022c1b97ebc9800847cf4b1fb42ca14d05b9fc07673eea",
+            "size": 81650,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [
+            {
+              "date": "2026-11-17",
+              "device": "iPhone 11 Pro Max",
+              "ios": "17.4",
+              "jailbreak": "Dopamine 2.x (rootless), Zebra 1.1.x",
+              "result": "fail",
+              "stage": "install"
+            }
+          ],
+          "label": "Known incompatible: failed to install (unpack) on iPhone 11 Pro Max, iOS 17.4, Dopamine 2.x, Zebra 1.1.x (2026-11-17). Use a later version.",
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "failed",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Known incompatible",
+          "tested_jailbreaks": [
+            "Dopamine 2.x (rootless), Zebra 1.1.x"
+          ],
+          "version": "0.1.0~beta1"
+        },
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.vortex_0.1.0~beta2_iphoneos-arm64.deb",
+            "sha256": "a326759a697899ee938b3db3ccc62521994c01084880b43802c0769f90179395",
+            "size": 136634,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [],
+          "label": "Packaging compatibility candidate \u2014 installation and runtime not yet device-verified.",
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.1.0~beta2"
+        },
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.vortex_0.3.0~beta1_iphoneos-arm64.deb",
+            "sha256": "0711465af25edbeff302baa7dbedfc5725bb0f0ca77b1b15133a82f7fc5e55d6",
+            "size": 223676,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [],
+          "label": "Experimental beta \u2014 a phone recording shows 3 of 6 effects running, with visual bugs; installed version not confirmed",
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.3.0~beta1"
+        },
+        {
+          "access": "public",
+          "architecture": "iphoneos-arm64",
+          "available": true,
+          "channel": "candidate",
+          "download": {
+            "filename": "debs/com.hakmicapitalgroup.vortex_0.3.1~beta1_iphoneos-arm64.deb",
+            "sha256": "ff1d1b5f78ec79b149460f93c5735505ae04270f2a57a592debf440f62f19e42",
+            "size": 227306,
+            "source": "repo/candidate/"
+          },
+          "known_failures": [],
+          "label": "Experimental beta \u2014 fixes the visual bugs seen in the 0.3.0 recording; not yet installed on a device",
+          "levels": {
+            "application_launch": "not-recorded",
+            "device_installation": "not-recorded",
+            "maintainer_script_review": "not-recorded",
+            "runtime_verification": "not-recorded",
+            "script_free_lifecycle": "not-recorded",
+            "static_inspection": "passed"
+          },
+          "requirements": {
+            "depends": "mobilesubstrate (>= 0.9.5000), preferenceloader, firmware (>= 15.0)",
+            "jailbreak": "a rootless jailbreak (layout requirement, not a compatibility claim)",
+            "layout": "rootless",
+            "maximum_ios": null,
+            "minimum_ios": "15.0"
+          },
+          "status": "Static validation passed",
+          "tested_jailbreaks": [],
+          "version": "0.3.1~beta1"
+        }
+      ]
+    }
+  ],
+  "statuses": [
+    "Untested",
+    "Static validation passed",
+    "Lifecycle validation passed",
+    "Physical installation passed",
+    "Physical launch passed",
+    "Known incompatible",
+    "Withdrawn"
+  ]
+}

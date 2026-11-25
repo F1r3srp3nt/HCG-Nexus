@@ -35,3 +35,7 @@
 #import "HCGCommandMode.h"
 #import "HCGPackageIndex.h"
 #import "HCGInterchange.h"
+#import "HCGDigest.h"
+#import "HCGOpenPGP.h"
+#import "HCGRepoTrust.h"
+#import "HCGTrustRecords.h"

@@ -103,6 +103,10 @@
 			isa = PBXBuildFile;
 			fileRef = 3B2B813C1265303959118322;
 		};
+		623C76750505BF64E008D5EF /* HCGDigest.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = C117A6F8C0B6087F48EACA52;
+		};
 		636366564C619A050B091CFE /* HCGAppLibrary.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 2846CFC12CFA43627359273A;
@@ -139,6 +143,10 @@
 			isa = PBXBuildFile;
 			fileRef = 7EEACED9F2B07D3A22B80217;
 		};
+		770B3ACCAE0565278CF75931 /* HCGTrustRecords.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 654D2A33B7591CFCCAAB7EA4;
+		};
 		7CE427E6D2E461840C4CCC27 /* HCGCommandMode.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 958CFF062160CC947DCB2C66;
@@ -150,6 +158,10 @@
 		8105ACE2A4AB2314CCD7B344 /* HCGDeviceStatusMonitor.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = E1FBBECA914FBC93D6181E9E;
+		};
+		8121790EF05B9C6DE3BD736C /* HCGOpenPGP.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = D424D2E2C059560735A4038A;
 		};
 		8F3A0B6580A55AD425BF84C9 /* UIKit.framework in Frameworks */ = {
 			isa = PBXBuildFile;
@@ -170,6 +182,10 @@
 		9CCFF03681E69B36AC362AC2 /* HCGPackageIndex.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 056DE006288A2972FC3E57DC;
+		};
+		AAFB17DF0EAC16FC0DCAD632 /* HCGRepoTrust.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = A4C84690BDDB5F30B5EEBBD7;
 		};
 		AB9E6DC7C31FED85F6932247 /* HCGIntegrations.m in Sources */ = {
 			isa = PBXBuildFile;
@@ -540,6 +556,13 @@
 			path = Sources/Panel/HCGLauncher.h;
 			sourceTree = SOURCE_ROOT;
 		};
+		466CFC28FA2F140AB98E90F4 /* HCGTrustRecords.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGTrustRecords.h;
+			path = Sources/Core/HCGTrustRecords.h;
+			sourceTree = SOURCE_ROOT;
+		};
 		484D26FB7E55C542E6D33432 /* HCGCommandMode.h */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
@@ -659,6 +682,13 @@
 			path = Sources/Panel/HCGProductsViewController.m;
 			sourceTree = SOURCE_ROOT;
 		};
+		654D2A33B7591CFCCAAB7EA4 /* HCGTrustRecords.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGTrustRecords.m;
+			path = Sources/Core/HCGTrustRecords.m;
+			sourceTree = SOURCE_ROOT;
+		};
 		664EE36A0DC4025BD8116780 /* HCGToolCatalog.h */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
@@ -727,6 +757,13 @@
 			lastKnownFileType = sourcecode.swift;
 			name = HCGDeviceLinkService.swift;
 			path = Sources/Platform/App/DeviceLink/HCGDeviceLinkService.swift;
+			sourceTree = SOURCE_ROOT;
+		};
+		7DC1E35C1F94A769E180571D /* HCGRepoTrust.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGRepoTrust.h;
+			path = Sources/Core/HCGRepoTrust.h;
 			sourceTree = SOURCE_ROOT;
 		};
 		7E54E52E89E1165AF0EF238A /* HCGSearch.m */ = {
@@ -862,6 +899,13 @@
 			path = Sources/Core/HCGIntegrations.h;
 			sourceTree = SOURCE_ROOT;
 		};
+		A4C84690BDDB5F30B5EEBBD7 /* HCGRepoTrust.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGRepoTrust.m;
+			path = Sources/Core/HCGRepoTrust.m;
+			sourceTree = SOURCE_ROOT;
+		};
 		A4D581A24430C94CFD83FA2E /* HCGConstants.m */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
@@ -888,6 +932,13 @@
 			lastKnownFileType = sourcecode.c.objc;
 			name = HCGConnectedDevicesViewController.m;
 			path = Sources/Platform/App/DeviceLink/HCGConnectedDevicesViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		AB95A34EC9A7D3D9157E2DE4 /* HCGDigest.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGDigest.h;
+			path = Sources/Core/HCGDigest.h;
 			sourceTree = SOURCE_ROOT;
 		};
 		ADD859C76040FA4DD8D760B7 /* HCGDiagnostics.h */ = {
@@ -960,11 +1011,25 @@
 			path = Sources/Core/HCGAction.h;
 			sourceTree = SOURCE_ROOT;
 		};
+		BAD3163F263CDA46616B36A6 /* HCGOpenPGP.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGOpenPGP.h;
+			path = Sources/Core/HCGOpenPGP.h;
+			sourceTree = SOURCE_ROOT;
+		};
 		BDD210F0099F5937A90060FA /* HCGSections.h */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGSections.h;
 			path = Sources/Panel/HCGSections.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		C117A6F8C0B6087F48EACA52 /* HCGDigest.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGDigest.m;
+			path = Sources/Core/HCGDigest.m;
 			sourceTree = SOURCE_ROOT;
 		};
 		C2AD0FCD0FD826780A3326E6 /* HCGToolsViewController.h */ = {
@@ -1042,6 +1107,13 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGWorkspaceDetailViewController.h;
 			path = Sources/Panel/HCGWorkspaceDetailViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		D424D2E2C059560735A4038A /* HCGOpenPGP.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGOpenPGP.m;
+			path = Sources/Core/HCGOpenPGP.m;
 			sourceTree = SOURCE_ROOT;
 		};
 		D4EBFCC7FA742DD8967B7CA0 /* HCGTerminalHandoff.h */ = {
@@ -1309,6 +1381,8 @@
 				6D6F4DE6DEBDCBCE27304086,
 				ADD859C76040FA4DD8D760B7,
 				67EE213C3F1743224FE903E3,
+				AB95A34EC9A7D3D9157E2DE4,
+				C117A6F8C0B6087F48EACA52,
 				F90D1722EE8140719805CF13,
 				38F01A3CAEADC3AA86D51E53,
 				CA6127718A2AB7651B90A427,
@@ -1321,6 +1395,8 @@
 				5C8FF1673D757AE3C870386A,
 				6445B1C7CAF427BB12DF6AA4,
 				987BB1D3B1FB1A239D523FDD,
+				BAD3163F263CDA46616B36A6,
+				D424D2E2C059560735A4038A,
 				C8100ECE80083FA872EF6617,
 				8AF6734E2433E7E67718413A,
 				F1BF1695CD967DF00C11FB92,
@@ -1331,6 +1407,8 @@
 				CA02812DB72F15E131452B8A,
 				187646796C26C5BC3A00852D,
 				0A3E55034877A24B87DA9271,
+				7DC1E35C1F94A769E180571D,
+				A4C84690BDDB5F30B5EEBBD7,
 				63344EE2FA96F4DC54A9E0C8,
 				7E54E52E89E1165AF0EF238A,
 				FEEF4F3A1BAA702DCD372EF9,
@@ -1339,6 +1417,8 @@
 				E29FAFF8DE9AF819E42695AF,
 				664EE36A0DC4025BD8116780,
 				3EA66240A171612E980737CF,
+				466CFC28FA2F140AB98E90F4,
+				654D2A33B7591CFCCAAB7EA4,
 				3CDF01D2A25E4EE40B827538,
 				1DFF45AE3D3B9B02A39F2A74,
 				40149B2A094766AB4FC6E549,
@@ -1529,21 +1609,25 @@
 				7CE427E6D2E461840C4CCC27,
 				6FB811E50C5164543FAB9D80,
 				703A2FCF13F45E4489E73A20,
+				623C76750505BF64E008D5EF,
 				C9382163EAAE1B7DF654F3F1,
 				6FADC1E9D5B4B52471645511,
 				AB9E6DC7C31FED85F6932247,
 				393060EA006155EACD42EDCE,
 				D267E31B775E4DAB97984534,
 				0817F77CEED62D43A2231F20,
+				8121790EF05B9C6DE3BD736C,
 				94C35AC56B68442714774FDF,
 				195064D9F80D74D3692B6974,
 				9CCFF03681E69B36AC362AC2,
 				5AD2BC50E7D54D6585F8FC95,
 				DDFC0EECC4214499EC764E61,
+				AAFB17DF0EAC16FC0DCAD632,
 				4264A2B8F7C5F1F160B56169,
 				DEEAFD716FB7DB4E434394C5,
 				0192CCF29037F66E3B28B4F3,
 				7155FA6EFCC85A2F92C0EAD5,
+				770B3ACCAE0565278CF75931,
 				B42A7AF819B521C15C7A2334,
 				5C803444F8AB813ACD73B0E4,
 				DA0D996AFCA3DAA4CD864D09,

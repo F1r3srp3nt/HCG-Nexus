@@ -1,0 +1,92 @@
+{
+  "format": "hcg.release-passport",
+  "formatVersion": 1,
+  "product": {
+    "key": "hcg-nexus",
+    "name": "HCG Nexus",
+    "store_slug": "hcg-nexus",
+    "central_id": null
+  },
+  "edition": "jailbreak",
+  "platform": "ios-jailbreak-rootless",
+  "architecture": "iphoneos-arm64",
+  "package": "com.hakmicapitalgroup.hcgnexus",
+  "version": "0.3.3~beta1",
+  "source": {
+    "repository": "F1r3srp3nt/HCG-Nexus",
+    "commit": "a58ff705d6853e48ff53ae9cbc87db3059274b84",
+    "branch": null
+  },
+  "build": {
+    "provider": "github-actions",
+    "toolchain": null,
+    "built_at": null,
+    "run_id": 44569229745,
+    "artifact": "hcg-nexus-rootless-deb"
+  },
+  "artifact": {
+    "filename": "com.hakmicapitalgroup.hcgnexus_0.3.3~beta1_iphoneos-arm64.deb",
+    "sha256": "e42efb6da782fba82d48ee678495dfdb5df4cc0c501da9383102b3e2d25e9c6f",
+    "size": 1199034
+  },
+  "validation": {
+    "levels": {
+      "static_inspection": {
+        "state": "passed",
+        "note": "passed HCG Repo's import validation (before v2)"
+      },
+      "maintainer_script_review": {
+        "state": "not-recorded"
+      },
+      "script_free_lifecycle": {
+        "state": "not-recorded"
+      },
+      "device_installation": {
+        "state": "not-recorded",
+        "evidence": []
+      },
+      "application_launch": {
+        "state": "not-recorded",
+        "evidence": []
+      },
+      "runtime_verification": {
+        "state": "not-recorded",
+        "evidence": []
+      }
+    }
+  },
+  "device_evidence": [],
+  "compatibility_status": "Static validation passed",
+  "approvals": [
+    {
+      "kind": "free-demo-approval",
+      "record": "Free public demo (no sign-in, no payment) in HCG Repo Candidate under the owner's free-demo policy for approved candidate builds, approved by the owner on 17 Nov 2026 (0.2.1~beta1) and 18 Nov 2026 (0.2.2~beta1 and 0.3.1~beta1: candidate builds of the HCG Halo \u00d7 HCG Nexus integration 'authorised as free public demos with no account or payment requirement', 'Candidate publication is already authorised'; 0.3.0~beta1: 'Candidate builds are free public demos', approved but never imported; 19 Nov 2026 for 0.3.2~beta1, with HCG Halo 0.3.1~beta1: 'Approved: import and publish HCG Nexus 0.3.2~beta1 and HCG Halo 0.3.1~beta1 together as free public betas in HCG Repo Candidate'; 21 Nov 2026 for 0.3.3~beta1: 'Approve publishing to repo candidate') for the versions in exception_versions only. HCG Nexus stays a paid product: 0.2.0 and every other version (including the 0.2.1 release) remain paid and protected, and any further free build needs its own approval.",
+      "scope": "this version, Candidate only"
+    }
+  ],
+  "distribution": {
+    "channel": "candidate",
+    "access": "public"
+  },
+  "repository_signing": {
+    "scope": "repository metadata (Release, InRelease, Release.gpg) of the channel that serves this package; not the application",
+    "configured": false,
+    "fingerprint": null,
+    "status": "unsigned: no production repository signing key configured yet"
+  },
+  "code_signing": {
+    "scope": "application code inside the package (Mach-O); independent of repository signing",
+    "method_claimed": null,
+    "binaries": 2,
+    "all_signed": true,
+    "entitlements": {}
+  },
+  "publication": {
+    "record_status": "published",
+    "in_index_builds": true,
+    "deployed": "not checked here: the Publish workflow deploys; bin/hcgrepo verify checks the live source",
+    "imported_at": "2026-11-21T08:04:43Z",
+    "withdrawn_at": null,
+    "withdrawn_reason": null
+  }
+}

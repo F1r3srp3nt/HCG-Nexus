@@ -1,0 +1,89 @@
+{
+  "format": "hcg.repo.monitor",
+  "formatVersion": 1,
+  "checked_at": "2026-11-25T16:51:55+00:00",
+  "target": "https://repo.hakmicapitalgroup.com/",
+  "status": "warning",
+  "read_only": true,
+  "checks": [
+    {
+      "id": "availability.stable",
+      "status": "ok",
+      "detail": "Release HTTP 200, Packages HTTP 200"
+    },
+    {
+      "id": "index.stable",
+      "status": "ok",
+      "detail": "Release lists the served Packages"
+    },
+    {
+      "id": "checksums.stable",
+      "status": "ok",
+      "detail": "every live checksum matches",
+      "items": []
+    },
+    {
+      "id": "unknown-packages.stable",
+      "status": "ok",
+      "detail": "every live package has a lock record",
+      "items": []
+    },
+    {
+      "id": "missing-packages.stable",
+      "status": "ok",
+      "detail": "nothing missing",
+      "items": []
+    },
+    {
+      "id": "signature.stable",
+      "status": "warning",
+      "detail": "unsigned (no production signing key configured yet)",
+      "signed": false
+    },
+    {
+      "id": "availability.candidate",
+      "status": "ok",
+      "detail": "Release HTTP 200, Packages HTTP 200"
+    },
+    {
+      "id": "index.candidate",
+      "status": "ok",
+      "detail": "Release lists the served Packages"
+    },
+    {
+      "id": "checksums.candidate",
+      "status": "ok",
+      "detail": "every live checksum matches",
+      "items": []
+    },
+    {
+      "id": "unknown-packages.candidate",
+      "status": "ok",
+      "detail": "every live package has a lock record",
+      "items": []
+    },
+    {
+      "id": "missing-packages.candidate",
+      "status": "ok",
+      "detail": "nothing missing",
+      "items": []
+    },
+    {
+      "id": "signature.candidate",
+      "status": "warning",
+      "detail": "unsigned (no production signing key configured yet)",
+      "signed": false
+    },
+    {
+      "id": "signing-key",
+      "status": "warning",
+      "detail": "no production signing key configured yet"
+    },
+    {
+      "id": "publication-origin",
+      "status": "ok",
+      "detail": "live build ec24cc85fd41 is a commit of origin/main",
+      "revision": "ec24cc85fd4129b71ff293ee34cac358cda446e0"
+    }
+  ]
+}

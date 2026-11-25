@@ -1,0 +1,48 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Origin: HCG Repo Candidate
+Label: HCG Repo Candidate
+Suite: candidate
+Version: 1.0
+Codename: hcg-candidate
+Date: Wed, 25 Nov 2026 10:01:52 GMT
+Architectures: iphoneos-arm64 iphoneos-arm
+Components: main
+Description: Testing channel for HCG tweaks, jailbreak apps and command-line tools. Builds here are betas: they may fail to install or misbehave. Jailbreak apps, tweaks and command-line tools by Hakmi Capital Group.
+MD5Sum:
+ b23593ac47920fed1e825805897899aa            30195 Packages
+ a5e0510cdf9a48fcf955165b6dc3b93a             6828 Packages.bz2
+ eb2cd14f32102979d0bad7f0cc4b418d             6788 Packages.gz
+ e78c71a56da1e9d4b0b4c208d1ee682b             6212 Packages.xz
+SHA1:
+ b9378e01d7d63b6ea649af31efc461a6a6ee3d0f            30195 Packages
+ 66f77bc4bb20010a436e754953697cfa5be5a608             6828 Packages.bz2
+ a3602b53d2738100fa4b53811ad06fe0dd56d7bc             6788 Packages.gz
+ 8c050fd4f9d69a85b9f4e83ee807f49a14b8b2dd             6212 Packages.xz
+SHA256:
+ 773ad9791d36d265a3defd5e7ef67dc09cd35e774780073e739f5d93a10993bc            30195 Packages
+ f4f2073616ccbefa4b9fb97f9b26c487160bac9d13c29fcade83710de04a1977             6828 Packages.bz2
+ d0076fbf7990e7972aa88adbbca2b14ddc6ebb0b946656481cdbcf7d1f5cda00             6788 Packages.gz
+ fa2cf0a03727ec2672c9fec0b119d204f014a9a8aafd72cc9581b5cb696476b6             6212 Packages.xz
+SHA512:
+ ce195a3e0af7dd2168a36e7cf76763e4f82af8534eae6005d14dc659de6317e9d856e20453910de2447312ac139f8fd5567c2cfeb2e32b3ac1d68b54f98aa7e6            30195 Packages
+ b1b69127bdc59e123cd033eebd37876ee1491544125bb19d9b654103b20048356f3e32f68ad168e66d679c08b43aea9a0a2e8ae71e2a0df1f0b1c79f683dfd9d             6828 Packages.bz2
+ 1a22cdc6629ef0df3802ed3b0577525cc4b915210931df6a665c62c9fc55d217f223fe176bf89506871c182a9d89ebb7760b078bfcc327ebe26c19bcadc091d7             6788 Packages.gz
+ 74c7af84b53972a72e191ca6b909c3ae3e298473dd9683c918099e1574dc3a717f5fa02e02f1791153432e281fa667828f5c1dc022c9c9d72c927ae68ed3db24             6212 Packages.xz
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEEIfv+WhGkVrRYlj8wE5q9WQi7PhcFAmsHElUACgkQE5q9WQi7
+Phc5Bg//W4ouZr1OzCmpdgiyAvif8TF6z+NyP+feq49F4+ic/jII9EJ+nj+2WdIj
+H3UszUIkJU7/Ap4aMNlJW1+yQPz0foBCatGKKK+qNTIIqpRqH9oyb7enfvWgNIMR
+EHaSNw0EbrbPybWtPGiP3noJDotrBtAzXYbfCQFiyrianfo/f9SJqZlNr7h9skm5
+MK84EhGQhzlkpZWYfBsAkZwThWBLPimLlHeVJmyiHPrH+v9/QdD1zAoE6ygSTIFg
+vHPcDPHmwFgRRS9L6HWfSZlFXzw2KonRysWXNGb2ijua3YUZbniCO5NJgeLubQ98
+eWw1Fh2O+g4vMsGVA85nr5fbRq7Jb+I53c/ihUkjLrXeMCjgdvSUEHhzIJibEwVK
+HeYRiqbt1ql7qNEY9ewp+ziBQduEBQqeyJJa8zDIzWpzSe2947Vhr8Ea/iPBztjl
+kdRoLXffnfFTvsSzqRuK02DMeSHqrARfWB+o7hYCCU0c/Fc1eIGaOxxabk17V0Af
+6HTrhbOv+fGCdrGIH0XOZOH25iPhC0sST5R2YCdQQHc7IL+rwPJISEuOD88fb89D
+oWbGTuukCZ8tTSdR2Rw9DF/gx7e/M+khdU4wpgGTXPJilkkCwqu1sC/iAlh1DGzw
+GuM1xfQIDrPYXwIvl6+wj3UUErT0G0pZzbf3m9pd0H94fJuKh7M=
+=wKWp
+-----END PGP SIGNATURE-----
