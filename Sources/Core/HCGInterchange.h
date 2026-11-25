@@ -200,6 +200,19 @@ typedef NS_ENUM(NSInteger, HCGHIPReadoutKind) {
 - (nullable HCGHIPRoute *)routeWithIdentifier:(NSString *)identifier;
 @end
 
+// How a service product (HCG Server) is reached from this iPhone, reported by the platform layer from the
+// app's real HCG Device Link state. NotReported (the default) means this build has no Device Link client
+// (jailbreak package, Settings bundle, preview harness): the registry's unavailableReason is shown instead.
+typedef NS_ENUM(NSInteger, HCGHIPServiceLinkState) {
+    HCGHIPServiceLinkStateNotReported = 0,
+    HCGHIPServiceLinkStateNotPaired = 1,        // no pairing on this device
+    HCGHIPServiceLinkStateAwaitingApproval = 2, // pairing requested; the owner has not approved it yet
+    HCGHIPServiceLinkStateNotConnected = 3,     // paired, but no recent successful request (detail says why)
+    HCGHIPServiceLinkStateConnected = 4,        // ONLY after a signed request to the server succeeded recently
+    HCGHIPServiceLinkStateUnreachable = 5,      // the last request failed (detail: the real reason)
+    HCGHIPServiceLinkStateEnded = 6,            // rejected, removed, authority changed...: pair again (detail says why)
+};
+
 // What the host could read about one product, without side effects. Filled by the platform layer
 // (HCGEcosystemScanner in SpringBoard and Settings; a reduced set in the standalone app; a simulation in the
 // preview harness).
@@ -221,6 +234,11 @@ typedef NS_ENUM(NSInteger, HCGHIPReadoutKind) {
     NSDictionary *_statusRecord;
     NSArray *_packageManagers;
     BOOL _simulated;
+    HCGHIPServiceLinkState _serviceLinkState;
+    NSString *_serviceLinkDetail;
+    NSString *_serviceLinkServerName;
+    BOOL _serviceLinkLocalDevelopment;
+    NSInteger _serviceLinkHostedServices;
 }
 @property (nonatomic, copy) NSString *productID;
 @property (nonatomic) BOOL hostCanInspect;           // NO in the sandboxed app: installation is private there
@@ -239,6 +257,13 @@ typedef NS_ENUM(NSInteger, HCGHIPReadoutKind) {
 @property (nonatomic, copy, nullable) NSDictionary *statusRecord;// the product's own status record
 @property (nonatomic, copy, nullable) NSArray<NSString *> *packageManagers; // "zebra", "sileo" (installed)
 @property (nonatomic) BOOL simulated;                            // preview harness
+// Service products only (HCG Server through HCG Device Link, standalone app). Never inferred: the platform layer
+// reports Connected only when a real request succeeded.
+@property (nonatomic) HCGHIPServiceLinkState serviceLinkState;
+@property (nonatomic, copy, nullable) NSString *serviceLinkDetail;     // the real reason / last contact, in words
+@property (nonatomic, copy, nullable) NSString *serviceLinkServerName; // the paired server's name
+@property (nonatomic) BOOL serviceLinkLocalDevelopment;                // paired for local development (no HCG account)
+@property (nonatomic) NSInteger serviceLinkHostedServices;             // services the server reported; -1 not known
 @property (nonatomic, readonly) BOOL installed;
 @end
 
@@ -252,7 +277,13 @@ typedef NS_ENUM(NSInteger, HCGHIPAvailability) {
     HCGHIPAvailabilityUnknown = 6,        // this host cannot see installed products (sandboxed app)
     HCGHIPAvailabilityNotAvailable = 7,   // nothing on this phone to connect to (service, identity, planned)
     HCGHIPAvailabilityHub = 8,            // HCG Nexus itself
+    HCGHIPAvailabilityConnected = 9,      // a service this iPhone reached: the last signed request succeeded
+    HCGHIPAvailabilityNotConnected = 10,  // a service this build can reach, but no current connection (not paired, ...)
+    HCGHIPAvailabilityUnreachable = 11,   // a service this iPhone is paired with, but the last request failed
 };
+
+// "LOCAL DEVELOPMENT — not an HCG account": shown wherever a local-development connection appears.
+FOUNDATION_EXPORT NSString *const HCGHIPLocalDevelopmentLabel;
 
 @interface HCGHIPResolvedCapability : NSObject {
     HCGHIPCapability *_capability;
@@ -288,7 +319,7 @@ typedef NS_ENUM(NSInteger, HCGHIPAvailability) {
 @property (nonatomic, copy) NSString *versionText;        // "0.2.0~rc2 · app 0.2.0 (2)"
 @property (nonatomic, copy) NSString *compatibilityText;
 @property (nonatomic, copy) NSString *healthText;
-@property (nonatomic, copy) NSString *integrationText;    // never "Connected": Nexus holds no session
+@property (nonatomic, copy) NSString *integrationText;    // "Connected" only for a service reached through Device Link
 @property (nonatomic, copy, nullable) NSString *updateText;
 @property (nonatomic, copy, nullable) NSString *offeredVersion;
 @property (nonatomic) BOOL updateAvailable;

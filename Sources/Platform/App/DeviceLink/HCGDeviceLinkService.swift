@@ -10,6 +10,17 @@ import UIKit
 /// Nexus signs in with HCG Connect, pairs this installation with an HCG Server
 /// using an `hcg1-…` invitation, lists the other paired devices and reads the
 /// reports they share. It advertises only `report.receive` and `report.view`.
+/// When HCG Server hosts services (HCG Server as a development host), Nexus
+/// shows the host, the services and their health, opens a published service
+/// in the system browser with a single-use ticket, and shows the server's
+/// read-only diagnostics.
+///
+/// Two authorities, never mixed:
+/// - HCG Connect (production): every request carries the HCG Connect token.
+/// - Local development (only when the invitation says `am=local-development`,
+///   remembered in the pairing record): owner approval only, no HCG account,
+///   no token is ever sent (`LocalDevelopmentTokens`), this one server only.
+///   Shown everywhere as "LOCAL DEVELOPMENT — not an HCG account".
 ///
 /// Rules (HCG-Server docs/DEVICE-LINK.md, docs/CONNECTED_DEVICES.md):
 /// - Every request is signed with the installation key and carries the HCG
@@ -34,9 +45,18 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
         LinkCapability(id: LinkCapabilityID.reportView, state: .available),
     ]
 
-    private static let shared = HCGLinkService(bundle: .main)
+    private static var instance: HCGLinkService?
 
-    static func sharedLinkService() -> HCGLinkServicing { shared }
+    static func sharedLinkService() -> HCGLinkServicing {
+        if let existing = instance { return existing }
+        let created = HCGLinkService(bundle: .main)
+        instance = created
+        return created
+    }
+
+    /// The service only if something already created it: the Ecosystem dashboard reads the
+    /// real connection state without creating a device key.
+    static func existingLinkService() -> HCGLinkServicing? { instance }
 
     // MARK: state
 
@@ -50,14 +70,19 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
     private enum Link {
         case notPaired
         case pairing
+        /// Approved, but nothing answered since the app started: never shown as connected.
+        case paired
+        /// The last request succeeded.
         case connected
         case offline(reason: String, retryIn: TimeInterval)
         case paused(String)
         case ended(String)
         case removed(String)
+        /// The server switched authority mode (`authority_changed`); the pairing was forgotten.
+        case authorityChanged(String)
     }
 
-    private enum Part: Hashable { case devices, inbox, approvals }
+    private enum Part: Hashable { case devices, inbox, approvals, services }
 
     private(set) var snapshot = HCGLinkSnapshot()
     var changeHandler: (() -> Void)?
@@ -76,6 +101,9 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
     private var devices: LinkDevices?
     private var inbox: [LinkMessageHeader] = []
     private var approvals: LinkApprovals?
+    private var hostSummary: LinkHostSummary?
+    private var hostedServices: [LinkHostedService] = []
+    private var servicesLoaded = false
     private var problems: [Part: String] = [:]
     private var lastSync: Date?
     private var notice: String?
@@ -154,7 +182,7 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
     nonisolated private static func link(for record: PairingRecord?) -> Link {
         switch record?.status {
         case .pending?: return .pairing
-        case .approved?: return .connected
+        case .approved?: return .paired
         case .rejected?: return .ended("The server owner rejected this pairing request. Ask for a new invitation to try again.")
         case .expired?: return .ended("The pairing request expired before it was approved. Use a new invitation.")
         case .removed?: return .removed("This device was removed from the server.")
@@ -177,14 +205,17 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
 
     private var linkStopped: Bool {
         switch link {
-        case .ended, .removed, .paused: return true
+        case .ended, .removed, .paused, .authorityChanged: return true
         default: return false
         }
     }
 
-    private func makeClient(base: URL, fingerprint: String, identity id: InstallationIdentity) -> DeviceLinkClient {
-        DeviceLinkClient(configuration: DeviceLinkConfiguration(baseURL: base, serverFingerprint: fingerprint, installationId: id.installationId),
-                         signer: id.signer, transport: PinnedSessionTransport(fingerprint: fingerprint), tokens: session)
+    /// The token provider follows the invitation / pairing record, never a setting: local
+    /// development pairing sends no HCG token at all; everything else uses HCG Connect.
+    private func makeClient(base: URL, fingerprint: String, identity id: InstallationIdentity, localDevelopment: Bool) -> DeviceLinkClient {
+        let tokens: AccessTokenProvider = localDevelopment ? LocalDevelopmentTokens() : session
+        return DeviceLinkClient(configuration: DeviceLinkConfiguration(baseURL: base, serverFingerprint: fingerprint, installationId: id.installationId),
+                                signer: id.signer, transport: PinnedSessionTransport(fingerprint: fingerprint), tokens: tokens)
     }
 
     private func rebuildClient() {
@@ -192,8 +223,10 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
             client = nil
             return
         }
-        client = makeClient(base: base, fingerprint: r.serverFingerprint, identity: id)
+        client = makeClient(base: base, fingerprint: r.serverFingerprint, identity: id, localDevelopment: r.isLocalDevelopment)
     }
+
+    private var isLocalDevelopment: Bool { record?.isLocalDevelopment ?? false }
 
     private func saveRecord(_ r: PairingRecord?) {
         record = r
@@ -255,6 +288,48 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
         return item
     }
 
+    nonisolated private static func hostInfo(_ h: LinkHostSummary) -> HCGLinkHostInfo {
+        let info = HCGLinkHostInfo()
+        info.name = h.name
+        info.platform = h.platform
+        info.osVersion = h.osVersion
+        info.architecture = h.architecture
+        info.cpuModel = h.cpuModel
+        info.logicalCpus = h.logicalCpus
+        info.memoryTotalBytes = h.memoryTotalBytes.map { NSNumber(value: $0) }
+        info.memoryAvailableBytes = h.memoryAvailableBytes.map { NSNumber(value: $0) }
+        info.loadAverage = (h.loadAverage ?? []).map { NSNumber(value: $0) }
+        info.agentVersion = h.agentVersion
+        info.agentStartedAt = h.agentStartedAt
+        info.gatewayExposure = h.gatewayExposure
+        info.sampledAt = h.sampledAt
+        return info
+    }
+
+    nonisolated private static func serviceInfo(_ v: LinkHostedService) -> HCGLinkHostedServiceInfo {
+        let info = HCGLinkHostedServiceInfo()
+        info.identifier = v.id
+        info.name = v.name.isEmpty ? v.id : v.name
+        info.version = v.version
+        info.runtime = v.runtime
+        info.status = v.status
+        info.health = v.health
+        info.detail = v.detail
+        info.uptimeSeconds = v.uptimeSeconds.map { NSNumber(value: $0) }
+        info.restarts = v.restarts
+        info.lastHealthAt = v.lastHealthAt
+        info.capabilities = v.capabilities
+        info.gatewayPublished = v.gatewayPublished
+        info.openable = v.openable
+        return info
+    }
+
+    /// SHA-256 in pairs, as iOS shows it in Certificate Trust Settings and HCG Server prints it.
+    nonisolated static func pairedHex(_ hex: String) -> String {
+        let up = Array(hex.uppercased())
+        return stride(from: 0, to: up.count, by: 2).map { String(up[$0..<min($0 + 2, up.count)]) }.joined(separator: " ")
+    }
+
     private func publish() {
         let s = HCGLinkSnapshot()
         switch account {
@@ -284,6 +359,8 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
             s.connectionState = .notPaired
         case .pairing:
             s.connectionState = .awaitingApproval
+        case .paired:
+            s.connectionState = .paired
         case .connected:
             s.connectionState = .connected
         case .offline(let reason, let retryIn):
@@ -299,7 +376,11 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
         case .removed(let why):
             s.connectionState = .removed
             s.connectionDetail = why
+        case .authorityChanged(let why):
+            s.connectionState = .authorityChanged
+            s.connectionDetail = why
         }
+        s.localDevelopment = isLocalDevelopment
         s.pairingPending = record?.status == .pending
         s.pairingApproved = record?.status == .approved
         if let r = record {
@@ -318,6 +399,10 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
         s.executionEnabled = approvals?.executionEnabled ?? false
         if let note = approvals?.note, !note.isEmpty { s.approvalsNote = note }
         s.approvalsProblem = problems[.approvals]
+        s.host = hostSummary.map(HCGLinkService.hostInfo)
+        s.services = hostedServices.map(HCGLinkService.serviceInfo)
+        s.servicesLoaded = servicesLoaded
+        s.servicesProblem = problems[.services]
         s.busy = busy
         s.notice = notice
         snapshot = s
@@ -440,6 +525,8 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
         switch e.code {
         case "device_revoked", "unknown_installation":
             markRemoved("HCG Server no longer accepts this device: it was removed or revoked (\(e.code)). Pairing again needs a new invitation and the owner's approval; this device now has a new key.")
+        case "authority_changed":
+            resetForAuthorityChange(e.description)
         case "hcg_session_ended":
             account = .ended(e.description)
             link = .paused("Your HCG Connect session has ended. Sign in again to resume.")
@@ -465,10 +552,30 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
         link = .removed(why)
     }
 
+    /// HCG Server switched between HCG Connect and local development pairing. The old pairing
+    /// cannot work again and the server keeps this key's entry, so the pairing and the key are
+    /// forgotten here; pairing again needs a new invitation (and an HCG sign-in if the server now
+    /// uses HCG Connect).
+    private func resetForAuthorityChange(_ serverMessage: String) {
+        let server = record?.serverName ?? "HCG Server"
+        let wasLocal = isLocalDevelopment
+        stopLoop()
+        saveRecord(nil)
+        InstallationIdentity.reset(store: secrets)
+        loadIdentity()
+        rebuildClient()
+        clearRemoteData()
+        let how = wasLocal ? "This device was paired for local development (\(HCGLinkLocalDevelopmentLabel))." : "This device was paired with HCG Connect."
+        link = .authorityChanged("\(server) changed how it authorizes apps: \(serverMessage). \(how) That pairing no longer works, so it was forgotten on this device and a new device key will be used. Ask the owner for a new invitation and pair again; they can remove the old entry on the server.")
+    }
+
     private func clearRemoteData() {
         devices = nil
         inbox = []
         approvals = nil
+        hostSummary = nil
+        hostedServices = []
+        servicesLoaded = false
         problems = [:]
         lastSync = nil
         serverRecordedKey = nil
@@ -507,6 +614,13 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
             _ = try await c.heartbeat(capabilities: HCGLinkService.capabilities)
             try await section(.devices) { self.devices = try await c.devices() }
             try await section(.approvals) { self.approvals = try await c.approvals() }
+            try await section(.services) {
+                let v = try await c.services()
+                // A server without hosting answers with an empty host; show no host rather than a blank one.
+                self.hostSummary = v.host.agentVersion.isEmpty && v.host.name.isEmpty ? nil : v.host
+                self.hostedServices = v.services
+                self.servicesLoaded = true
+            }
         }
         try await section(.inbox) {
             var messages = try await c.inbox()
@@ -527,7 +641,35 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
             try await body()
             problems[part] = nil
         } catch let e as DeviceLinkError where !e.endsLink && !e.isRetryable && e.code != "not_signed_in" {
-            problems[part] = e.description
+            problems[part] = HCGLinkService.sectionProblem(part, e)
+        }
+    }
+
+    nonisolated private static func sectionProblem(_ part: Part, _ e: DeviceLinkError) -> String {
+        if part == .services, ["not_found", "hosting_unavailable", "http_404"].contains(e.code) {
+            return "This HCG Server does not host services (it may be an older version): \(e.description)."
+        }
+        return e.description
+    }
+
+    /// Text for a failed one-off request. Anything that ends the link stops it here too.
+    private func failure(_ error: Error) -> (text: String, code: String?) {
+        guard let e = error as? DeviceLinkError else { return (HCGLinkService.describe(error), nil) }
+        if e.endsLink { end(e) }
+        if e.code == "gateway_local_only" {
+            return ("HCG Server's gateway accepts connections from its own Mac only. The owner must approve local-network access on the Mac first (hcg-agent hosting expose lan --i-approve-local-network-exposure), and this iPhone must trust the HCG Server Local CA (Settings › General › About › Certificate Trust Settings). Nexus never bypasses this check. Server: \(e.description).", e.code)
+        }
+        return (e.description, e.code)
+    }
+
+    /// A one-off request succeeded: the server answered.
+    private func contactSucceeded() {
+        switch link {
+        case .paired, .offline:
+            link = .connected
+            publish()
+        default:
+            break
         }
     }
 
@@ -608,7 +750,8 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
             guard let self = self else { return }
             await self.session.signOut()
             if case .notConfigured = self.account {} else { self.account = .signedOut }
-            if self.pairingActive { self.link = .paused("Signed out of HCG Connect. Sign in to sync again.") }
+            // A local development pairing never used the HCG Connect session.
+            if self.pairingActive && !self.isLocalDevelopment { self.link = .paused("Signed out of HCG Connect. Sign in to sync again.") }
             self.publish()
         }
     }
@@ -624,11 +767,12 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
             preview.serverAddress = invitation.hostAddress
             preview.serverFingerprint = LinkCrypto.displayFingerprint(invitation.fingerprint)
             preview.expiresAt = invitation.expiresAt
+            preview.localDevelopment = invitation.isLocalDevelopment
             if invitation.baseURL == nil {
                 preview.problem = "The invitation has no usable server address."
             } else if identity == nil {
                 preview.problem = identityProblem ?? "This device has no key."
-            } else if case .notConfigured(let why) = account {
+            } else if !invitation.isLocalDevelopment, case .notConfigured(let why) = account {
                 preview.problem = why
             } else if let r = record, pairingActive {
                 preview.problem = "This device is already paired with \(r.serverName). Remove it first."
@@ -640,17 +784,19 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
     }
 
     func pair(invitationCode code: String, completion: @escaping (String?) -> Void) {
-        if case .notConfigured(let why) = account {
+        let invitation: Invitation
+        do { invitation = try Invitation.parse(code) } catch {
+            completion(HCGLinkService.describe(error))
+            return
+        }
+        // HCG Connect pairing needs Nexus's issued HCG Connect client; local development pairing
+        // (only when the invitation says so) needs no HCG account and sends no token.
+        if !invitation.isLocalDevelopment, case .notConfigured(let why) = account {
             completion(why)
             return
         }
         guard let id = identity else {
             completion(identityProblem ?? "This device has no key.")
-            return
-        }
-        let invitation: Invitation
-        do { invitation = try Invitation.parse(code) } catch {
-            completion(HCGLinkService.describe(error))
             return
         }
         guard let base = invitation.baseURL else {
@@ -662,7 +808,7 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
             return
         }
         stopLoop()
-        let c = makeClient(base: base, fingerprint: invitation.fingerprint, identity: id)
+        let c = makeClient(base: base, fingerprint: invitation.fingerprint, identity: id, localDevelopment: invitation.isLocalDevelopment)
         let device = UIDevice.current
         let info = LinkInstallationInfo(installationId: id.installationId,
                                         deviceId: device.identifierForVendor?.uuidString.lowercased(),
@@ -734,7 +880,7 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
                     self?.replaceInboxItem(updated)
                 }
             } catch {
-                completion(nil, HCGLinkService.describe(error))
+                completion(nil, self?.failure(error).text ?? HCGLinkService.describe(error))
             }
         }
     }
@@ -743,6 +889,144 @@ final class HCGLinkService: NSObject, HCGLinkServicing {
         guard let i = inbox.firstIndex(where: { $0.messageId == updated.messageId }) else { return }
         inbox[i] = updated
         publish()
+    }
+
+    // MARK: HCGLinkServicing — hosted services and diagnostics (read-only)
+
+    func openService(identifier: String, completion: @escaping (HCGLinkOpenTicketInfo?, String?, String?) -> Void) {
+        guard let c = client, record?.status == .approved else {
+            completion(nil, "This device is not connected to an HCG Server.", nil)
+            return
+        }
+        Task { [weak self] in
+            do {
+                let t = try await c.openService(identifier)
+                self?.contactSucceeded()
+                // Only an https link is ever handed to the system browser, which verifies the
+                // gateway's certificate itself (HCG Server Local CA). Nothing here weakens that.
+                guard let url = URL(string: t.url), url.scheme?.lowercased() == "https", url.host != nil else {
+                    completion(nil, "HCG Server sent a link that is not an https address, so it was not opened.", "invalid_response")
+                    return
+                }
+                let info = HCGLinkOpenTicketInfo()
+                info.url = url
+                info.expiresAt = t.expiresAt
+                info.caFingerprint = HCGLinkService.pairedHex(t.caFingerprint)
+                info.note = t.note
+                completion(info, nil, nil)
+            } catch {
+                let f: (text: String, code: String?) = self?.failure(error) ?? (HCGLinkService.describe(error), nil)
+                completion(nil, f.text, f.code)
+            }
+        }
+    }
+
+    func loadDiagnostics(completion: @escaping (HCGLinkDiagnosticsInfo?, String?) -> Void) {
+        guard let c = client, let r = record, r.status == .approved else {
+            completion(nil, "This device is not connected to an HCG Server.")
+            return
+        }
+        let local = localConnectionLines()
+        Task { [weak self] in
+            do {
+                let d = try await c.diagnostics()
+                self?.contactSucceeded()
+                let info = HCGLinkDiagnosticsInfo()
+                info.generatedAt = d.generatedAt
+                info.serverName = r.serverName.isEmpty ? "HCG Server" : r.serverName
+                info.localDevelopment = r.isLocalDevelopment
+                info.sections = HCGLinkService.diagnosticsSections(d, pinned: r.serverFingerprint, local: local)
+                completion(info, nil)
+            } catch {
+                completion(nil, self?.failure(error).text ?? HCGLinkService.describe(error))
+            }
+        }
+    }
+
+    /// What this device knows about its own connection (no secrets: the pinned key is public).
+    private func localConnectionLines() -> [String] {
+        var lines: [String] = []
+        if let r = record {
+            lines.append("Server address: \(r.serverAddress)")
+            lines.append("Pinned server key: \(LinkCrypto.displayFingerprint(r.serverFingerprint))")
+            lines.append("Authorized by: " + (r.isLocalDevelopment ? HCGLinkLocalDevelopmentLabel : "HCG Connect sign-in and ERP App Access"))
+        }
+        let f = ISO8601DateFormatter()
+        lines.append("Last successful sync: " + (lastSync.map { f.string(from: $0) } ?? "none since HCG Nexus was opened"))
+        if case .offline(let reason, _) = link { lines.append("Last error: \(reason)") }
+        lines.append("Device API: TLS with the server key pinned from the invitation; every request signed with this device's key")
+        return lines
+    }
+
+    nonisolated private static func authorityText(_ a: String) -> String {
+        switch a {
+        case DeviceLinkProtocol.Authority.hcgConnect: return "HCG Connect"
+        case DeviceLinkProtocol.Authority.localDevelopment: return HCGLinkLocalDevelopmentLabel
+        case "not-configured": return "Not configured (no HCG Connect, local development off)"
+        default: return a
+        }
+    }
+
+    nonisolated private static func exposureText(_ e: String) -> String {
+        switch e {
+        case "lan": return "local network (approved by the owner on the Mac)"
+        case "loopback": return "the Mac only"
+        default: return e
+        }
+    }
+
+    nonisolated private static func durationText(_ seconds: Int64) -> String {
+        let s = max(0, seconds)
+        if s < 60 { return "\(s) s" }
+        if s < 3600 { return "\(s / 60) min" }
+        if s < 86400 { return "\(s / 3600) h \((s % 3600) / 60) min" }
+        return "\(s / 86400) d \((s % 86400) / 3600) h"
+    }
+
+    nonisolated static func serviceLine(_ v: LinkHostedService) -> String {
+        var parts = ["\(v.name.isEmpty ? v.id : v.name) \(v.version)", v.status, "health \(v.health)"]
+        if let up = v.uptimeSeconds { parts.append("up \(durationText(up))") }
+        if v.restarts > 0 { parts.append("\(v.restarts) restart\(v.restarts == 1 ? "" : "s")") }
+        return parts.joined(separator: " · ")
+    }
+
+    /// Plain-text sections only: the diagnostics are data, never links or commands.
+    nonisolated private static func diagnosticsSections(_ d: LinkDiagnostics, pinned: String, local: [String]) -> [HCGLinkReportSection] {
+        func section(_ title: String, _ lines: [String]) -> HCGLinkReportSection {
+            let s = HCGLinkReportSection()
+            s.title = title
+            s.lines = lines
+            return s
+        }
+        let f = ISO8601DateFormatter()
+        var out: [HCGLinkReportSection] = []
+        out.append(section("Server", [
+            "Available: " + (d.server.available ? "yes" : "no"),
+            "HCG Server agent \(d.server.agentVersion), up \(durationText(d.server.uptimeSeconds)) (since \(f.string(from: d.server.startedAt)))",
+            "Authority: " + authorityText(d.server.authority),
+        ]))
+        var tls = ["Device API: \(d.tls.deviceApi)",
+                   "Server key SHA-256: \(LinkCrypto.displayFingerprint(d.tls.serverKeySha256))"]
+        if !d.tls.serverKeySha256.isEmpty {
+            tls.append(d.tls.serverKeySha256.lowercased() == pinned.lowercased()
+                       ? "Matches the key pinned from the invitation"
+                       : "DOES NOT MATCH the key pinned from the invitation")
+        }
+        tls.append("Gateway: " + (d.tls.gatewayRunning ? "running" : "not running") + ", reachable from " + exposureText(d.tls.gatewayExposure))
+        if !d.tls.gatewayCaSha256.isEmpty { tls.append("HCG Server Local CA SHA-256: \(pairedHex(d.tls.gatewayCaSha256))") }
+        if let exp = d.tls.gatewayLeafExpires { tls.append("Gateway certificate expires: \(f.string(from: exp))") }
+        out.append(section("TLS and gateway", tls))
+        out.append(section("Hosted services", d.services.map { v in
+            var line = serviceLine(v)
+            if let detail = v.detail, !detail.isEmpty { line += " — " + detail }
+            return line
+        }))
+        var security = ["Failed authentications (24 h): \(d.failedAuthentications24h)"]
+        security += d.securityEvents.map { "\(f.string(from: $0.time)) · \($0.severity) · \($0.message)" }
+        out.append(section("Security events (redacted by the server)", security))
+        if !d.summary.isEmpty { out.append(section("Summary", d.summary)) }
+        out.append(section("This device's connection", local))
+        return out
     }
 
     // MARK: HCGLinkServicing — removal

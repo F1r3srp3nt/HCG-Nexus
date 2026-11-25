@@ -2,6 +2,68 @@
 #import "HCGConstants.h"
 
 NSString *const HCGAppDataSuiteName = @"com.hakmicapitalgroup.hcgnexus.app.data";
+const NSTimeInterval HCGAppLinkConnectedWindow = 120;
+
+static BOOL HCGSharedLinkServiceAvailable(void) {
+    Class cls = NSClassFromString(@"HCGLinkService");
+    return cls && [cls conformsToProtocol:@protocol(HCGLinkServicing)];
+}
+
+static NSString *HCGAppLinkTime(NSDate *date) {
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    formatter.dateStyle = NSDateFormatterMediumStyle;
+    formatter.timeStyle = NSDateFormatterMediumStyle;
+    formatter.doesRelativeDateFormatting = YES;
+    return [formatter stringFromDate:date];
+}
+
+void HCGAppApplyLinkSnapshot(HCGLinkSnapshot *snapshot, HCGHIPFacts *f, NSDate *now) {
+    if (!snapshot) {
+        f.serviceLinkState = HCGHIPServiceLinkStateNotConnected;
+        f.serviceLinkDetail = @"HCG Nexus has not contacted HCG Server since it was opened. Open Connected Devices to connect.";
+        return;
+    }
+    HCGLinkSnapshot *s = snapshot;
+    f.serviceLinkServerName = s.serverName;
+    f.serviceLinkLocalDevelopment = s.localDevelopment;
+    f.serviceLinkHostedServices = s.servicesLoaded ? (NSInteger)s.services.count : -1;
+    NSString *lastSync = s.lastSync ? [NSString stringWithFormat:@"Last successful sync %@.", HCGAppLinkTime(s.lastSync)] : nil;
+    switch (s.connectionState) {
+        case HCGLinkConnectionStateNotPaired:
+            f.serviceLinkState = HCGHIPServiceLinkStateNotPaired;
+            f.serviceLinkDetail = s.connectionDetail.length ? s.connectionDetail : @"Pair in Connected Devices with an invitation code from HCG Server.";
+            break;
+        case HCGLinkConnectionStateAwaitingApproval:
+            f.serviceLinkState = HCGHIPServiceLinkStateAwaitingApproval;
+            f.serviceLinkDetail = nil;
+            break;
+        case HCGLinkConnectionStatePaired:
+            f.serviceLinkState = HCGHIPServiceLinkStateNotConnected;
+            f.serviceLinkDetail = @"Not contacted since HCG Nexus was opened. Open Connected Devices to connect.";
+            break;
+        case HCGLinkConnectionStateConnected: {
+            BOOL recent = s.lastSync && [now timeIntervalSinceDate:s.lastSync] <= HCGAppLinkConnectedWindow;
+            f.serviceLinkState = recent ? HCGHIPServiceLinkStateConnected : HCGHIPServiceLinkStateNotConnected;
+            f.serviceLinkDetail = recent ? lastSync
+                                         : [NSString stringWithFormat:@"%@ Nexus syncs only while Connected Devices is open.", lastSync ?: @"Not synced yet."];
+            break;
+        }
+        case HCGLinkConnectionStateOffline:
+            f.serviceLinkState = HCGHIPServiceLinkStateUnreachable;
+            f.serviceLinkDetail = s.connectionDetail.length ? s.connectionDetail : @"HCG Server did not answer.";
+            break;
+        case HCGLinkConnectionStatePaused:
+            f.serviceLinkState = HCGHIPServiceLinkStateNotConnected;
+            f.serviceLinkDetail = s.connectionDetail;
+            break;
+        case HCGLinkConnectionStateEnded:
+        case HCGLinkConnectionStateRemoved:
+        case HCGLinkConnectionStateAuthorityChanged:
+            f.serviceLinkState = HCGHIPServiceLinkStateEnded;
+            f.serviceLinkDetail = s.connectionDetail;
+            break;
+    }
+}
 
 @implementation HCGAppDefaultsStore {
     NSUserDefaults *_defaults;
@@ -101,6 +163,11 @@ NSString *const HCGAppDataSuiteName = @"com.hakmicapitalgroup.hcgnexus.app.data"
         if (d.urlScheme.length && application) {
             NSURL *probe = [NSURL URLWithString:[d.urlScheme stringByAppendingString:@"://open/dashboard"]];
             f.canOpenScheme = probe && [application canOpenURL:probe];
+        }
+        // HCG Server: the real Device Link state, read without creating the service (or a device key).
+        if ([d.productID isEqualToString:HCGHIPProductServer]) {
+            id<HCGLinkServicing> link = HCGExistingLinkService();
+            if (link || HCGSharedLinkServiceAvailable()) HCGAppApplyLinkSnapshot(link.snapshot, f, [NSDate date]);
         }
         [all addObject:f];
     }

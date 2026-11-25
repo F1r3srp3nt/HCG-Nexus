@@ -129,7 +129,9 @@ static void testRegistryInvariants(void) {
             HCG_CHECK(c.note.length > 0, "every capability explains itself: %s", [c.identifier UTF8String]);
             if (c.state == HCGHIPCapabilityStateVerified) verified++;
         }
-        if (d.unavailableReason.length) {
+        // HCG Server's capabilities are built (standalone app), but a build without the Device Link client
+        // resolves them as unavailable (testPreparedAdaptersClaimNothing); everything else claims nothing.
+        if (d.unavailableReason.length && ![d.productID isEqualToString:HCGHIPProductServer]) {
             for (HCGHIPCapability *c in d.capabilities) {
                 HCG_CHECK(c.state == HCGHIPCapabilityStatePlanned || c.state == HCGHIPCapabilityStateUnavailable,
                           "nothing claimed for %s: %s", [d.productID UTF8String], [c.identifier UTF8String]);
@@ -373,6 +375,73 @@ static void testPreparedAdaptersClaimNothing(void) {
     HCG_CHECK_EQ_INT(CapabilityNamed(nexus, @"package-changes").state, HCGHIPCapabilityStateUnavailable);
 }
 
+static HCGHIPProductStatus *ServerStatus(HCGHIPFacts *f) {
+    return [HCGInterchange statusForDescriptor:[HCGInterchange descriptorForProductID:HCGHIPProductServer] facts:f];
+}
+
+// HCG Server's card follows the app's real HCG Device Link state; Connected only when the platform says a
+// request succeeded, otherwise the real reason. Nothing is invented.
+static void testServerReflectsTheRealDeviceLinkState(void) {
+    HCGHIPFacts *f = Facts(HCGHIPProductServer, @"17.4");
+    f.hostCanInspect = NO;
+
+    // Not reported (jailbreak package, Settings, preview): not available, nothing claimed.
+    HCGHIPProductStatus *s = ServerStatus(f);
+    HCG_CHECK_EQ_INT(s.availability, HCGHIPAvailabilityNotAvailable);
+    HCG_CHECK([s.healthText rangeOfString:@"standalone HCG Nexus app"].location != NSNotFound, "says where Device Link runs");
+
+    f.serviceLinkState = HCGHIPServiceLinkStateNotPaired;
+    s = ServerStatus(f);
+    HCG_CHECK_EQ_INT(s.availability, HCGHIPAvailabilityNotConnected);
+    HCG_CHECK_EQ_STR(s.stateTitle, @"Not connected");
+    HCG_CHECK(!s.installed, "a server is never 'installed'");
+    HCG_CHECK(s.routes.count == 0, "no routes");
+    HCG_CHECK_EQ_INT(CapabilityNamed(s, @"pairing").state, HCGHIPCapabilityStateAvailable);
+    HCG_CHECK_EQ_INT(CapabilityNamed(s, @"hosted-services").state, HCGHIPCapabilityStateUnavailable);
+    HCG_CHECK_EQ_INT(CapabilityNamed(s, @"remote-actions").state, HCGHIPCapabilityStateUnavailable);
+    HCG_CHECK([s.integrationText rangeOfString:@"Connected only after"].location != NSNotFound, "explains when it says connected");
+
+    f.serviceLinkState = HCGHIPServiceLinkStateUnreachable;
+    f.serviceLinkServerName = @"Studio Mac";
+    f.serviceLinkDetail = @"The connection timed out.";
+    s = ServerStatus(f);
+    HCG_CHECK_EQ_INT(s.availability, HCGHIPAvailabilityUnreachable);
+    HCG_CHECK_EQ_STR(s.stateTitle, @"Unreachable");
+    HCG_CHECK_EQ_STR(s.healthText, @"Studio Mac is unreachable. The connection timed out.");
+
+    f.serviceLinkState = HCGHIPServiceLinkStateEnded;
+    f.serviceLinkDetail = @"Studio Mac changed how it authorizes apps.";
+    s = ServerStatus(f);
+    HCG_CHECK_EQ_INT(s.availability, HCGHIPAvailabilityNotConnected);
+    HCG_CHECK([s.healthText hasSuffix:@"changed how it authorizes apps."], "real reason shown");
+
+    f.serviceLinkState = HCGHIPServiceLinkStateConnected;
+    f.serviceLinkDetail = nil;
+    f.serviceLinkHostedServices = 1;
+    f.serviceLinkLocalDevelopment = YES;
+    s = ServerStatus(f);
+    HCG_CHECK_EQ_INT(s.availability, HCGHIPAvailabilityConnected);
+    HCG_CHECK_EQ_STR(s.stateTitle, @"Connected");
+    HCG_CHECK_EQ_STR(s.healthText, @"Connected to Studio Mac · 1 hosted service");
+    HCG_CHECK([s.integrationText hasPrefix:HCGHIPLocalDevelopmentLabel], "local development is labelled");
+    HCG_CHECK_EQ_STR(HCGHIPLocalDevelopmentLabel, @"LOCAL DEVELOPMENT — not an HCG account");
+    HCG_CHECK_EQ_INT(CapabilityNamed(s, @"hosted-services").state, HCGHIPCapabilityStateAvailable);
+    HCG_CHECK_EQ_INT(CapabilityNamed(s, @"remote-actions").state, HCGHIPCapabilityStateUnavailable);
+
+    f.serviceLinkLocalDevelopment = NO;
+    f.serviceLinkHostedServices = -1;
+    s = ServerStatus(f);
+    HCG_CHECK_EQ_STR(s.healthText, @"Connected to Studio Mac");
+    HCG_CHECK([s.integrationText rangeOfString:@"LOCAL DEVELOPMENT"].location == NSNotFound, "HCG Connect pairing is not labelled local");
+
+    // Other products ignore service-link facts.
+    HCGHIPFacts *halo = Facts(HCGHIPProductHalo, @"17.4");
+    halo.serviceLinkState = HCGHIPServiceLinkStateConnected;
+    HCG_CHECK([HCGInterchange statusForDescriptor:[HCGInterchange descriptorForProductID:HCGHIPProductHalo] facts:halo].availability == HCGHIPAvailabilityNotInstalled,
+              "only services use the link state");
+    HCG_CHECK_EQ_STR([HCGInterchange titleForAvailability:HCGHIPAvailabilityNotConnected], @"Not connected");
+}
+
 static void testOpenRequestsAndLinks(void) {
     NSString *name = [HCGInterchange openProductDarwinNotificationForProductID:HCGHIPProductHalo];
     HCG_CHECK_EQ_STR(name, @"com.hakmicapitalgroup.hcgnexus/open/product/halo");
@@ -418,6 +487,7 @@ void HCGRunEcosystemTests(void) {
     HCG_RUN(testTerminalUnleashedOnTheIPhone13);
     HCG_RUN(testTweakStatesAndReadouts);
     HCG_RUN(testPreparedAdaptersClaimNothing);
+    HCG_RUN(testServerReflectsTheRealDeviceLinkState);
     HCG_RUN(testOpenRequestsAndLinks);
     HCG_RUN(testActivityLog);
 }

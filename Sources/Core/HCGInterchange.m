@@ -20,6 +20,7 @@ NSString *const HCGHIPProductAnimationCenter = @"animation-center";
 NSString *const HCGHIPProductRepo = @"repo";
 NSString *const HCGHIPProductAgentRuntime = @"agent-runtime";
 NSString *const HCGHIPProductServer = @"server";
+NSString *const HCGHIPLocalDevelopmentLabel = @"LOCAL DEVELOPMENT — not an HCG account";
 NSString *const HCGHIPProductConnect = @"connect";
 NSString *const HCGHIPProductNews = @"news";
 NSString *const HCGHIPProductExecutableMaker = @"executable-maker";
@@ -71,7 +72,16 @@ const NSUInteger HCGEcosystemActivityLimit = 40;
             appBuild = _appBuild, declaredSchemes = _declaredSchemes, declaration = _declaration,
             settingsBundlePresent = _settingsBundlePresent, canOpenScheme = _canOpenScheme, osVersion = _osVersion,
             offeredVersion = _offeredVersion, preferences = _preferences, statusRecord = _statusRecord,
-            packageManagers = _packageManagers, simulated = _simulated;
+            packageManagers = _packageManagers, simulated = _simulated, serviceLinkState = _serviceLinkState,
+            serviceLinkDetail = _serviceLinkDetail, serviceLinkServerName = _serviceLinkServerName,
+            serviceLinkLocalDevelopment = _serviceLinkLocalDevelopment, serviceLinkHostedServices = _serviceLinkHostedServices;
+
+- (instancetype)init {
+    if ((self = [super init])) {
+        _serviceLinkHostedServices = -1;
+    }
+    return self;
+}
 
 - (BOOL)installed {
     return self.packageVersion.length > 0 || self.appInstalled;
@@ -469,14 +479,18 @@ static NSArray *HCGBuildRegistry(void) {
         nil];
     [all addObject:d];
 
-    // HCG Server — future device pairing.
+    // HCG Server — HCG Device Link (standalone app). Its state comes from the app's real connection
+    // (HCGHIPFacts.serviceLinkState); builds without the client show unavailableReason.
     d = HCGProductDescriptor(HCGHIPProductServer, @"HCG Server", @"server.rack", HCGHIPProductKindService,
-                             @"Host agent for your computers; HCG Device Link (hcg.devicelink/1) is its phone-pairing protocol.");
-    d.unavailableReason = @"Not available: pairing is not functional. HCG Device Link exists only on an unmerged HCG Server branch and needs an HCG Connect client for Nexus and ERP permissions, neither of which has been issued. Nexus never claims a paired device.";
+                             @"Host agent on your computer (development host for HCG System Tester); HCG Device Link (hcg.devicelink/1) pairs this iPhone with it.");
+    d.unavailableReason = @"Not available: HCG Device Link runs only in the standalone HCG Nexus app (Connected Devices); the jailbreak package and Settings never connect to HCG Server. Nexus never claims a paired device.";
     d.capabilities = [NSArray arrayWithObjects:
-        HCGCap(@"pairing", @"Pair this iPhone", HCGHIPCapabilityStatePlanned, HCGHIPPermissionApprovalInProduct, @"Device Link pairing; the owner approves each pairing on the server."),
-        HCGCap(@"reports", @"Send and view diagnostic reports", HCGHIPCapabilityStatePlanned, HCGHIPPermissionApprovalInProduct, @"hcg.diagnostic-report/1 with hcg.redaction/1."),
-        HCGCap(@"remote-actions", @"Remote control or commands", HCGHIPCapabilityStateUnavailable, HCGHIPPermissionNotOffered, @"HCG Server refuses every action (action_execution_disabled)."),
+        HCGCap(@"pairing", @"Pair this iPhone", HCGHIPCapabilityStateAvailable, HCGHIPPermissionApprovalInProduct, @"Invitation code; the owner approves each device on the server after comparing key fingerprints."),
+        HCGCap(@"reports", @"View shared diagnostic reports", HCGHIPCapabilityStateAvailable, HCGHIPPermissionNone, @"hcg.diagnostic-report/1, shown as plain text only."),
+        HCGCap(@"hosted-services", @"Hosted services and their health", HCGHIPCapabilityStateAvailable, HCGHIPPermissionNone, @"Read from the server (link/services); never placeholders."),
+        HCGCap(@"open-service", @"Open a hosted service in Safari", HCGHIPCapabilityStateAvailable, HCGHIPPermissionApprovalInProduct, @"Single-use 60 s ticket; Safari verifies the HCG Server Local CA. Needs the owner's local-network approval on the Mac."),
+        HCGCap(@"diagnostics", @"Server diagnostics (read-only)", HCGHIPCapabilityStateAvailable, HCGHIPPermissionNone, @"Redacted by the server; no logs or credentials."),
+        HCGCap(@"remote-actions", @"Remote control or commands", HCGHIPCapabilityStateUnavailable, HCGHIPPermissionNotOffered, @"HCG Server refuses every action (action_execution_disabled); local development pairing never grants one."),
         nil];
     [all addObject:d];
 
@@ -712,6 +726,53 @@ static BOOL HCGRouteUsable(HCGHIPRoute *route, HCGHIPProductDescriptor *d, HCGHI
     return NO;
 }
 
+// A service reached through HCG Device Link: only the platform's real state, never an assumption.
+static HCGHIPAvailability HCGServiceLinkStatus(HCGHIPProductDescriptor *d, HCGHIPFacts *f, HCGHIPProductStatus *status, NSString **capabilityReason) {
+    NSString *server = f.serviceLinkServerName.length ? f.serviceLinkServerName : d.name;
+    NSString *detail = f.serviceLinkDetail.length ? f.serviceLinkDetail : nil;
+    HCGHIPAvailability availability = HCGHIPAvailabilityNotConnected;
+    NSString *health = nil;
+    switch (f.serviceLinkState) {
+        case HCGHIPServiceLinkStateConnected:
+            availability = HCGHIPAvailabilityConnected;
+            health = [NSString stringWithFormat:@"Connected to %@", server];
+            if (f.serviceLinkHostedServices >= 0) {
+                health = [health stringByAppendingFormat:@" · %ld hosted service%@", (long)f.serviceLinkHostedServices,
+                                                         f.serviceLinkHostedServices == 1 ? @"" : @"s"];
+            }
+            break;
+        case HCGHIPServiceLinkStateUnreachable:
+            availability = HCGHIPAvailabilityUnreachable;
+            health = [NSString stringWithFormat:@"%@ is unreachable", server];
+            break;
+        case HCGHIPServiceLinkStateAwaitingApproval:
+            health = [NSString stringWithFormat:@"Waiting for the owner of %@ to approve this iPhone", server];
+            break;
+        case HCGHIPServiceLinkStateNotConnected:
+            health = [NSString stringWithFormat:@"Paired with %@, not connected now", server];
+            break;
+        case HCGHIPServiceLinkStateEnded:
+            health = @"Not connected: the pairing ended";
+            break;
+        case HCGHIPServiceLinkStateNotPaired:
+        case HCGHIPServiceLinkStateNotReported:
+            health = @"Not paired with an HCG Server";
+            break;
+    }
+    if (detail) health = [health stringByAppendingFormat:@". %@", detail];
+    status.healthText = health;
+    status.compatibilityText = @"Runs on your computer; this app reaches it through HCG Device Link";
+    status.versionText = @"On your computer · HCG Device Link (hcg.devicelink/1)";
+    NSMutableString *integration = [NSMutableString string];
+    if (f.serviceLinkLocalDevelopment) [integration appendFormat:@"%@. Paired with the owner's approval only; this server only, never HCG services. ", HCGHIPLocalDevelopmentLabel];
+    [integration appendString:availability == HCGHIPAvailabilityConnected
+        ? @"Connected: the last signed request to the server succeeded. Remote actions stay disabled."
+        : @"Not connected. Nexus says Connected only after a signed request to the server succeeds. Pair or reconnect in Connected Devices."];
+    status.integrationText = integration;
+    if (availability != HCGHIPAvailabilityConnected) *capabilityReason = @"Not connected to HCG Server.";
+    return availability;
+}
+
 + (HCGHIPProductStatus *)statusForDescriptor:(HCGHIPProductDescriptor *)d facts:(HCGHIPFacts *)facts {
     HCGHIPFacts *f = facts;
     if (!f) {
@@ -748,6 +809,8 @@ static BOOL HCGRouteUsable(HCGHIPRoute *route, HCGHIPProductDescriptor *d, HCGHI
         status.compatibilityText = @"Runs on this iPhone";
         status.healthText = @"Running";
         status.integrationText = @"Discovers HCG products read-only and opens them; it is not an account or security authority.";
+    } else if (d.kind == HCGHIPProductKindService && f.serviceLinkState != HCGHIPServiceLinkStateNotReported) {
+        availability = HCGServiceLinkStatus(d, f, status, &capabilityReason);
     } else if (d.unavailableReason.length) {
         availability = HCGHIPAvailabilityNotAvailable;
         status.healthText = d.unavailableReason;
@@ -874,7 +937,9 @@ static BOOL HCGRouteUsable(HCGHIPRoute *route, HCGHIPProductDescriptor *d, HCGHI
         resolved.state = capability.state;
         resolved.reason = capability.note;
         BOOL usable = capability.state == HCGHIPCapabilityStateAvailable || capability.state == HCGHIPCapabilityStateVerified;
-        if (usable && capabilityReason) {
+        BOOL pairingWhileDisconnected = d.kind == HCGHIPProductKindService && f.serviceLinkState != HCGHIPServiceLinkStateNotReported &&
+                                        [capability.identifier isEqualToString:@"pairing"];
+        if (usable && capabilityReason && !pairingWhileDisconnected) {
             resolved.state = availability == HCGHIPAvailabilityOff ? HCGHIPCapabilityStateDisabled : HCGHIPCapabilityStateUnavailable;
             resolved.reason = capabilityReason;
         } else if (usable && declaredCapabilities && ![declaredCapabilities containsObject:capability.identifier]) {
@@ -935,6 +1000,9 @@ static BOOL HCGRouteUsable(HCGHIPRoute *route, HCGHIPProductDescriptor *d, HCGHI
         case HCGHIPAvailabilityUnknown: return @"Unable to check";
         case HCGHIPAvailabilityNotAvailable: return @"Not available yet";
         case HCGHIPAvailabilityHub: return @"This hub";
+        case HCGHIPAvailabilityConnected: return @"Connected";
+        case HCGHIPAvailabilityNotConnected: return @"Not connected";
+        case HCGHIPAvailabilityUnreachable: return @"Unreachable";
     }
     return @"Unable to check";
 }

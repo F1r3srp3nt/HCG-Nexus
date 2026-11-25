@@ -40,7 +40,7 @@ product can ship to *narrow* what Nexus offers. Code: `Sources/Core/HCGInterchan
 | `news` | HCG News | app | bundle `com.hakmicapitalgroup.hcgnews` | — | — | detect, open |
 | `repo` | HCG Repo | repository | — | — | — | installed versions, Candidate updates, package-manager links |
 | `agent-runtime` | HCG Agent Runtime | service | — | — | — | **unavailable**: macOS-only, loopback-only, refuses Nexus as a task source; no iOS build |
-| `server` | HCG Server | service | — | — | — | **not available**: Device Link only on an unmerged branch; needs a Connect client and ERP permissions |
+| `server` | HCG Server | service | — | — | — | standalone app: the **real** HCG Device Link state (*Connected* only after a successful signed sync in the last 2 min; else *Not connected* / *Unreachable* with the real reason; local development labelled); other builds: **not available** |
 | `connect` | HCG Connect | identity | — | — | — | **not available**: no sign-in client issued for Nexus |
 | `executable-maker` | HCG Executable Maker | service | — | — | — | **not available**: desktop app, no phone interface |
 
@@ -123,5 +123,8 @@ and at most once every 2 s. Each opening is recorded in the dashboard's activity
   choice HCG Portal made.
 * HCG Sentinel publishes no status snapshot, so Nexus shows no Sentinel activity. HCG Sentinel has no
   "device health" screen; Nexus's own device overview covers battery, storage and network.
-* Agent Runtime, Server pairing and Connect sign-in are prepared adapters only.
+* Agent Runtime and Connect sign-in are prepared adapters only. HCG Server is live in the standalone app only: its
+  card in *Your computers* takes its state from Connected Devices (`HCGAppApplyLinkSnapshot`,
+  `HCGHIPFacts.serviceLinkState`). It never reads the server itself and never creates a device key; until Connected
+  Devices has been opened it says *Not connected*.
 * None of this has been tried on a phone yet: `DEVICE-CHECKLIST.md` rows 24–31.

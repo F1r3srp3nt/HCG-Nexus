@@ -65,6 +65,60 @@
 }
 @end
 
+@implementation HCGLinkHostInfo
+- (instancetype)init {
+    if ((self = [super init])) {
+        _name = @"";
+        _platform = @"";
+        _architecture = @"";
+        _loadAverage = @[];
+        _agentVersion = @"";
+        _agentStartedAt = [NSDate date];
+        _gatewayExposure = @"loopback";
+        _sampledAt = [NSDate date];
+    }
+    return self;
+}
+@end
+
+@implementation HCGLinkHostedServiceInfo
+- (instancetype)init {
+    if ((self = [super init])) {
+        _identifier = @"";
+        _name = @"";
+        _version = @"";
+        _runtime = @"";
+        _status = @"registered";
+        _health = @"unknown";
+        _capabilities = @[];
+    }
+    return self;
+}
+@end
+
+@implementation HCGLinkOpenTicketInfo
+- (instancetype)init {
+    if ((self = [super init])) {
+        _url = [NSURL URLWithString:@"about:blank"];
+        _expiresAt = [NSDate date];
+        _caFingerprint = @"";
+        _note = @"";
+    }
+    return self;
+}
+@end
+
+@implementation HCGLinkDiagnosticsInfo
+- (instancetype)init {
+    if ((self = [super init])) {
+        _generatedAt = [NSDate date];
+        _serverName = @"HCG Server";
+        _sections = @[];
+    }
+    return self;
+}
+@end
+
 @implementation HCGLinkInvitationPreview
 - (instancetype)init {
     if ((self = [super init])) {
@@ -86,6 +140,7 @@
         _advertisedCapabilities = @[];
         _connectionState = HCGLinkConnectionStateNotPaired;
         _devices = @[];
+        _services = @[];
         _inbox = @[];
         _approvalsNote = @"Action execution is disabled in this version of HCG Device Link, so there is nothing to approve.";
     }
@@ -102,6 +157,14 @@ id<HCGLinkServicing> HCGSharedLinkService(void) {
     if (!cls || ![cls conformsToProtocol:@protocol(HCGLinkServicing)]) return nil;
     return [(Class<HCGLinkServicing>)cls sharedLinkService];
 }
+
+id<HCGLinkServicing> HCGExistingLinkService(void) {
+    Class cls = NSClassFromString(@"HCGLinkService");
+    if (!cls || ![cls conformsToProtocol:@protocol(HCGLinkServicing)]) return nil;
+    return [(Class<HCGLinkServicing>)cls existingLinkService];
+}
+
+NSString *const HCGLinkLocalDevelopmentLabel = @"LOCAL DEVELOPMENT — not an HCG account";
 
 NSString *HCGLinkAppDisplayName(NSString *appIdentifier) {
     if ([appIdentifier isEqualToString:@"hcg.sentinel"]) return @"HCG Sentinel";
