@@ -39,6 +39,9 @@ FOUNDATION_EXPORT NSNotificationName const HCGNexusModelDidChangeNotification;
 - (NSArray<NSDictionary *> *)ecosystemActivity;
 - (void)recordEcosystemActivity:(NSString *)text productID:(nullable NSString *)productID;
 - (void)clearEcosystemActivity;
+// Package Trust Center: the repositories you check, and the key fingerprints YOU pinned.
+- (NSArray<HCGTrustedRepository *> *)trustedRepositories;
+- (void)saveTrustedRepositories:(NSArray<HCGTrustedRepository *> *)repositories;
 // Call after any HCGAppLibrary mutation (the library already persisted).
 - (void)appsDidChange;
 // Tools › Import Workspace Shortcuts: returns how many entries were added.

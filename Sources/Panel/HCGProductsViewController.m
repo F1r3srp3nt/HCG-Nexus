@@ -3,12 +3,14 @@
 #import "HCGEcosystemData.h"
 #import "HCGProductDetailViewController.h"
 #import "HCGDeviceStatusMonitor.h"
+#import "HCGTrustCenterViewController.h"
 
 // HCG Ecosystem: the control centre for every HCG product on this iPhone (docs/INTERCHANGE.md).
 // Everything shown is read without side effects; every action is the user's tap and only opens something.
 
 typedef NS_ENUM(NSInteger, HCGEcosystemGroup) {
     HCGEcosystemGroupDevice = 0,
+    HCGEcosystemGroupTrust,
     HCGEcosystemGroupInstalled,
     HCGEcosystemGroupAvailable,
     HCGEcosystemGroupLater,
@@ -319,7 +321,7 @@ static UILabel *HCGCardLabel(UIFontTextStyle style, UIFontWeight weight, UIColor
     if (snapshot.simulated) [summary addObject:@"SIMULATED"];
     _headerSubtitle.text = [summary componentsJoinedByString:@" · "];
 
-    NSMutableArray *groups = [NSMutableArray arrayWithObject:@(HCGEcosystemGroupDevice)];
+    NSMutableArray *groups = [NSMutableArray arrayWithObjects:@(HCGEcosystemGroupDevice), @(HCGEcosystemGroupTrust), nil];
     if (installed.count) [groups addObject:@(HCGEcosystemGroupInstalled)];
     if (available.count) [groups addObject:@(HCGEcosystemGroupAvailable)];
     if (later.count) [groups addObject:@(HCGEcosystemGroupLater)];
@@ -376,6 +378,7 @@ static UILabel *HCGCardLabel(UIFontTextStyle style, UIFontWeight weight, UIColor
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     switch ([self groupAt:section]) {
         case HCGEcosystemGroupDevice: return @"This iPhone";
+        case HCGEcosystemGroupTrust: return @"Security";
         case HCGEcosystemGroupInstalled: return @"Installed";
         case HCGEcosystemGroupAvailable: return @"Not installed";
         case HCGEcosystemGroupLater: return @"Not on this iPhone yet";
@@ -400,6 +403,7 @@ static UILabel *HCGCardLabel(UIFontTextStyle style, UIFontWeight weight, UIColor
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     switch ([self groupAt:section]) {
         case HCGEcosystemGroupDevice: return (NSInteger)(_snapshot.deviceRows.count + _deviceDisplays.count);
+        case HCGEcosystemGroupTrust: return 1;
         case HCGEcosystemGroupDiagnostics: return (NSInteger)_diagnostics.count;
         case HCGEcosystemGroupActivity: return (NSInteger)MIN(_activity.count, (NSUInteger)12) + (_activity.count ? 1 : 0);
         default: return (NSInteger)[self productsInGroup:[self groupAt:section]].count;
@@ -429,6 +433,17 @@ static UILabel *HCGCardLabel(UIFontTextStyle style, UIFontWeight weight, UIColor
             HCGStatusDisplay *display = _deviceDisplays[row - _snapshot.deviceRows.count];
             UITableViewCell *cell = [self valueCellTitle:display.title value:display.value symbol:display.symbolName];
             cell.imageView.tintColor = [HCGTheme colorForStatusRole:display.colorRole];
+            return cell;
+        }
+        case HCGEcosystemGroupTrust: {
+            UITableViewCell *cell = [self styledCellWithStyle:UITableViewCellStyleSubtitle identifier:@"trust"];
+            cell.textLabel.text = @"Package Trust Center";
+            cell.detailTextLabel.text = @"Repository signatures, checksums, Release Passports, entitlements and installed packages. Read-only.";
+            cell.detailTextLabel.numberOfLines = 0;
+            cell.imageView.image = [HCGTheme symbolNamed:@"checkmark.shield" pointSize:18];
+            cell.imageView.tintColor = [HCGTheme cyan];
+            cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+            cell.selectionStyle = UITableViewCellSelectionStyleDefault;
             return cell;
         }
         case HCGEcosystemGroupDiagnostics: {
@@ -484,6 +499,11 @@ static UILabel *HCGCardLabel(UIFontTextStyle style, UIFontWeight weight, UIColor
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
     HCGEcosystemGroup group = [self groupAt:indexPath.section];
+    if (group == HCGEcosystemGroupTrust) {
+        [self.navigationController pushViewController:[[HCGTrustCenterViewController alloc] initWithContext:self.context]
+                                             animated:!UIAccessibilityIsReduceMotionEnabled()];
+        return;
+    }
     if (group == HCGEcosystemGroupActivity) {
         if ((NSUInteger)indexPath.row == MIN(_activity.count, (NSUInteger)12)) {
             [self.context.model clearEcosystemActivity];

@@ -58,7 +58,7 @@ typedef NS_ENUM(NSInteger, HCGChecksumState) {
 // Everything fetched for one repository (any part may be nil).
 @interface HCGRepositoryEvidence : NSObject {
     NSString *_repositoryURL;
-    NSData *_release;
+    NSData *_releaseData;
     NSData *_inRelease;
     NSData *_releaseSignature;
     NSData *_packages;
@@ -68,7 +68,7 @@ typedef NS_ENUM(NSInteger, HCGChecksumState) {
     NSDate *_now;
 }
 @property (nonatomic, copy) NSString *repositoryURL;
-@property (nonatomic, copy, nullable) NSData *release;           // Release
+@property (nonatomic, copy, nullable) NSData *releaseData;       // Release
 @property (nonatomic, copy, nullable) NSData *inRelease;         // InRelease
 @property (nonatomic, copy, nullable) NSData *releaseSignature;  // Release.gpg
 @property (nonatomic, copy, nullable) NSData *packages;          // Packages (uncompressed)

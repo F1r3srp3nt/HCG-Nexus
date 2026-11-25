@@ -337,7 +337,8 @@ typedef struct {
     const uint8_t *hashedStart;   // from the version byte
     size_t hashedLength;          // version .. end of hashed subpackets
     uint8_t left16[2];
-    NSData *mpi;
+    const uint8_t *mpi;           // RSA signature value (into the packet), with its length
+    size_t mpiLength;
     uint32_t created;
     BOOL hasCreated;
     uint32_t sigExpires;          // seconds after creation, 0 = never
@@ -417,8 +418,12 @@ static BOOL ParseSignature(const uint8_t *p, size_t len, HCGSig *sig) {
     sig->left16[1] = p[o + 1];
     o += 2;
     if (sig->pubAlgorithm == 1 || sig->pubAlgorithm == 3) {
-        sig->mpi = ReadMPI(p, len, &o, NULL);
-        if (!sig->mpi) return NO;
+        if (o + 2 > len) return NO;
+        size_t bytes = ((((size_t)p[o] << 8) | p[o + 1]) + 7) / 8;
+        o += 2;
+        if (bytes == 0 || bytes > len - o) return NO;
+        sig->mpi = p + o;
+        sig->mpiLength = bytes;
     }
     return YES;
 }
@@ -464,7 +469,8 @@ static BOOL CheckSignature(HCGDigestContext *c, HCGDigestAlgorithm algorithm, co
     HCGDigestFinal(c, out);
     if (out[0] != sig->left16[0] || out[1] != sig->left16[1]) return NO;
     if (!(key.algorithm == 1 || key.algorithm == 3) || !key.modulus || !sig->mpi) return NO;
-    return RSAVerify(key.modulus, key.exponent, sig->mpi, algorithm, [NSData dataWithBytes:out length:HCGDigestLength(algorithm)]);
+    return RSAVerify(key.modulus, key.exponent, [NSData dataWithBytes:sig->mpi length:sig->mpiLength], algorithm,
+                     [NSData dataWithBytes:out length:HCGDigestLength(algorithm)]);
 }
 
 // A self-signature / binding signature over keys (and optionally a user ID) by `signer`.

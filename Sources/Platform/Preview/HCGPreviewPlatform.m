@@ -123,6 +123,20 @@
     return all;
 }
 
+- (NSDictionary *)trustEnvironment {
+    HCGPackageRecord *nexus = [[HCGPackageRecord alloc] init];
+    nexus.package = @"com.hakmicapitalgroup.hcgnexus";
+    nexus.version = HCG_NEXUS_VERSION;
+    nexus.status = @"install ok installed";
+    HCGPackageRecord *terminal = [[HCGPackageRecord alloc] init];
+    terminal.package = @"com.hakmicapitalgroup.hcgterminal.unleashed";
+    terminal.version = @"0.2.0~rc2";
+    terminal.status = @"install ok installed";
+    return @{ @"installed" : @[ nexus, terminal ], @"trustedYes" : @[], @"packageManagers" : @[ @"zebra" ],
+              @"entitlements" : @{ @"com.hakmicapitalgroup.hcgterminal.unleashed" : @{ @"com.apple.private.security.no-sandbox" : @YES } },
+              @"simulated" : @YES };
+}
+
 - (NSArray *)ecosystemDeviceOverview {
     return @[ @[ @"Device", @"iPhone 11 Pro Max (simulated)" ], @[ @"iOS", @"17.4 (simulated)" ],
               @[ @"Jailbreak", @"Rootless (/var/jb) · simulated" ] ];

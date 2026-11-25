@@ -19,7 +19,7 @@ static NSString *FounderFingerprint(void) {
 static HCGRepositoryEvidence *LiveCandidate(void) {
     HCGRepositoryEvidence *e = [[HCGRepositoryEvidence alloc] init];
     e.repositoryURL = @"https://repo.hakmicapitalgroup.com/repo/candidate/";
-    e.release = HCGTrustFixture(@"Release");
+    e.releaseData = HCGTrustFixture(@"Release");
     e.packages = HCGTrustFixture(@"Packages");
     e.packagesPath = @"Packages";
     e.now = TrustNow();
@@ -73,13 +73,13 @@ static void testUnsignedLiveRepository(void) {
     e.packagesPath = @"main/binary-iphoneos-arm64/Packages";
     HCG_CHECK_EQ_INT([HCGRepoTrust evaluate:e].authenticity, HCGAuthenticityInvalid); // not listed
     e = LiveCandidate();
-    e.release = nil;
+    e.releaseData = nil;
     HCG_CHECK_EQ_INT([HCGRepoTrust evaluate:e].authenticity, HCGAuthenticityInvalid); // nothing lists Packages
 
     // A Valid-Until in the past is an expired (possibly replayed) index.
     NSString *text = [[NSString alloc] initWithData:HCGTrustFixture(@"Release") encoding:NSUTF8StringEncoding];
     e = LiveCandidate();
-    e.release = [[text stringByReplacingOccurrencesOfString:@"Architectures:" withString:@"Valid-Until: Wed, 01 Jan 2025 00:00:00 UTC\nArchitectures:"] dataUsingEncoding:NSUTF8StringEncoding];
+    e.releaseData = [[text stringByReplacingOccurrencesOfString:@"Architectures:" withString:@"Valid-Until: Wed, 01 Jan 2025 00:00:00 UTC\nArchitectures:"] dataUsingEncoding:NSUTF8StringEncoding];
     HCG_CHECK_EQ_INT([HCGRepoTrust evaluate:e].authenticity, HCGAuthenticityExpired);
 }
 
@@ -109,7 +109,7 @@ static void testSignedRepository(void) {
     HCG_CHECK_EQ_INT([HCGRepoTrust evaluate:e].authenticity, HCGAuthenticityInvalid);
 
     e = SignedCandidate();
-    e.release = HCGTrustFixture(@"Release.tampered"); // InRelease still good, Release.gpg now bad, and they differ
+    e.releaseData = HCGTrustFixture(@"Release.tampered"); // InRelease still good, Release.gpg now bad, and they differ
     HCG_CHECK_EQ_INT([HCGRepoTrust evaluate:e].authenticity, HCGAuthenticityInvalid);
 
     e = SignedCandidate();
@@ -135,7 +135,7 @@ static void testSignedRepository(void) {
 
     // Only signed text counts: with a good InRelease and no Release, the index is checked against InRelease's text.
     e = SignedCandidate();
-    e.release = nil;
+    e.releaseData = nil;
     e.releaseSignature = nil;
     report = [HCGRepoTrust evaluate:e];
     HCG_CHECK_EQ_INT(report.authenticity, HCGAuthenticityVerified);

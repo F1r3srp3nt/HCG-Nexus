@@ -6,6 +6,22 @@ substituted for one another. Only section 4 can show that the tweak works.
 Reproduce sections 1 and 3 with
 `THEOS=… HCG_ENV=rootless scripts/check.sh` (and again with `HCG_ENV=rootful`).
 
+## 0.5.0~beta1 — Package Trust Center (recorded 2026-11-25)
+
+**Status: built; not imported or published** (needs the owner's approval of the exact SHA-256). Not device-tested:
+`DEVICE-CHECKLIST.md` rows 32–37. Everything in 0.4.0~beta1, plus the read-only Package Trust Center
+(docs/TRUST-CENTER.md): OpenPGP repository-signature verification, index and download checksums, Release Passport
+and compatibility viewing, declared and actual entitlements, installed inventory, security warnings, HCG Sentinel
+monitor checks. HCG Repo is unsigned today, so it shows *Unsigned*; the verifier is proven with test keys made like
+HCG Repo's founder key.
+
+Local checks: `scripts/check.sh` with the Theos toolchain, rootless and rootful: lint and 28,369 Core host checks
+(SHA vectors; GnuPG-made signatures: good, tampered, SHA-256/512, SHA-1 refused, foreign key, expired, Ed25519
+unsupported, cleartext injection refused; the live Candidate chain; signed variants; package assessments; real
+passport, compatibility and monitor output; Mach-O entitlements; trusted-repository store; verified downloads), 0
+failures. The Theos rootless package, the preview harness and the app target (iPhoneOS 14.5 and 16.5) all built. CI
+evidence is recorded when the *Build package* run completes.
+
 ## 0.4.0~beta1 — HCG Ecosystem dashboard and HCG Interchange Protocol (recorded 2026-11-24)
 
 **Status: built and verified; not imported or published** (needs the owner's approval of the exact SHA-256 below). Not device-tested: `DEVICE-CHECKLIST.md` rows 24–31.

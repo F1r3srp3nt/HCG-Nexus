@@ -43,6 +43,12 @@ Apps. Tools › Restore Previous Layout undoes that.
 | 29 | With Zebra or Sileo and HCG Repo Candidate refreshed: a product with a newer Candidate version | Card shows *Update: <version>*; *View in Zebra/Sileo* opens the package page there; Nexus installs nothing |
 | 30 | HCG Portal 0.1.0~beta4 on, Nexus as a Portal destination, unlock and choose Nexus | The panel opens at Ecosystem; activity reads *HCG Portal opened the HCG Ecosystem dashboard*. With *Let HCG Apps Open Nexus* off: nothing opens and Portal reports why |
 | 31 | Locked iPhone; from a shell `notifyutil -p com.hakmicapitalgroup.hcgnexus/open/product/halo`, then unlock within 3 s / after 3 s | Opens at HCG Halo's page only when unlocked in time; a second request within 2 s is ignored |
+| 32 | 0.5.0~beta1: Ecosystem › Security › Package Trust Center (online) | HCG Repo and HCG Repo Candidate read *Unsigned* with "the index is consistent"; Sentinel checks: availability and index *OK*, signature *Warning*; nothing is installed or changed |
+| 33 | HCG packages › HCG Terminal Unleashed (latest) on the iPhone 11 Pro Max | Authenticity *Unsigned* with the "not who published it" wording; device *No device data* (compatibility not published) or HCG Repo's status; Release Passport "not published" |
+| 34 | Same package › *Download and Verify* | "Verified download" with the index SHA-256 and size; activity says "(not installed)"; nothing appears in Zebra/Sileo |
+| 35 | Installed on this iPhone | Every installed HCG package with its version and "In the … index" or "Not in any checked index"; total count matches `dpkg -l` |
+| 36 | Security warnings | No `trusted=yes` warning unless such a source exists (compare `/var/jb/etc/apt/sources.list.d`); Zebra note if Zebra is installed; HCG Terminal Unleashed's no-sandbox entitlement listed |
+| 37 | HCG Repo › Trust This Key… | Shows "No key to trust yet" while HCG Repo is unsigned; nothing is stored |
 
 Report back with: a pass or fail for each row, the pasted diagnostics report, and screenshots of rows 2, 3, 4 and 10.
 

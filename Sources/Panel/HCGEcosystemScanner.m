@@ -1,5 +1,6 @@
 #import "HCGEcosystemScanner.h"
 #import "HCGHaloBridge.h"
+#import "HCGTrustRecords.h"
 #import <CoreFoundation/CoreFoundation.h>
 #import <UIKit/UIKit.h>
 #import <objc/message.h>
@@ -228,6 +229,68 @@ static NSString *HCGModelName(NSString *machine) {
     }
     [rows addObject:@[ @"Jailbreak", [jb componentsJoinedByString:@" · "] ]];
     return rows;
+}
+
++ (NSDictionary *)trustEnvironment {
+    NSString *root = HCGJailbreakRoot();
+    NSMutableDictionary *env = [NSMutableDictionary dictionary];
+    NSArray *records = [HCGPackageIndex recordsFromText:HCGReadText([root stringByAppendingPathComponent:@"var/lib/dpkg/status"])];
+    NSMutableArray *installed = [NSMutableArray array];
+    for (HCGPackageRecord *r in records) if (r.installed) [installed addObject:r];
+    env[@"installed"] = installed;
+
+    NSMutableArray *trustedYes = [NSMutableArray array];
+    NSString *sourcesDir = [root stringByAppendingPathComponent:@"etc/apt/sources.list.d"];
+    NSFileManager *fm = [NSFileManager defaultManager];
+    NSMutableArray *sourceFiles = [NSMutableArray array];
+    for (NSString *name in [fm contentsOfDirectoryAtPath:sourcesDir error:NULL] ?: @[]) [sourceFiles addObject:[sourcesDir stringByAppendingPathComponent:name]];
+    [sourceFiles addObject:[root stringByAppendingPathComponent:@"etc/apt/sources.list"]];
+    for (NSString *path in sourceFiles) {
+        NSString *text = HCGReadText(path);
+        if (!text.length) continue;
+        if ([path hasSuffix:@".sources"]) {
+            for (NSString *stanza in [text componentsSeparatedByString:@"\n\n"]) {
+                NSString *lower = [stanza lowercaseString];
+                if ([lower rangeOfString:@"trusted: yes"].location == NSNotFound) continue;
+                NSRange uris = [lower rangeOfString:@"uris:"];
+                NSString *uri = uris.location != NSNotFound ? [[[stanza substringFromIndex:uris.location + 5] componentsSeparatedByString:@"\n"].firstObject
+                                                               stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] : @"(no URIs)";
+                [trustedYes addObject:[NSString stringWithFormat:@"%@ (%@)", uri, path.lastPathComponent]];
+            }
+        } else {
+            for (NSString *line in [text componentsSeparatedByString:@"\n"]) {
+                NSString *t = [line stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+                if ([t hasPrefix:@"#"] || [[t lowercaseString] rangeOfString:@"trusted=yes"].location == NSNotFound) continue;
+                [trustedYes addObject:[NSString stringWithFormat:@"%@ (%@)", t, path.lastPathComponent]];
+            }
+        }
+    }
+    env[@"trustedYes"] = trustedYes;
+
+    NSData *keyring = [NSData dataWithContentsOfFile:[root stringByAppendingPathComponent:@"etc/apt/trusted.gpg.d/hcg-repo.gpg"]];
+    if (keyring.length) env[@"keyring"] = keyring;
+
+    id workspace = HCGWorkspace();
+    env[@"packageManagers"] = [self packageManagersWithWorkspace:workspace];
+    NSMutableDictionary *entitlements = [NSMutableDictionary dictionary];
+    for (HCGHIPProductDescriptor *d in [HCGInterchange registry]) {
+        if (!d.bundleIdentifier.length || !HCGAppInstalled(workspace, d.bundleIdentifier)) continue;
+        id proxy = HCGProxy(d.bundleIdentifier);
+        SEL urlSel = NSSelectorFromString(@"bundleURL");
+        NSURL *bundleURL = [proxy respondsToSelector:urlSel] ? ((id (*)(id, SEL))objc_msgSend)(proxy, urlSel) : nil;
+        NSDictionary *info = HCGAppInfo(proxy);
+        NSString *exe = [info objectForKey:@"CFBundleExecutable"];
+        if (![bundleURL isKindOfClass:[NSURL class]] || ![exe isKindOfClass:[NSString class]] || [exe rangeOfString:@"/"].location != NSNotFound) continue;
+        NSString *path = [bundleURL.path stringByAppendingPathComponent:exe];
+        NSDictionary *attributes = [fm attributesOfItemAtPath:path error:NULL];
+        if (!attributes || [attributes fileSize] > 96ull * 1024 * 1024) continue;
+        NSData *binary = [NSData dataWithContentsOfFile:path options:NSDataReadingMappedIfSafe error:NULL];
+        NSString *why = nil;
+        NSDictionary *ents = binary ? [HCGEntitlements entitlementsInMachO:binary error:&why] : nil;
+        entitlements[d.bundleIdentifier] = ents ?: @{ @"_unavailable" : why ?: @"unreadable" };
+    }
+    env[@"entitlements"] = entitlements;
+    return env;
 }
 
 @end

@@ -19,6 +19,14 @@ NS_ASSUME_NONNULL_BEGIN
 // ("Jailbreak", "Rootless (/var/jb) · Dopamine"). Only facts read from the device; nothing guessed.
 + (NSArray<NSArray<NSString *> *> *)deviceOverview;
 + (void)invalidateCache;
+
+// Package Trust Center facts, read-only (keys below). Never writes, never changes Sileo's or Zebra's sources.
+//   installed       NSArray<HCGPackageRecord> every package dpkg reports installed
+//   trustedYes      NSArray<NSString> APT source entries marked trusted=yes (they skip signature checks)
+//   keyring         NSData  <jbroot>/etc/apt/trusted.gpg.d/hcg-repo.gpg (HCG Repo Keyring), when installed
+//   entitlements    NSDictionary bundle ID -> entitlements of installed HCG apps' executables
+//   packageManagers NSArray "zebra", "sileo"
++ (NSDictionary *)trustEnvironment;
 @end
 
 NS_ASSUME_NONNULL_END

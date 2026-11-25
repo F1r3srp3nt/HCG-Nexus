@@ -33,6 +33,8 @@ typedef void (^HCGLaunchCompletion)(NSError *_Nullable error);
 - (NSArray<HCGHIPFacts *> *)ecosystemFacts;
 // (title, value) rows for the dashboard's device overview, read from the device.
 - (NSArray<NSArray<NSString *> *> *)ecosystemDeviceOverview;
+// Package Trust Center facts (HCGEcosystemScanner +trustEnvironment keys); jailbreak package only. Slow: off the main thread.
+- (NSDictionary *)trustEnvironment;
 @end
 
 // Broadcasts persisted changes to other processes (Darwin notifications on

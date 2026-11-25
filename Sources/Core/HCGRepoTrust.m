@@ -71,7 +71,7 @@
 @end
 
 @implementation HCGRepositoryEvidence
-@synthesize repositoryURL = _repositoryURL, release = _release, inRelease = _inRelease, releaseSignature = _releaseSignature,
+@synthesize repositoryURL = _repositoryURL, releaseData = _releaseData, inRelease = _inRelease, releaseSignature = _releaseSignature,
             packages = _packages, packagesPath = _packagesPath, publishedKey = _publishedKey,
             pinnedFingerprint = _pinnedFingerprint, now = _now;
 @end
@@ -199,7 +199,7 @@ static HCGAuthenticity CombineSignatures(NSArray *results) {
 
     BOOL hasDetached = e.releaseSignature.length > 0, hasInline = e.inRelease.length > 0;
     HCGAuthenticity authenticity;
-    NSData *releaseData = e.release;
+    NSData *releaseData = e.releaseData;
     if (!hasDetached && !hasInline) {
         authenticity = HCGAuthenticityUnsigned;
         [rows addObject:Row(@"Signature", @"None: no Release.gpg or InRelease")];

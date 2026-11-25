@@ -128,4 +128,8 @@
     return [HCGEcosystemScanner deviceOverview];
 }
 
+- (NSDictionary *)trustEnvironment {
+    return [HCGEcosystemScanner trustEnvironment];
+}
+
 @end

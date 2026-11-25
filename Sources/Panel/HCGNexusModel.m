@@ -89,6 +89,16 @@ NSNotificationName const HCGNexusModelDidChangeNotification = @"HCGNexusModelDid
     [_store flush];
 }
 
+- (NSArray *)trustedRepositories {
+    return [HCGTrustedRepositoryList repositoriesFromStoredValue:[_store objectForKey:HCGTrustedRepositoriesStoreKey]];
+}
+
+// Only ever called after the user confirms a pin or removal in the Trust Center.
+- (void)saveTrustedRepositories:(NSArray *)repositories {
+    [_store setObject:[HCGTrustedRepositoryList storedValueForRepositories:repositories] forKey:HCGTrustedRepositoriesStoreKey];
+    [_store flush];
+}
+
 - (void)clearEcosystemActivity {
     [_store setObject:nil forKey:HCGEcosystemActivityStoreKey];
     [_store flush];
