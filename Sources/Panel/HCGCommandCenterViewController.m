@@ -16,6 +16,7 @@ UIColor *HCGCommandCenterColorForConnection(HCGConnectionState state) {
         case HCGConnectionStateFailed:
         case HCGConnectionStateSuspended: return [HCGTheme warning];
         case HCGConnectionStateNotConfigured: return [HCGTheme violet];
+        case HCGConnectionStateReachable: return [HCGTheme cyan];
         case HCGConnectionStateRetired: return [HCGTheme critical];
         default: return [HCGTheme secondaryText];
     }
@@ -191,7 +192,7 @@ typedef NS_ENUM(NSInteger, HCGCCSection) {
 - (void)rebuild {
     HCGCommandCenterSnapshot *s = _snapshot;
     NSUInteger connected = [s countInState:HCGConnectionStateConnected], installed = [s countInState:HCGConnectionStateInstalled];
-    NSUInteger planned = [s countInState:HCGConnectionStatePlanned];
+    NSUInteger planned = [s countInState:HCGConnectionStatePlanned], reachable = [s countInState:HCGConnectionStateReachable];
     NSMutableArray *summary = [NSMutableArray arrayWithObject:[NSString stringWithFormat:@"%lu products in %lu categories", (unsigned long)s.items.count, (unsigned long)s.registry.categories.count]];
     [summary addObject:[NSString stringWithFormat:@"%lu connected", (unsigned long)connected]];
     if (s.ecosystem.simulated) [summary addObject:@"SIMULATED"];
@@ -201,7 +202,7 @@ typedef NS_ENUM(NSInteger, HCGCCSection) {
     NSUInteger gaps = [HCGCommandCenter gapsForEntries:[s.registry visibleEntriesWithGrants:nil]].count;
     HCGDeviceInventory *inventory = [self.context.model deviceInventory];
     _dashboard = @[
-        @[ @"Connections", [NSString stringWithFormat:@"%lu connected · %lu installed · %lu need attention", (unsigned long)connected, (unsigned long)installed, (unsigned long)attention], @"dot.radiowaves.left.and.right", @"" ],
+        @[ @"Connections", [NSString stringWithFormat:@"%lu connected · %lu public services reachable · %lu installed · %lu need attention", (unsigned long)connected, (unsigned long)reachable, (unsigned long)installed, (unsigned long)attention], @"dot.radiowaves.left.and.right", @"" ],
         @[ @"Roadmap", [NSString stringWithFormat:@"%lu development gaps · %lu planned products", (unsigned long)gaps, (unsigned long)planned], @"map", @"roadmap" ],
         @[ @"Connected devices", inventory ? [NSString stringWithFormat:@"%lu devices from HCG System Tester", (unsigned long)inventory.devices.count] : @"Through HCG System Tester (import an inventory)", @"cable.connector", @"devices" ],
         @[ @"Service health", [self serviceHealthText], @"server.rack", @"server" ],
@@ -372,7 +373,7 @@ typedef NS_ENUM(NSInteger, HCGCCSection) {
 
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section {
     if ([self kindAt:section] == HCGCCSectionDashboard) {
-        return @"Connected appears only after a real two-way exchange succeeded (a read of the product's API, its own interface on this iPhone, or HCG Device Link). An app or link that exists is never reported as connected.";
+        return @"Connected appears only after the product's own interface on this iPhone or an authenticated exchange (HCG Device Link) succeeded. A public read only makes a service reachable. An app or link that exists is never reported as connected.";
     }
     if (section == (NSInteger)_sections.count - 1 && !_query.length) {
         return @"Names, identifiers, links and endpoints come from the central HCG product registry and the products' own repositories; each product page says where and when. Registration never grants access.";

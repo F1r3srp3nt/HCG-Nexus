@@ -60,7 +60,7 @@ static NSDictionary *Dict(id value) {
 @end
 
 @implementation HCGRegistryMethod
-@synthesize identifier = _identifier, name = _name, kind = _kind, detail = _detail, twoWay = _twoWay;
+@synthesize identifier = _identifier, name = _name, kind = _kind, detail = _detail, twoWay = _twoWay, access = _access;
 @end
 
 @implementation HCGRegistryConnection
@@ -98,6 +98,20 @@ static NSDictionary *Dict(id value) {
 - (BOOL)isPlanned {
     return [self.kind isEqualToString:@"planned"] || [self.developmentStatus isEqualToString:@"planned"] ||
            [self.developmentStatus isEqualToString:@"research"];
+}
+
+- (HCGRegistryEntry *)entryCopy {
+    HCGRegistryEntry *e = [[HCGRegistryEntry alloc] init];
+    e.identifier = self.identifier; e.officialName = self.officialName; e.aliases = self.aliases; e.categoryID = self.categoryID;
+    e.summary = self.summary; e.kind = self.kind; e.hipProductID = self.hipProductID; e.adapter = self.adapter; e.platforms = self.platforms;
+    e.developmentStatus = self.developmentStatus; e.lifecycle = self.lifecycle; e.visibility = self.visibility; e.entitlement = self.entitlement;
+    e.nameVerified = self.nameVerified; e.centralProductID = self.centralProductID; e.centralRegistration = self.centralRegistration;
+    e.centralName = self.centralName; e.centralNote = self.centralNote; e.distributionChannel = self.distributionChannel;
+    e.repoPackage = self.repoPackage; e.websiteURL = self.websiteURL; e.contractID = self.contractID; e.contractStatus = self.contractStatus;
+    e.contractDetail = self.contractDetail; e.endpoints = self.endpoints; e.connections = self.connections; e.capabilities = self.capabilities;
+    e.requirements = self.requirements; e.validations = self.validations; e.notes = self.notes; e.lastVerified = self.lastVerified;
+    e.verifiedFrom = self.verifiedFrom; e.fromUpdate = self.fromUpdate;
+    return e;
 }
 
 - (HCGRegistryEndpoint *)endpointWithIdentifier:(NSString *)identifier {
@@ -164,7 +178,7 @@ static HCGRegistryEntry *ParseEntry(NSDictionary *d, NSSet *categories, NSSet *m
     }
     NSString *hip = Text([d objectForKey:@"hip"], 40);
     if (hip) e.hipProductID = hip;
-    if (adapter && !OneOf(adapter, @"hip news.v1 connect.discovery system-tester.inventory lifeos.export trust-center")) {
+    if (adapter && !OneOf(adapter, @"hip news.v1 connect.discovery system-tester.inventory lifeos.export trust-center store.health central.registry")) {
         *problem = [NSString stringWithFormat:@"Entry %@: unknown adapter (ignored).", label];
         adapter = nil;
     }
@@ -366,6 +380,10 @@ static HCGRegistryEntry *ParseEntry(NSDictionary *d, NSSet *categories, NSSet *m
             m.kind = Text([md objectForKey:@"kind"], 20) ?: @"local";
             m.detail = Text([md objectForKey:@"detail"], 300) ?: @"";
             m.twoWay = [[md objectForKey:@"twoWay"] isKindOfClass:[NSNumber class]] && [[md objectForKey:@"twoWay"] boolValue];
+            m.access = Text([md objectForKey:@"access"], 20) ?: @"none";
+            if (!OneOf(m.access, @"public local authenticated none")) m.access = @"none";
+            // Never stronger than what the method can carry: navigation proves nothing, an anonymous read is public.
+            if (!m.twoWay) m.access = @"none";
             [methodIDs addObject:mid];
             [methods addObject:m];
         }
@@ -441,7 +459,9 @@ static HCGRegistryEntry *ParseEntry(NSDictionary *d, NSSet *categories, NSSet *m
 static HCGRegistryEntry *MergedEntry(HCGRegistryEntry *base, HCGRegistryEntry *update) {
     HCGRegistryEntry *e = [[HCGRegistryEntry alloc] init];
     e.identifier = base.identifier;
-    e.officialName = update.officialName;
+    // Identity and authority never come from an imported file: the official name, central ID and registration are the
+    // central registry's (or the build's), and a private entry keeps its own entitlement.
+    e.officialName = base.officialName;
     e.aliases = update.aliases;
     e.categoryID = update.categoryID ?: base.categoryID;
     e.summary = update.summary.length ? update.summary : base.summary;
@@ -453,12 +473,13 @@ static HCGRegistryEntry *MergedEntry(HCGRegistryEntry *base, HCGRegistryEntry *u
     e.lifecycle = update.lifecycle;
     // Private can only stay private (with the update's entitlement if it names one); listed may become private.
     e.visibility = [base.visibility isEqualToString:@"private"] || [update.visibility isEqualToString:@"private"] ? @"private" : @"listed";
-    e.entitlement = [e.visibility isEqualToString:@"private"] ? (update.entitlement ?: base.entitlement) : nil;
-    e.nameVerified = update.nameVerified;
-    e.centralProductID = update.centralProductID;
-    e.centralRegistration = update.centralRegistration;
-    e.centralName = update.centralName;
-    e.centralNote = update.centralNote;
+    e.entitlement = [base.visibility isEqualToString:@"private"] ? base.entitlement
+                  : ([e.visibility isEqualToString:@"private"] ? update.entitlement : nil); // listed → private only narrows
+    e.nameVerified = base.nameVerified;
+    e.centralProductID = base.centralProductID;
+    e.centralRegistration = base.centralRegistration;
+    e.centralName = base.centralName;
+    e.centralNote = base.centralNote;
     e.distributionChannel = update.distributionChannel ?: base.distributionChannel;
     e.repoPackage = base.repoPackage;
     // Links and endpoints: only the base's, and only those the update still lists.
@@ -535,6 +556,10 @@ static HCGRegistryEntry *TextOnlyEntry(HCGRegistryEntry *update) {
     update.capabilities = capabilities;
     update.validations = [NSArray array];
     update.fromUpdate = YES;
+    // An imported entry cannot claim central registration or a verified name: only the central registry can.
+    update.centralRegistration = @"not-registered";
+    update.nameVerified = NO;
+    if ([update.visibility isEqualToString:@"private"] && !update.entitlement) update.visibility = @"private";
     if ([update.kind isEqualToString:@"hub"]) update.kind = @"planned";
     return update;
 }

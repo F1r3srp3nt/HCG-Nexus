@@ -57,7 +57,8 @@ static NSString *Short(NSString *s, NSUInteger limit) {
 @end
 
 @implementation HCGConnectionSummary
-@synthesize state = _state, title = _title, detail = _detail, lastSuccess = _lastSuccess, lastSuccessText = _lastSuccessText, lastAttempt = _lastAttempt;
+@synthesize state = _state, title = _title, detail = _detail, lastSuccess = _lastSuccess, lastSuccessText = _lastSuccessText, lastAttempt = _lastAttempt,
+            lastSuccessAccess = _lastSuccessAccess;
 @end
 
 @implementation HCGRoadmapAssessment
@@ -106,6 +107,7 @@ static HCGConnectionSummary *Summary(HCGConnectionState state, NSString *detail)
         case HCGConnectionStateFailed: return @"Connection failed";
         case HCGConnectionStateBuiltIn: return @"Built in";
         case HCGConnectionStateWebsite: return @"Website";
+        case HCGConnectionStateReachable: return @"Public service reachable";
     }
     return @"Unknown";
 }
@@ -155,14 +157,14 @@ static HCGConnectionSummary *Summary(HCGConnectionState state, NSString *detail)
 
     // Two-way reads from the ledger (navigation is never recorded as a connection).
     NSDate *lastOK = nil, *lastFail = nil, *lastAttempt = nil;
-    NSString *okText = nil, *failText = nil;
+    NSString *okText = nil, *failText = nil, *okAccess = nil;
     for (NSDictionary *e in [HCGConnectionLedger entries:ledger ?: [NSArray array] forProduct:entry.identifier]) {
         HCGRegistryMethod *m = [registry methodWithIdentifier:[e objectForKey:@"method"]];
         if (!m.twoWay) continue;
         NSDate *t = [NSDate dateWithTimeIntervalSince1970:[[e objectForKey:@"time"] doubleValue]];
         if (!lastAttempt || [t compare:lastAttempt] == NSOrderedDescending) lastAttempt = t;
         if ([[e objectForKey:@"ok"] boolValue]) {
-            if (!lastOK || [t compare:lastOK] == NSOrderedDescending) { lastOK = t; okText = [e objectForKey:@"text"]; }
+            if (!lastOK || [t compare:lastOK] == NSOrderedDescending) { lastOK = t; okText = [e objectForKey:@"text"]; okAccess = m.access; }
         } else if (!lastFail || [t compare:lastFail] == NSOrderedDescending) {
             lastFail = t;
             failText = [e objectForKey:@"text"];
@@ -182,7 +184,13 @@ static HCGConnectionSummary *Summary(HCGConnectionState state, NSString *detail)
         s.title = hip.stateTitle;
     } else if (lastOK && (!lastFail || [lastFail compare:lastOK] != NSOrderedDescending) &&
                [now timeIntervalSinceDate:lastOK] <= HCGConnectionFreshInterval && [now timeIntervalSinceDate:lastOK] >= -60) {
-        s = Summary(HCGConnectionStateConnected, okText ?: @"The last read succeeded.");
+        // A public, anonymous read shows the service is available; only local or authenticated exchanges connect.
+        if ([okAccess isEqualToString:@"public"]) {
+            s = Summary(HCGConnectionStateReachable, [NSString stringWithFormat:@"%@ Anonymous public read: no authenticated access.", okText ?: @"The last read succeeded."]);
+        } else {
+            s = Summary(HCGConnectionStateConnected, okText ?: @"The last exchange succeeded.");
+            if ([okAccess isEqualToString:@"local"]) s.title = @"Connected (local interface)";
+        }
     } else if (lastOK) {
         s = Summary(HCGConnectionStateDisconnected, lastFail && [lastFail compare:lastOK] == NSOrderedDescending
                         ? [NSString stringWithFormat:@"The last read failed: %@", failText ?: @"no answer."]
@@ -211,6 +219,7 @@ static HCGConnectionSummary *Summary(HCGConnectionState state, NSString *detail)
                     : Summary(HCGConnectionStateNotSupported, @"No connection method on this iPhone yet.");
     }
     s.lastSuccess = lastOK;
+    s.lastSuccessAccess = okAccess;
     s.lastSuccessText = okText;
     s.lastAttempt = lastAttempt;
     return s;
@@ -239,6 +248,19 @@ static HCGRegistryRequirement *Blocking(HCGRegistryEntry *entry, NSString *kinds
         return Assessment(HCGRoadmapStateConnected, connection.lastSuccess
                               ? [NSString stringWithFormat:@"%@ (%@).", connection.lastSuccessText ?: @"Read succeeded", When(connection.lastSuccess)]
                               : connection.detail);
+    }
+    if (connection.state == HCGConnectionStateReachable) {
+        // Public reachability completes a public-only integration; where authenticated access is part of the product's
+        // integration, it is only partial.
+        HCGRegistryConnection *auth = nil;
+        for (HCGRegistryConnection *c in entry.connections) if ([c.method isEqualToString:@"hcg-connect"] && ![c.state isEqualToString:@"implemented"]) auth = c;
+        HCGRegistryRequirement *config = Blocking(entry, @"configuration registration");
+        if (auth || config) {
+            return Assessment(HCGRoadmapStatePartiallyIntegrated, [NSString stringWithFormat:@"Public service reachable (%@); authenticated access not established: %@",
+                                                                  connection.lastSuccess ? When(connection.lastSuccess) : @"recently", config ? config.title : auth.detail]);
+        }
+        return Assessment(HCGRoadmapStateConnected, [NSString stringWithFormat:@"%@ (%@, public read).", connection.lastSuccessText ?: @"Read succeeded",
+                                                     connection.lastSuccess ? When(connection.lastSuccess) : @"recently"]);
     }
     if (connection.state == HCGConnectionStateDisconnected) return Assessment(HCGRoadmapStateDisconnected, connection.detail);
     if (connection.state == HCGConnectionStateFailed) return Assessment(HCGRoadmapStateConnectionAttempted, connection.detail);
@@ -427,6 +449,63 @@ static NSString *const kProjectID = @"nexus.ecosystem";
     }
     [out addEntriesFromDictionary:export_.fingerprints];
     return out;
+}
+
+#pragma mark Evidence layers
+
+static NSArray *Layer(NSString *title, NSString *value) {
+    return [NSArray arrayWithObjects:title, value, nil];
+}
+
++ (NSArray *)evidenceLayersForEntry:(HCGRegistryEntry *)entry connection:(HCGConnectionSummary *)connection hipStatus:(HCGHIPProductStatus *)hip
+                             ledger:(NSArray *)ledger registry:(HCGRegistry *)registry now:(NSDate *)now {
+    NSMutableArray *rows = [NSMutableArray array];
+    // 1. Registered product: the central registry's own state (registration in Nexus's file is not central).
+    NSString *reg = [entry.centralRegistration isEqualToString:@"registered"]
+                  ? [NSString stringWithFormat:@"Registered centrally as %@", entry.centralProductID ?: @"—"]
+                  : ([entry.centralRegistration isEqualToString:@"proposed"] ? @"Proposed only: not in the central registry"
+                  : ([entry.centralRegistration isEqualToString:@"not-registered"] ? @"Not in the central registry"
+                  : [NSString stringWithFormat:@"%@ of %@", [entry.centralRegistration capitalizedString], entry.centralProductID ?: @"HCG Nexus"]));
+    [rows addObject:Layer(@"Registered product", reg)];
+    // 2. Installed application.
+    NSString *installed = @"Not applicable (nothing installs on this iPhone)";
+    if (hip) {
+        if (hip.installed) installed = [NSString stringWithFormat:@"Installed%@", hip.versionText.length ? [@" · " stringByAppendingString:hip.versionText] : @""];
+        else if (hip.availability == HCGHIPAvailabilityUnknown) installed = @"Unable to check (sandboxed app)";
+        else if (hip.availability == HCGHIPAvailabilityNotAvailable || hip.availability == HCGHIPAvailabilityHub) installed = hip.availability == HCGHIPAvailabilityHub ? @"This app" : @"Not applicable";
+        else installed = @"Not installed";
+    }
+    [rows addObject:Layer(@"Installed application", installed)];
+    // 3. Available service (public reads) and 4. Authenticated connection, from the ledger by access class.
+    NSDate *lastPublic = nil, *lastAuth = nil, *lastLocal = nil;
+    for (NSDictionary *e in [HCGConnectionLedger entries:ledger ?: [NSArray array] forProduct:entry.identifier]) {
+        if (![[e objectForKey:@"ok"] boolValue]) continue;
+        HCGRegistryMethod *m = [registry methodWithIdentifier:[e objectForKey:@"method"]];
+        NSDate *t = [NSDate dateWithTimeIntervalSince1970:[[e objectForKey:@"time"] doubleValue]];
+        if ([m.access isEqualToString:@"public"] && (!lastPublic || [t compare:lastPublic] == NSOrderedDescending)) lastPublic = t;
+        if ([m.access isEqualToString:@"authenticated"] && (!lastAuth || [t compare:lastAuth] == NSOrderedDescending)) lastAuth = t;
+        if ([m.access isEqualToString:@"local"] && (!lastLocal || [t compare:lastLocal] == NSOrderedDescending)) lastLocal = t;
+    }
+    BOOL hasPublicEndpoint = entry.endpoints.count > 0;
+    [rows addObject:Layer(@"Available service", lastPublic ? [NSString stringWithFormat:@"Public read succeeded %@", When(lastPublic)]
+                                              : (hasPublicEndpoint ? @"A public endpoint is registered; not read yet" : @"No public service registered"))];
+    NSString *auth = @"None: Nexus holds no HCG account or token";
+    if (hip.availability == HCGHIPAvailabilityConnected) auth = [NSString stringWithFormat:@"Signed HCG Device Link exchange · %@", hip.integrationText];
+    else if (lastAuth) auth = [NSString stringWithFormat:@"Authenticated exchange %@", When(lastAuth)];
+    else if (lastLocal) auth = [NSString stringWithFormat:@"Not authenticated · its local interface answered %@", When(lastLocal)];
+    [rows addObject:Layer(@"Authenticated connection", auth)];
+    // 5. Verified capability: only capabilities with device evidence.
+    NSMutableArray *verified = [NSMutableArray array];
+    NSArray *caps = hip ? hip.descriptor.capabilities : entry.capabilities;
+    for (HCGHIPCapability *c in caps) if (c.state == HCGHIPCapabilityStateVerified) [verified addObject:c.title];
+    [rows addObject:Layer(@"Verified capability", verified.count ? [verified componentsJoinedByString:@", "] : @"None verified on a device")];
+    // 6. Current connection health.
+    [rows addObject:Layer(@"Current connection health", [NSString stringWithFormat:@"%@ — %@", connection.title, connection.detail])];
+    // 7. Historical validation (never the current state).
+    HCGRegistryValidation *v = entry.validations.count ? [entry.validations objectAtIndex:0] : nil;
+    [rows addObject:Layer(@"Historical validation", v ? [NSString stringWithFormat:@"%@ on %@ (%@)", v.version.length ? v.version : @"Validated", v.device, v.date]
+                                                     : @"No device validation recorded")];
+    return rows;
 }
 
 + (NSArray *)favoritesFromStoredValue:(id)value {

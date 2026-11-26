@@ -33,6 +33,8 @@ NS_ASSUME_NONNULL_BEGIN
                                                        error:(NSString *_Nullable *_Nullable)error;
 // (title, value) rows that describe the identity service, or nil. Client identifiers are never shown.
 + (nullable NSArray<NSArray<NSString *> *> *)identityDiscoveryRowsFromData:(nullable NSData *)data error:(NSString *_Nullable *_Nullable)error;
+// HCG Store's public health (GET https://store.hakmicapitalgroup.com/api/v1/health): (title, value) rows, or nil.
++ (nullable NSArray<NSArray<NSString *> *> *)storeHealthRowsFromData:(nullable NSData *)data error:(NSString *_Nullable *_Nullable)error;
 @end
 
 NS_ASSUME_NONNULL_END

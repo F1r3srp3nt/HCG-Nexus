@@ -49,6 +49,13 @@ FOUNDATION_EXPORT NSNotificationName const HCGNexusModelDidChangeNotification;
 - (BOOL)importRegistryUpdate:(NSData *)data error:(NSString *_Nullable *_Nullable)error;
 - (void)removeRegistryUpdate;
 - (BOOL)hasRegistryUpdate;
+// The central registry snapshot (docs/CENTRAL-REGISTRY.md): current and previous, for rollback.
+- (nullable HCGCentralSnapshot *)centralSnapshot;
+- (nullable HCGCentralSnapshot *)previousCentralSnapshot;
+// Stores a validated snapshot as current; the old current becomes previous (unless the version is unchanged).
+- (void)saveCentralSnapshot:(HCGCentralSnapshot *)snapshot;
+- (BOOL)revertCentralSnapshot;     // swap current and previous
+- (void)clearCentralSnapshots;     // built-in registry only
 // Two-way reads Nexus made (HCGConnectionLedger), newest first.
 - (NSArray<NSDictionary *> *)connectionLedger;
 - (void)recordConnectionForProduct:(NSString *)productID method:(NSString *)method success:(BOOL)success text:(NSString *)text;

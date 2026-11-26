@@ -104,3 +104,52 @@ When the client ID arrives:
 3. Run a device sign-in.
 
 The redirect URI is the candidate the main-site documents propose. It needs the founder's D-S1 decision.
+
+## 0.7.0: exact owner steps (verified 26 Nov 2026)
+
+Verified against hakmicapitalgroup `57d05ac` and the live identity discovery (200: PKCE S256, scopes include
+`openid email profile offline_access`, no revocation endpoint).
+
+The *Native Application Provisioning Studio* is a design proposal only (HCG--Connect `26ed9c4`
+`hosted-changes/E-native-client-governance/DESIGN.md`; its `GET /api/public/ecosystem/v1/native-clients` route is not
+deployed). Today's real path is the owner-only registration in ERP:
+
+1. **Register the product first.** Insert `hcg.nexus` "HCG Nexus" in `app_applications` (ERP › App Access). Client
+   registration refuses unknown products ("Existing product required", migration 0083), and the live central catalogue
+   has no `hcg.nexus` (26 Nov 2026). Suggested: category *Software Distribution*, `app_type` `ios`, `release_status`
+   `testflight` (Candidate betas), `public_listing` true.
+2. **Register the native client:** ERP › App Integrations › HCG Nexus › *Dedicated app login registration*
+   (`issueAppRegistration`):
+
+   | Field | Value |
+   |---|---|
+   | Client key | `hcg-nexus-ios` (pattern `^[a-z0-9][a-z0-9._-]{1,100}$`) |
+   | Platform / environment | `ios` / `development` first, then `production` |
+   | Consent name | `HCG Nexus` |
+   | Callback (exact, one) | `com.hakmicapitalgroup.hcgnexus.app://auth/callback`. A custom scheme with a host, as the platform requires; HCG Sentinel's host-less form was refused |
+
+   The platform creates a public client with no secret: grants `authorization_code` and `refresh_token`, scopes
+   `openid email profile`, audience `authenticated`, status `configured_untested`.
+3. **Give Nexus the client ID:** `App/Info.plist` `HCGConnectClientID` (a UUID). It is public configuration, not a
+   secret; nothing else changes in the app.
+4. **Feature keys for Nexus (proposed; none exist).** On `hcg.nexus`:
+   - `nexus.ecosystem.read`: the signed-in registry view;
+   - `nexus.devices.read`: Device Link inventory.
+
+   On other products, Nexus asks only for **read** keys. For example HCG Store's publishing keys all grant write power,
+   so a `store.release.read` key is proposed instead (docs/CENTRAL-REGISTRY.md).
+
+**After that, what Nexus does** (all implemented, inactive until the client exists):
+
+- System-browser PKCE S256 sign-in.
+- Tokens in the Keychain only (`AfterFirstUnlockThisDeviceOnly`), one serialized refresh, session restored at launch.
+- Signing out deletes this app's tokens.
+- Access checks through `GET /api/public/ecosystem/v1/access?product=&org=` (300 s revalidation) and
+  `POST /api/public/ecosystem/v1/check {org_id, product_id, feature_key}` before any protected read.
+- **Revocation:** the platform advertises no revocation endpoint. A revoked grant takes effect at the next `/access`
+  or `/check` (at most 300 s), and an ended session is detected at the next refresh.
+
+What Nexus will **not** do: issue tokens, keep any identity of its own, reuse another product's client, or treat local
+development pairing as an HCG account. The signed-in `GET /api/public/app-catalog` (live 401 without a token) is not
+filtered per user: it lists every non-archived product to any signed-in user. Nexus therefore uses `/access` and
+`/check`, never the catalogue, to decide what an account may see.

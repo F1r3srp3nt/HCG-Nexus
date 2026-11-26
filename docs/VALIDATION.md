@@ -6,6 +6,28 @@ substituted for one another. Only section 4 can show that the tweak works.
 Reproduce sections 1 and 3 with
 `THEOS=… HCG_ENV=rootless scripts/check.sh` (and again with `HCG_ENV=rootful`).
 
+## 0.7.0~beta1 — central registry and live ecosystem connections (recorded 2026-11-26)
+
+**Status: built for review; not published** (a new package is never published without the owner's approval). It
+includes everything in 0.6.0~beta1 (published on Candidate, unchanged), plus (docs/CENTRAL-REGISTRY.md):
+
+* **Central registry client:** product identities from the main HCG platform's live catalogue, fetched on tap and
+  validated, with the current and previous snapshots kept for rollback and offline use. Imported files can no longer
+  change identity or authority.
+* **Evidence layers:** seven separate layers. A public read is *Public service reachable*, never *Connected*; local and
+  authenticated exchanges are told apart.
+* **Live-verified profiles:**
+  - HCG Store: public health *Check now*;
+  - HCG Store Manager: new, with what blocks read access;
+  - HCG ONE: UNLEASHED: new;
+  - HCG Trading: its host does not answer, so no link.
+* **Diagnostics:** the host process's memory footprint and CPU time (device test, section 13).
+* **Documents:** `docs/DEVICE-TEST-0.6.0.md` (physical test of the published 0.6.0, with rollback) and HCG Connect's
+  exact registration steps.
+
+The host tests include live captures (News, identity discovery, central catalogue, Store health) taken anonymously on
+26 Nov 2026.
+
 ## 0.6.0~beta1 — HCG Nexus Command Center (recorded 2026-11-26)
 
 **Status: PUBLISHED in HCG Repo Candidate (26 Nov 2026)** as an owner-approved free public beta. The owner wrote

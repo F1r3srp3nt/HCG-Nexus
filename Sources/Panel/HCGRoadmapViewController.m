@@ -142,7 +142,13 @@
 
 @implementation HCGRegistryInfoViewController {
     HCGRegistry *_registry;
+    HCGCentralSnapshot *_central;
+    HCGCentralSnapshot *_previous;
+    NSUInteger _matched;
+    BOOL _fetching;
 }
+
+typedef NS_ENUM(NSInteger, HCGRegistrySection) { HCGRegistrySectionInfo = 0, HCGRegistrySectionCentral, HCGRegistrySectionUpdates, HCGRegistrySectionProblems };
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -153,38 +159,79 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+    [self reload];
+}
+
+- (void)reload {
     _registry = [self.context.model ecosystemRegistry];
+    _central = [self.context.model centralSnapshot];
+    _previous = [self.context.model previousCentralSnapshot];
+    _matched = 0;
+    if (_central) [[HCGRegistry builtInRegistry] registryByApplyingCentralSnapshot:_central matched:&_matched];
     [self.tableView reloadData];
 }
 
+static NSString *ShortDate(NSDate *d) {
+    NSDateFormatter *f = [[NSDateFormatter alloc] init];
+    f.dateStyle = NSDateFormatterMediumStyle;
+    f.timeStyle = NSDateFormatterShortStyle;
+    return [f stringFromDate:d];
+}
+
+- (NSArray<NSArray<NSString *> *> *)centralRows {
+    NSMutableArray *rows = [NSMutableArray array];
+    [rows addObject:@[ @"Source", @"beta.hakmicapitalgroup.com · public product catalogue", @"" ]];
+    if (_central) {
+        [rows addObject:@[ @"Snapshot", [NSString stringWithFormat:@"%@ · %lu products · fetched %@", _central.version, (unsigned long)_central.products.count, ShortDate(_central.fetchedAt)], @"" ]];
+        [rows addObject:@[ @"Applied", [NSString stringWithFormat:@"Names and release status of %lu Nexus products", (unsigned long)_matched], @"" ]];
+    } else {
+        [rows addObject:@[ @"Snapshot", @"None: using the built-in registry (works offline)", @"" ]];
+    }
+    [rows addObject:@[ _fetching ? @"Updating…" : @"Update from central registry", @"A read-only request; sends no account, key or cookie", @"fetch" ]];
+    if (_previous) [rows addObject:@[ @"Restore previous snapshot", [NSString stringWithFormat:@"%@ · fetched %@", _previous.version, ShortDate(_previous.fetchedAt)], @"revert" ]];
+    if (_central) [rows addObject:@[ @"Use built-in registry only", @"Forget the central snapshots on this iPhone", @"clear" ]];
+    return rows;
+}
+
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return _registry.problems.count ? 3 : 2;
+    return _registry.problems.count ? 4 : 3;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (section == 0) return 4;
-    if (section == 1) return [self.context.model hasRegistryUpdate] ? 2 : 1;
-    return (NSInteger)MIN(_registry.problems.count, (NSUInteger)20);
+    switch (section) {
+        case HCGRegistrySectionInfo: return 4;
+        case HCGRegistrySectionCentral: return (NSInteger)[self centralRows].count;
+        case HCGRegistrySectionUpdates: return [self.context.model hasRegistryUpdate] ? 2 : 1;
+        default: return (NSInteger)MIN(_registry.problems.count, (NSUInteger)20);
+    }
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    return section == 0 ? @"HCG ecosystem registry" : (section == 1 ? @"Updates" : @"Ignored parts");
+    switch (section) {
+        case HCGRegistrySectionInfo: return @"HCG ecosystem registry";
+        case HCGRegistrySectionCentral: return @"Central registry";
+        case HCGRegistrySectionUpdates: return @"Imported updates";
+        default: return @"Ignored parts";
+    }
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForFooterInSection:(NSInteger)section {
-    if (section == 1) {
-        return @"A registry update (hcg.nexus.registry/1, higher version) can add products and change descriptions and status, or suspend and retire products. It can never add a link, endpoint or connection, and it never adds validation history. The central HCG registry publishes no public directory route yet.";
+    if (section == HCGRegistrySectionCentral) {
+        return @"The central HCG registry is the authority for product names, IDs and release status. It only updates products Nexus already lists, and never adds links, connections or permissions: being registered grants nothing. The current and previous snapshots are kept for rollback.";
+    }
+    if (section == HCGRegistrySectionUpdates) {
+        return @"An imported update (hcg.nexus.registry/1, higher version) can change descriptions and status, or suspend and retire products. It can never change a product's name, central ID or registration, add a link, endpoint or connection, grant access, or add validation history.";
     }
     return nil;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [self styledCellWithStyle:UITableViewCellStyleValue1 identifier:@"r"];
+    UITableViewCell *cell = [self styledCellWithStyle:UITableViewCellStyleSubtitle identifier:@"r"];
     cell.detailTextLabel.numberOfLines = 0;
     cell.textLabel.numberOfLines = 0;
     cell.textLabel.textColor = [HCGTheme primaryText];
     cell.selectionStyle = UITableViewCellSelectionStyleNone;
-    if (indexPath.section == 0) {
+    if (indexPath.section == HCGRegistrySectionInfo) {
         NSArray *rows = @[ @[ @"Version", [NSString stringWithFormat:@"%ld", (long)_registry.version] ], @[ @"Source", _registry.source ],
                            @[ @"Verified", _registry.generatedAt ],
                            @[ @"Contents", [NSString stringWithFormat:@"%lu products, %lu categories, %lu device classes", (unsigned long)_registry.entries.count,
@@ -193,7 +240,17 @@
         cell.detailTextLabel.text = rows[(NSUInteger)indexPath.row][1];
         return cell;
     }
-    if (indexPath.section == 1) {
+    if (indexPath.section == HCGRegistrySectionCentral) {
+        NSArray *row = [self centralRows][(NSUInteger)indexPath.row];
+        cell.textLabel.text = row[0];
+        cell.detailTextLabel.text = row[1];
+        if ([row[2] length]) {
+            cell.textLabel.textColor = [row[2] isEqualToString:@"clear"] ? [HCGTheme critical] : [HCGTheme cyan];
+            cell.selectionStyle = UITableViewCellSelectionStyleDefault;
+        }
+        return cell;
+    }
+    if (indexPath.section == HCGRegistrySectionUpdates) {
         BOOL can = [HCGFileExchange availableInContext:self.context];
         if (indexPath.row == 0) {
             cell.textLabel.text = @"Import registry update…";
@@ -202,6 +259,7 @@
             cell.selectionStyle = can ? UITableViewCellSelectionStyleDefault : UITableViewCellSelectionStyleNone;
         } else {
             cell.textLabel.text = @"Remove imported update";
+            cell.detailTextLabel.text = nil;
             cell.textLabel.textColor = [HCGTheme critical];
             cell.selectionStyle = UITableViewCellSelectionStyleDefault;
         }
@@ -212,14 +270,56 @@
     return cell;
 }
 
+- (void)fetchCentral {
+    if (_fetching) return;
+    if (self.context.isPreview) {
+        [self.context feedback:@"The preview harness does not make network requests." success:NO];
+        return;
+    }
+    _fetching = YES;
+    [self.tableView reloadData];
+    __weak typeof(self) weakSelf = self;
+    [[HCGPublicReader sharedReader] getURLString:HCGCentralRegistryURL completion:^(NSData *data, NSString *state) {
+        typeof(self) s = weakSelf;
+        if (!s) return;
+        s->_fetching = NO;
+        NSString *error = nil;
+        HCGCentralSnapshot *snap = data ? [HCGCentralSnapshot snapshotWithData:data fetchedAt:[NSDate date] error:&error] : nil;
+        if (snap) {
+            [s.context.model saveCentralSnapshot:snap];
+            NSString *text = [NSString stringWithFormat:@"Read the central registry (%lu products, version %@).", (unsigned long)snap.products.count, snap.version];
+            [s.context.model recordConnectionForProduct:@"central-app-access" method:@"https-api" success:YES text:text];
+            [s.context feedback:text success:YES];
+        } else {
+            NSString *why = [NSString stringWithFormat:@"Central registry not updated: %@", error ?: state];
+            [s.context.model recordConnectionForProduct:@"central-app-access" method:@"https-api" success:NO text:why];
+            [s.context feedback:[why stringByAppendingString:@" The last snapshot stays in use."] success:NO];
+        }
+        [s reload];
+    }];
+}
+
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    if (indexPath.section != 1) return;
+    if (indexPath.section == HCGRegistrySectionCentral) {
+        NSString *action = [self centralRows][(NSUInteger)indexPath.row][2];
+        if ([action isEqualToString:@"fetch"]) [self fetchCentral];
+        else if ([action isEqualToString:@"revert"]) {
+            BOOL ok = [self.context.model revertCentralSnapshot];
+            [self.context feedback:ok ? @"Restored the previous central snapshot." : @"No previous snapshot." success:ok];
+            [self reload];
+        } else if ([action isEqualToString:@"clear"]) {
+            [self.context.model clearCentralSnapshots];
+            [self.context feedback:@"Using the built-in registry only." success:YES];
+            [self reload];
+        }
+        return;
+    }
+    if (indexPath.section != HCGRegistrySectionUpdates) return;
     if (indexPath.row == 1) {
         [self.context.model removeRegistryUpdate];
         [self.context feedback:@"Removed the imported registry update." success:YES];
-        _registry = [self.context.model ecosystemRegistry];
-        [tableView reloadData];
+        [self reload];
         return;
     }
     if (![HCGFileExchange availableInContext:self.context]) return;
@@ -234,8 +334,7 @@
         } else {
             [s.context feedback:error ?: @"The registry update was refused." success:NO];
         }
-        s->_registry = [s.context.model ecosystemRegistry];
-        [s.tableView reloadData];
+        [s reload];
     }];
 }
 

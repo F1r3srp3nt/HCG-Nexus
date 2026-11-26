@@ -11,6 +11,11 @@ NS_ASSUME_NONNULL_BEGIN
 // Where a bundle is installed, judged from its own path (evidence, not marker
 // files): "/var/jb (rootless layout)", "/ (rootful layout)" or "unknown".
 + (NSString *)installLocationForBundlePath:(NSString *)bundlePath;
+// This process's own resource use (public mach and BSD APIs; no other process is read). In the SpringBoard overlay
+// the process is SpringBoard. Memory: the physical footprint (what Xcode and Jetsam count), in MB, or -1. CPU: user +
+// system seconds since launch, or -1.
++ (double)processMemoryFootprintMB;
++ (double)processCPUSeconds;
 @end
 
 NS_ASSUME_NONNULL_END

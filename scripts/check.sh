@@ -34,7 +34,9 @@ absent "No automatic respring/kill in build or package" 'INSTALL_TARGET_PROCESSE
 check  "No maintainer scripts in layout" test ! -e layout/DEBIAN/postinst -a ! -e layout/DEBIAN/preinst -a ! -e layout/DEBIAN/prerm -a ! -e layout/DEBIAN/postrm
 absent "No method hooks in the SpringBoard layer" '%hook|MSHookMessageEx|MSHookFunction|method_exchangeImplementations|method_setImplementation' Tweak Sources
 absent "No embedded credentials" '(password|passwd|secret|api[_-]?key|bearer)[[:space:]]*[:=][[:space:]]*@?"[^"]+' Sources Prefs PreviewHarness Tweak
-absent "No HCG Server admin endpoints or tokens" '127\.0\.0\.1|:7600|:7610|/api/v1|#token=' Sources Prefs Tweak
+# HCG Server's admin API is loopback /api/v1: never referenced. The one allowed /api/v1 is HCG Store's public health
+# route on its own host (registry endpoint store.health).
+check  "No HCG Server admin endpoints or tokens" sh -c '! grep -RnE "127\.0\.0\.1|:7600|:7610|/api/v1|#token=" Sources Prefs Tweak | grep -vE "^[^:]+:[0-9]+:[[:space:]]*(//|#|\*)" | sed "s#https://store\.hakmicapitalgroup\.com/api/v1/health##g" | grep -E "127\.0\.0\.1|:7600|:7610|/api/v1|#token=" | grep -q .'
 absent "No invented HCG URL schemes" '(hcgnews|hcgserver|hcgnexus)://' Sources Prefs Tweak PreviewHarness
 # HCG Terminal defines exactly two routes for Nexus (HCG-Terminal docs/NEXUS-HANDOFF.md); nothing else may appear.
 check  "HCG Terminal links only as <scheme>://open/<screen> (TerminalDeepLink)" sh -c '! grep -rEoh "hcgterminal(-unleashed)?://[A-Za-z/<>.-]*" Sources Prefs Tweak PreviewHarness | grep -vxE "hcgterminal(-unleashed)?://(open/[a-z-]+|open/<screen>)?[.]?" | grep -q .'

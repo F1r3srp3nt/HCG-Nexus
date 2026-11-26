@@ -105,8 +105,41 @@ static NSString *const kRegistryUpdateKey = @"registryUpdate";
 static NSString *const kExpandedCategoriesKey = @"expandedCategories";
 static const NSUInteger kMaxStoredImport = 256 * 1024;
 
+- (HCGCentralSnapshot *)centralSnapshot {
+    return [HCGCentralSnapshot snapshotFromStoredValue:[_store objectForKey:HCGCentralSnapshotStoreKey]];
+}
+
+- (HCGCentralSnapshot *)previousCentralSnapshot {
+    return [HCGCentralSnapshot snapshotFromStoredValue:[_store objectForKey:HCGCentralSnapshotPreviousKey]];
+}
+
+- (void)saveCentralSnapshot:(HCGCentralSnapshot *)snapshot {
+    id current = [_store objectForKey:HCGCentralSnapshotStoreKey];
+    HCGCentralSnapshot *old = [HCGCentralSnapshot snapshotFromStoredValue:current];
+    if (old && ![old.version isEqualToString:snapshot.version]) [_store setObject:current forKey:HCGCentralSnapshotPreviousKey];
+    [_store setObject:[snapshot storedValue] forKey:HCGCentralSnapshotStoreKey];
+    [_store flush];
+}
+
+- (BOOL)revertCentralSnapshot {
+    id current = [_store objectForKey:HCGCentralSnapshotStoreKey], previous = [_store objectForKey:HCGCentralSnapshotPreviousKey];
+    if (![HCGCentralSnapshot snapshotFromStoredValue:previous]) return NO;
+    [_store setObject:previous forKey:HCGCentralSnapshotStoreKey];
+    [_store setObject:current forKey:HCGCentralSnapshotPreviousKey];
+    [_store flush];
+    return YES;
+}
+
+- (void)clearCentralSnapshots {
+    [_store setObject:nil forKey:HCGCentralSnapshotStoreKey];
+    [_store setObject:nil forKey:HCGCentralSnapshotPreviousKey];
+    [_store flush];
+}
+
 - (HCGRegistry *)ecosystemRegistry {
-    HCGRegistry *base = [HCGRegistry builtInRegistry];
+    // Built in, then the central registry's identities (if a snapshot was fetched), then an imported update (text and
+    // status only; it can never change identity or authority).
+    HCGRegistry *base = [[HCGRegistry builtInRegistry] registryByApplyingCentralSnapshot:[self centralSnapshot] matched:NULL];
     id stored = [_store objectForKey:kRegistryUpdateKey];
     if (![stored isKindOfClass:[NSString class]]) return base;
     HCGRegistry *update = [HCGRegistry registryWithJSONData:[stored dataUsingEncoding:NSUTF8StringEncoding] source:@"imported" error:NULL];

@@ -135,14 +135,22 @@ static NSString *PermissionText(HCGHIPPermission p) {
     [status addObject:Row(@"Last successful communication", c.lastSuccess ? [NSString stringWithFormat:@"%@ · %@", Relative(c.lastSuccess), c.lastSuccessText ?: @""] : @"Never", @"clock", @"")];
     if (c.lastAttempt && ![c.lastAttempt isEqualToDate:c.lastSuccess ?: [NSDate distantPast]]) [status addObject:Row(@"Last attempt", Relative(c.lastAttempt), @"clock.arrow.circlepath", @"")];
     [sections addObject:@{ @"title": @"Status", @"rows": status,
-                           @"footer": @"Installed is not connected. Connected means a two-way exchange succeeded in the last 15 minutes." }];
+                           @"footer": @"Installed is not connected. A public read makes a service reachable, not connected: Connected needs a product's own interface or an authenticated exchange in the last 15 minutes." }];
+    NSMutableArray *layers = [NSMutableArray array];
+    NSArray *symbols = @[ @"building.columns", @"iphone", @"globe", @"lock.shield", @"checkmark.seal", @"waveform.path.ecg", @"clock.arrow.circlepath" ];
+    NSArray *evidence = [HCGCommandCenter evidenceLayersForEntry:e connection:c hipStatus:hip ledger:[self.context.model connectionLedger]
+                                                        registry:_snapshot.registry now:[NSDate date]];
+    for (NSUInteger i = 0; i < evidence.count; i++) [layers addObject:Row(evidence[i][0], evidence[i][1], i < symbols.count ? symbols[i] : @"circle", @"")];
+    [sections addObject:@{ @"title": @"Evidence", @"rows": layers,
+                           @"footer": @"Each layer is separate evidence. Registration grants nothing; a public read does not authenticate; a past validation is not the current state." }];
 
     // Actions (only what is actually supported here)
     NSMutableArray *actions = [NSMutableArray array];
     BOOL active = [e.lifecycle isEqualToString:@"active"];
     if (active && hip && ![e.kind isEqualToString:@"hub"]) [actions addObject:Row(hip.routes.count ? @"Open and screens" : @"Integration details", hip.routes.count ? [NSString stringWithFormat:@"%lu ways to open it from here", (unsigned long)hip.routes.count] : @"What Nexus knows on this iPhone", @"arrow.up.forward.app", @"hip")];
     if (active && e.websiteURL) [actions addObject:Row(@"Open website", [[e.websiteURL substringFromIndex:8] stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"/"]], @"safari", @"web")];
-    if (active && ([e.adapter isEqualToString:@"news.v1"] || [e.adapter isEqualToString:@"connect.discovery"])) {
+    if ([e.adapter isEqualToString:@"central.registry"]) [actions addObject:Row(@"Central registry", @"Update product identities from the central HCG registry, or roll back", @"building.columns", @"registry")];
+    if (active && ([e.adapter isEqualToString:@"news.v1"] || [e.adapter isEqualToString:@"connect.discovery"] || [e.adapter isEqualToString:@"store.health"])) {
         [actions addObject:Row(_checking ? @"Checking…" : @"Check now", @"A read-only request to the registered endpoint. Sends no account, key or cookie.", @"arrow.clockwise", @"check")];
     }
     if ([e.adapter isEqualToString:@"trust-center"] || [e.identifier isEqualToString:@"repo"]) [actions addObject:Row(@"Package Trust Center", @"Signatures, checksums and device evidence", @"checkmark.shield", @"trust")];
@@ -290,6 +298,8 @@ static NSString *PermissionText(HCGHIPPermission p) {
         [self.navigationController pushViewController:[[HCGTrustCenterViewController alloc] initWithContext:self.context] animated:animated];
     } else if ([action isEqualToString:@"devices"]) {
         [self.navigationController pushViewController:[[HCGDeviceClassesViewController alloc] initWithContext:self.context] animated:animated];
+    } else if ([action isEqualToString:@"registry"]) {
+        [self.navigationController pushViewController:[[HCGRegistryInfoViewController alloc] initWithContext:self.context] animated:animated];
     } else if ([action isEqualToString:@"roadmap"]) {
         [self.navigationController pushViewController:[[HCGRoadmapViewController alloc] initWithContext:self.context] animated:animated];
     } else if ([action isEqualToString:@"devicelink"] && self.context.connectedDevicesScreen) {
@@ -326,8 +336,8 @@ static NSString *PermissionText(HCGHIPPermission p) {
 - (void)checkNow {
     if (_checking) return;
     HCGRegistryEntry *e = _item.entry;
-    BOOL news = [e.adapter isEqualToString:@"news.v1"];
-    HCGRegistryEndpoint *ep = [e endpointWithIdentifier:news ? @"news.articles" : @"identity.discovery"];
+    BOOL news = [e.adapter isEqualToString:@"news.v1"], store = [e.adapter isEqualToString:@"store.health"];
+    HCGRegistryEndpoint *ep = [e endpointWithIdentifier:news ? @"news.articles" : (store ? @"store.health" : @"identity.discovery")];
     if (!ep) {
         [self.context feedback:@"The registry lists no endpoint for this product." success:NO];
         return;
@@ -360,6 +370,11 @@ static NSString *PermissionText(HCGHIPPermission p) {
                 if (!articles.count) [rows addObject:Row(@"", @"No published articles.", @"newspaper", @"")];
             }
             s->_liveTitle = @"Latest approved articles";
+        } else if (store) {
+            NSArray *health = data ? [HCGPublicFeeds storeHealthRowsFromData:data error:&error] : nil;
+            for (NSArray *pair in health) [rows addObject:Row(pair[0], pair[1], @"shippingbox", @"")];
+            if (health) ledgerText = @"Read the HCG Store's public health.";
+            s->_liveTitle = @"HCG Store health (public)";
         } else {
             NSArray *discovery = data ? [HCGPublicFeeds identityDiscoveryRowsFromData:data error:&error] : nil;
             for (NSArray *pair in discovery) [rows addObject:Row(pair[0], pair[1], @"person.badge.key", @"")];

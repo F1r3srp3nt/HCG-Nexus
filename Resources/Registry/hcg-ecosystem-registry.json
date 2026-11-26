@@ -1,6 +1,6 @@
 {
  "schema": "hcg.nexus.registry/1",
- "registryVersion": 1,
+ "registryVersion": 3,
  "generatedAt": "2026-11-26",
  "note": "HCG Nexus's versioned ecosystem registry. Names, identifiers, links and endpoints are copied from the central HCG product registry and the products' own repositories (each entry says where). Links and endpoints here are the only ones Nexus opens; an imported update can only narrow them.",
  "categories": [
@@ -76,70 +76,80 @@
    "name": "Local app",
    "kind": "local",
    "detail": "Detected on this iPhone and opened by its bundle identifier.",
-   "twoWay": false
+   "twoWay": false,
+   "access": "none"
   },
   {
    "id": "url-scheme",
    "name": "URL scheme",
    "kind": "local",
    "detail": "Opens a screen through the product's own navigation link. One-way: never counts as a connection.",
-   "twoWay": false
+   "twoWay": false,
+   "access": "none"
   },
   {
    "id": "local-ipc",
    "name": "Versioned local IPC",
    "kind": "local",
    "detail": "A versioned interface the product owns on this iPhone (status records, HaloNexusControl v1, HCGNexusPortalInterface v1, Darwin open requests).",
-   "twoWay": true
+   "twoWay": true,
+   "access": "local"
   },
   {
    "id": "hcg-server",
    "name": "HCG Server (HCG Device Link)",
    "kind": "remote",
    "detail": "Signed requests to a paired HCG Server (hcg.devicelink/1).",
-   "twoWay": true
+   "twoWay": true,
+   "access": "authenticated"
   },
   {
    "id": "https-api",
    "name": "HTTPS API",
    "kind": "remote",
    "detail": "Read-only requests to a published HTTPS API. Nexus sends no credentials.",
-   "twoWay": true
+   "twoWay": true,
+   "access": "public"
   },
   {
    "id": "local-wifi",
    "name": "Approved local Wi-Fi service",
    "kind": "remote",
    "detail": "A service on your local network that you approved.",
-   "twoWay": true
+   "twoWay": true,
+   "access": "local"
   },
   {
    "id": "bluetooth-system-tester",
    "name": "Bluetooth adapter via HCG System Tester",
    "kind": "device",
    "detail": "Authorized adapters through HCG System Tester, the hardware communication authority. Nexus does not talk to devices itself.",
-   "twoWay": true
+   "twoWay": true,
+   "access": "local"
   },
   {
    "id": "hcg-connect",
    "name": "HCG Connect",
    "kind": "identity",
    "detail": "Central sign-in and authorization. Nexus has no client yet.",
-   "twoWay": true
+   "twoWay": true,
+   "access": "authenticated"
   },
   {
    "id": "file-import",
    "name": "Read-only file integration",
    "kind": "local",
    "detail": "A file the product exported that you open in Nexus (Files, AirDrop). Read only.",
-   "twoWay": true
+   "twoWay": true,
+   "access": "local"
   },
   {
    "id": "website",
    "name": "Website",
    "kind": "web",
    "detail": "An official web page opened in the browser.",
-   "twoWay": false
+   "twoWay": false,
+   "access": "none"
   }
  ],
  "products": [
@@ -856,27 +866,139 @@
     "name": "HCG Store"
    },
    "contract": {
-    "status": "planned",
-    "detail": "Store web and API are not live; signed purchase grants exist only server-side."
+    "status": "available",
+    "id": "store.health",
+    "detail": "Public health route; publishing APIs need HCG Connect and are disabled in production."
    },
    "connectionMethods": [
     {
+     "method": "https-api",
+     "state": "implemented",
+     "detail": "Check now reads the Store's public health."
+    },
+    {
      "method": "website",
-     "state": "planned",
-     "detail": "No live Store listing for HCG Nexus yet (path apps/hcg-nexus?edition=jailbreak is recorded)."
+     "state": "implemented",
+     "detail": "store.hakmicapitalgroup.com (live 26 Nov 2026)."
     }
    ],
    "requirements": [
     {
      "id": "listing",
      "title": "Publish the HCG Nexus Store listing",
-     "detail": "Nexus shows a Store link only when the listing is live.",
+     "detail": "The Store's release-resolution route (hcg.store.release-resolution/1) is implemented but not deployed (404).",
      "kind": "configuration",
      "blocking": false
     }
    ],
    "lastVerified": "2026-11-26",
-   "verifiedFrom": "hakmicapitalgroup docs/hcg-store/store-stage-1-inspection.md"
+   "verifiedFrom": "Live GET store.hakmicapitalgroup.com (200) and https://store.hakmicapitalgroup.com/api/v1/health (200), 26 Nov 2026; F1r3srp3nt/store@1e93880",
+   "links": {
+    "website": "https://store.hakmicapitalgroup.com/"
+   },
+   "adapter": "store.health",
+   "endpoints": [
+    {
+     "id": "store.health",
+     "url": "https://store.hakmicapitalgroup.com/api/v1/health",
+     "auth": "none",
+     "access": "read",
+     "detail": "Public Store health: status, mode, HCG Connect, entitlement authority, payments, protected downloads.",
+     "verified": "live 200, 26 Nov 2026 (mode production)"
+    }
+   ]
+  },
+  {
+   "id": "store-manager",
+   "officialName": "HCG Store Manager",
+   "category": "distribution",
+   "description": "The HCG Store's release management: uploads, release drafts, artifact verification, approvals, published releases.",
+   "kind": "service",
+   "platforms": [
+    "macos",
+    "web"
+   ],
+   "developmentStatus": "research",
+   "nameVerified": false,
+   "central": {
+    "productId": "hcg.store",
+    "registration": "component",
+    "note": "Documented as the Store publishing API's native admin client (store docs/PUBLISHING.md); no app or registry row of its own."
+   },
+   "contract": {
+    "status": "available",
+    "id": "store publishing API",
+    "detail": "Implemented in the Store (manager, releases, capabilities, whoami) but disabled in production (404 publishing_disabled, 26 Nov 2026)."
+   },
+   "connectionMethods": [
+    {
+     "method": "hcg-connect",
+     "state": "planned",
+     "detail": "Bearer token from HCG Connect; the client must be on the Store's publishing allow-list."
+    }
+   ],
+   "capabilities": [
+    {
+     "id": "drafts",
+     "title": "Release drafts, pending approvals, published releases",
+     "state": "planned",
+     "permission": "none",
+     "note": "GET publishing/manager (stage: draft … published) once enabled and authorized."
+    },
+    {
+     "id": "uploads",
+     "title": "Upload status and artifact verification",
+     "state": "planned",
+     "permission": "none",
+     "note": "GET publishing/releases/{id}: received bytes, SHA-256, validation."
+    },
+    {
+     "id": "offers",
+     "title": "Temporary testing offers",
+     "state": "planned",
+     "permission": "none",
+     "note": "Free testing windows exist only as an operator command; no read route."
+    },
+    {
+     "id": "sync",
+     "title": "Synchronization health",
+     "state": "planned",
+     "permission": "none",
+     "note": "No sync API: only the manager's auditIntact and the public Store health."
+    },
+    {
+     "id": "act",
+     "title": "Upload, approve or publish releases",
+     "state": "unavailable",
+     "permission": "not-offered",
+     "note": "Never offered by Nexus: approval and publication stay in the Store's browser flow."
+    }
+   ],
+   "requirements": [
+    {
+     "id": "enable-publishing",
+     "title": "Enable the Store publishing API in production",
+     "detail": "It answers 404 publishing_disabled today.",
+     "kind": "access",
+     "blocking": true
+    },
+    {
+     "id": "read-permission",
+     "title": "Add a read-only Store permission",
+     "detail": "Today's keys (store.publish, store.release.approve, store.release.publish) all grant write power and are granted to nobody; Nexus should only ever hold a read key (proposed: store.release.read).",
+     "kind": "registration",
+     "blocking": true
+    },
+    {
+     "id": "client-allowlist",
+     "title": "Add the HCG Nexus client to the Store's publishing allow-list",
+     "detail": "After HCG Connect issues Nexus's client (HCG_STORE_PUBLISHING_CLIENT_IDS).",
+     "kind": "configuration",
+     "blocking": false
+    }
+   ],
+   "lastVerified": "2026-11-26",
+   "verifiedFrom": "F1r3srp3nt/store@1e93880 server/publishing.ts, docs/PUBLISHING.md; live GET publishing/manager 404, 26 Nov 2026"
   },
   {
    "id": "repo",
@@ -946,7 +1068,7 @@
      "auth": "none",
      "access": "read",
      "detail": "Public identity discovery (issuer, endpoints, registration state). No credentials.",
-     "verified": "docs (hakmicapitalgroup src/routes/api/public/lifeos/v1/discovery.ts)"
+     "verified": "live 200, 26 Nov 2026 (PKCE S256; no revocation endpoint)"
     }
    ],
    "connectionMethods": [
@@ -985,6 +1107,13 @@
     }
    ],
    "requirements": [
+    {
+     "id": "register-product",
+     "title": "Register hcg.nexus in the central product registry",
+     "detail": "Client registration refuses products that are not registered ('Existing product required').",
+     "kind": "registration",
+     "blocking": true
+    },
     {
      "id": "client-id",
      "title": "Issue an HCG Connect client for HCG Nexus",
@@ -1076,6 +1205,11 @@
    },
    "connectionMethods": [
     {
+     "method": "https-api",
+     "state": "implemented",
+     "detail": "Command Center › Registry › Update from central registry."
+    },
+    {
      "method": "website",
      "state": "implemented",
      "detail": "Inside HCG ERP (sign-in required)."
@@ -1083,15 +1217,26 @@
    ],
    "requirements": [
     {
-     "id": "public-directory",
-     "title": "Publish a public product directory route",
-     "detail": "app_public_directory() exists only as a database function; Nexus reads its own versioned registry until a route is published.",
+     "id": "signed-directory",
+     "title": "Publish a signed, versioned public directory",
+     "detail": "The catalogue has no signature, ETag or version and also lists non-public products; a signed directory limited to listed products is proposed (docs/CENTRAL-REGISTRY.md).",
      "kind": "contract",
      "blocking": false
     }
    ],
    "lastVerified": "2026-11-26",
-   "verifiedFrom": "hakmicapitalgroup AGENTS.md:14; drizzle/migrations/0040_product_public_directory.sql"
+   "verifiedFrom": "hakmicapitalgroup AGENTS.md:14; drizzle/migrations/0040_product_public_directory.sql",
+   "adapter": "central.registry",
+   "endpoints": [
+    {
+     "id": "central.catalog",
+     "url": "https://beta.hakmicapitalgroup.com/api/public/pricing/v1/catalog",
+     "auth": "none",
+     "access": "read",
+     "detail": "The central product catalogue Nexus takes product identities from.",
+     "verified": "live 200, 26 Nov 2026 (31 products)"
+    }
+   ]
   },
   {
    "id": "trading",
@@ -1112,17 +1257,26 @@
    "requirements": [
     {
      "id": "research",
-     "title": "Verify HCG Trading's registry entry and website",
-     "detail": "Nexus shows no link until the domain is verified.",
+     "title": "Register HCG Trading and bring trading.hakmicapitalgroup.com online",
+     "detail": "No registry row; the host did not answer (26 Nov 2026).",
      "kind": "research",
      "blocking": true
+    },
+    {
+     "id": "store-release",
+     "title": "Deploy the Store's release resolution for the simulator",
+     "detail": "GET /api/public/v1/release-resolution/hcg-one-unleashed is implemented in the Store but answers 404.",
+     "kind": "configuration",
+     "blocking": false
     }
    ],
    "notes": [
+    "trading.hakmicapitalgroup.com did not answer on 26 Nov 2026 (no response through the network proxy): no website is offered.",
+    "The registered simulators are HCG Trading Lab (web, hcg.trading.lab) and HCG ONE: UNLEASHED (native, hcg.one.unleashed).",
     "Nexus never initiates trades and never shows credentials or customer financial data."
    ],
    "lastVerified": "2026-11-26",
-   "verifiedFrom": "hakmicapitalgroup 57d05ac (no match)"
+   "verifiedFrom": "Live GET trading.hakmicapitalgroup.com: no answer (proxy 502), 26 Nov 2026; store docs/RELEASE-RESOLUTION.md"
   },
   {
    "id": "trading-lab",
@@ -1161,7 +1315,42 @@
     "Simulation only. Nexus never initiates trades."
    ],
    "lastVerified": "2026-11-26",
-   "verifiedFrom": "hakmicapitalgroup 0011_app_allowed_subscriptions.sql:366; src/routes/products/index.tsx:49-51"
+   "verifiedFrom": "Live GET beta.hakmicapitalgroup.com/trader-mission/simulator (200), 26 Nov 2026; central catalogue hcg.trading.lab"
+  },
+  {
+   "id": "one-unleashed",
+   "officialName": "HCG ONE: UNLEASHED",
+   "category": "finance",
+   "description": "Native macOS trading simulation (the Store's trading simulator).",
+   "kind": "app",
+   "platforms": [
+    "macos"
+   ],
+   "developmentStatus": "in-development",
+   "central": {
+    "productId": "hcg.one.unleashed",
+    "registration": "registered",
+    "name": "HCG ONE: UNLEASHED"
+   },
+   "connectionMethods": [],
+   "contract": {
+    "status": "planned",
+    "detail": "Distributed through HCG Store; its release resolution is not deployed yet."
+   },
+   "requirements": [
+    {
+     "id": "store-release",
+     "title": "Publish an approved simulator release in HCG Store",
+     "detail": "Nexus shows release information only from the Store's release resolution (hcg.store.release-resolution/1).",
+     "kind": "configuration",
+     "blocking": false
+    }
+   ],
+   "notes": [
+    "Simulation only: no market data or trading through Nexus."
+   ],
+   "lastVerified": "2026-11-26",
+   "verifiedFrom": "Central catalogue (live, 26 Nov 2026); store catalogue/products.json"
   },
   {
    "id": "payments",
@@ -1222,7 +1411,7 @@
      "auth": "none",
      "access": "read",
      "detail": "Published articles (no key, login or cookie).",
-     "verified": "docs, 2026-11-04 (hakmicapitalgroup docs/news-api/contract.md)"
+     "verified": "live 200, 26 Nov 2026 (news.v1, 13 articles)"
     }
    ],
    "connectionMethods": [

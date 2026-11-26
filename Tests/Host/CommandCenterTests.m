@@ -36,7 +36,7 @@ static NSString *MiniRegistry(NSInteger version, NSString *products) {
 static void testBuiltInRegistry(void) {
     HCGRegistry *r = Registry();
     HCG_CHECK(r != nil, "the built-in registry loads");
-    HCG_CHECK_EQ_INT(r.version, 1);
+    HCG_CHECK_EQ_INT(r.version, 3);
     HCG_CHECK_EQ_INT(r.categories.count, 13);
     HCG_CHECK_EQ_INT(r.problems.count, 0);
     if (r.problems.count) NSLog(@"registry problems: %@", r.problems);
@@ -124,7 +124,7 @@ static void testVisibilityAndValidation(void) {
 static void testUpdatesOnlyNarrow(void) {
     HCGRegistry *base = Registry();
     NSString *error = nil;
-    NSString *updateJSON = MiniRegistry(2,
+    NSString *updateJSON = MiniRegistry(4,
         @"{\"id\":\"news\",\"officialName\":\"HCG News\",\"category\":\"media\",\"kind\":\"app\",\"developmentStatus\":\"released\",\"lifecycle\":\"active\","
          "\"links\":{\"website\":\"https://news.hakmicapitalgroup.com/\"},"
          "\"endpoints\":[{\"id\":\"news.articles\",\"url\":\"https://other.hakmicapitalgroup.com/feed\",\"auth\":\"none\",\"access\":\"read\"}],"
@@ -154,7 +154,7 @@ static void testUpdatesOnlyNarrow(void) {
     HCG_CHECK([[merged entryWithIdentifier:@"terminal-unleashed"].validations count] == 1, "untouched entries keep their evidence");
     HCG_CHECK(merged.methods.count == base.methods.count, "methods are never imported");
     // Not newer: refused.
-    HCGRegistry *old = RegistryFromJSON(MiniRegistry(1, @"{\"id\":\"x1\",\"officialName\":\"X\",\"category\":\"media\"}"), &error);
+    HCGRegistry *old = RegistryFromJSON(MiniRegistry(3, @"{\"id\":\"x1\",\"officialName\":\"X\",\"category\":\"media\"}"), &error);
     problem = nil;
     HCG_CHECK([base registryByApplyingUpdate:old problem:&problem] == base && problem.length, "older update refused");
 }
@@ -204,7 +204,8 @@ static void testConnectionNeedsEvidence(void) {
     NSDictionary *ok = [HCGConnectionLedger entryForProduct:@"news" method:@"https-api" success:YES text:@"Read 6 published articles." time:[now dateByAddingTimeInterval:-60]];
     ledger = [HCGConnectionLedger entries:nil byAdding:ok];
     c = [HCGCommandCenter connectionForEntry:news hipStatus:nil ledger:ledger registry:r now:now];
-    HCG_CHECK_EQ_INT(c.state, HCGConnectionStateConnected);
+    HCG_CHECK_EQ_INT(c.state, HCGConnectionStateReachable); // a public read is never Connected
+    HCG_CHECK_EQ_STR(c.lastSuccessAccess, @"public");
     HCG_CHECK(c.lastSuccess != nil && [c.lastSuccessText isEqualToString:@"Read 6 published articles."], "last successful communication");
     c = [HCGCommandCenter connectionForEntry:news hipStatus:nil ledger:ledger registry:r now:[now dateByAddingTimeInterval:3600]];
     HCG_CHECK_EQ_INT(c.state, HCGConnectionStateDisconnected);
@@ -406,6 +407,128 @@ static void testPublicFeeds(void) {
     HCG_CHECK([HCGPublicFeeds identityDiscoveryRowsFromData:[@"{}" dataUsingEncoding:NSUTF8StringEncoding] error:&error] == nil, "invalid discovery");
 }
 
+static void testEvidenceLayers(void) {
+    HCGRegistry *r = Registry();
+    NSDate *now = CCNow();
+    HCG_CHECK_EQ_STR([r methodWithIdentifier:@"https-api"].access, @"public");
+    HCG_CHECK_EQ_STR([r methodWithIdentifier:@"hcg-server"].access, @"authenticated");
+    HCG_CHECK_EQ_STR([r methodWithIdentifier:@"local-ipc"].access, @"local");
+    HCG_CHECK_EQ_STR([r methodWithIdentifier:@"url-scheme"].access, @"none");
+    // HCG Halo's own interface answering: Connected (local), not authenticated.
+    HCGRegistryEntry *halo = [r entryWithIdentifier:@"halo"];
+    NSArray *ledger = [NSArray arrayWithObject:[HCGConnectionLedger entryForProduct:@"halo" method:@"local-ipc" success:YES text:@"HCG Halo accepted a border change." time:now]];
+    HCGConnectionSummary *c = [HCGCommandCenter connectionForEntry:halo hipStatus:nil ledger:ledger registry:r now:now];
+    HCG_CHECK_EQ_INT(c.state, HCGConnectionStateConnected);
+    HCG_CHECK_EQ_STR(c.title, @"Connected (local interface)");
+    NSArray *layers = [HCGCommandCenter evidenceLayersForEntry:halo connection:c hipStatus:nil ledger:ledger registry:r now:now];
+    HCG_CHECK_EQ_INT(layers.count, 7);
+    NSArray *titles = [NSArray arrayWithObjects:@"Registered product", @"Installed application", @"Available service", @"Authenticated connection",
+                                                @"Verified capability", @"Current connection health", @"Historical validation", nil];
+    NSUInteger i;
+    for (i = 0; i < 7 && i < layers.count; i++) HCG_CHECK_EQ_STR([[layers objectAtIndex:i] objectAtIndex:0], [titles objectAtIndex:i]);
+    HCG_CHECK([[[layers objectAtIndex:3] objectAtIndex:1] hasPrefix:@"Not authenticated"], "a local interface is not authentication");
+    // HCG Connect: the public discovery read is availability only; the roadmap stays partial (no client).
+    HCGRegistryEntry *connect = [r entryWithIdentifier:@"connect"];
+    ledger = [NSArray arrayWithObject:[HCGConnectionLedger entryForProduct:@"connect" method:@"https-api" success:YES text:@"Read the public identity discovery." time:now]];
+    c = [HCGCommandCenter connectionForEntry:connect hipStatus:nil ledger:ledger registry:r now:now];
+    HCG_CHECK_EQ_INT(c.state, HCGConnectionStateReachable);
+    HCG_CHECK_EQ_INT([HCGCommandCenter roadmapForEntry:connect connection:c hipStatus:nil].state, HCGRoadmapStatePartiallyIntegrated);
+    layers = [HCGCommandCenter evidenceLayersForEntry:connect connection:c hipStatus:nil ledger:ledger registry:r now:now];
+    HCG_CHECK([[[layers objectAtIndex:2] objectAtIndex:1] hasPrefix:@"Public read succeeded"], "available service");
+    HCG_CHECK([[[layers objectAtIndex:3] objectAtIndex:1] hasPrefix:@"None"], "a public read is not authenticated access");
+    HCG_CHECK([[[layers objectAtIndex:0] objectAtIndex:1] rangeOfString:@"hcg.connect"].location != NSNotFound, "central ID");
+    // HCG News: a public-only integration; a public read completes its roadmap, still not authenticated.
+    HCGRegistryEntry *news = [r entryWithIdentifier:@"news"];
+    ledger = [NSArray arrayWithObject:[HCGConnectionLedger entryForProduct:@"news" method:@"https-api" success:YES text:@"Read 13 published articles." time:now]];
+    c = [HCGCommandCenter connectionForEntry:news hipStatus:nil ledger:ledger registry:r now:now];
+    HCG_CHECK_EQ_INT([HCGCommandCenter roadmapForEntry:news connection:c hipStatus:nil].state, HCGRoadmapStateConnected);
+    // Terminal Unleashed: historical validation stays separate from current health.
+    HCGRegistryEntry *tu = [r entryWithIdentifier:@"terminal-unleashed"];
+    c = [HCGCommandCenter connectionForEntry:tu hipStatus:nil ledger:nil registry:r now:now];
+    layers = [HCGCommandCenter evidenceLayersForEntry:tu connection:c hipStatus:nil ledger:nil registry:r now:now];
+    HCG_CHECK([[[layers objectAtIndex:6] objectAtIndex:1] rangeOfString:@"iPhone 11 Pro Max"].location != NSNotFound, "historical validation");
+    HCG_CHECK([[[layers objectAtIndex:5] objectAtIndex:1] rangeOfString:@"Connected"].location == NSNotFound, "history is not current health");
+}
+
+static void testLiveCaptures(void) {
+    NSString *error = nil;
+    NSInteger total = 0;
+    NSArray *articles = [HCGPublicFeeds newsArticlesFromData:CCFixture(@"live-news-2026-11-26.json") total:&total error:&error];
+    HCG_CHECK(articles.count == 3, "the live news.v1 answer parses (%s)", [error UTF8String] ?: "");
+    HCG_CHECK_EQ_INT(total, 13);
+    for (HCGNewsArticle *a in articles) HCG_CHECK(a.title.length && a.webURL && a.publishedAt.length == 10, "live article fields");
+    NSArray *rows = [HCGPublicFeeds identityDiscoveryRowsFromData:CCFixture(@"live-discovery-2026-11-26.json") error:&error];
+    HCG_CHECK(rows.count >= 5, "the live discovery parses");
+    NSString *all = [rows description];
+    NSDictionary *raw = [NSJSONSerialization JSONObjectWithData:CCFixture(@"live-discovery-2026-11-26.json") options:0 error:NULL];
+    id clientID = [raw objectForKey:@"private_beta_client_id"];
+    if ([clientID isKindOfClass:[NSString class]] && [clientID length]) HCG_CHECK([all rangeOfString:clientID].location == NSNotFound, "live client IDs are never shown");
+    HCG_CHECK([all rangeOfString:@"S256 supported"].location != NSNotFound, "PKCE S256 live");
+    HCG_CHECK([all rangeOfString:@"Not advertised"].location != NSNotFound, "no revocation endpoint live");
+    NSArray *store = [HCGPublicFeeds storeHealthRowsFromData:CCFixture(@"live-store-health-2026-11-26.json") error:&error];
+    HCG_CHECK(store.count >= 6, "the live Store health parses");
+    HCG_CHECK([[store description] rangeOfString:@"production"].location != NSNotFound, "Store mode");
+    HCG_CHECK([HCGPublicFeeds storeHealthRowsFromData:[@"{}" dataUsingEncoding:NSUTF8StringEncoding] error:&error] == nil, "invalid health");
+    HCGRegistry *r = Registry();
+    HCG_CHECK([r entryWithIdentifier:@"store-manager"] != nil && [r entryWithIdentifier:@"one-unleashed"] != nil, "new entries");
+    for (HCGHIPCapability *c in [r entryWithIdentifier:@"store-manager"].capabilities) {
+        HCG_CHECK(c.state != HCGHIPCapabilityStateAvailable && c.state != HCGHIPCapabilityStateVerified, "Store Manager offers nothing yet");
+    }
+    HCG_CHECK([r entryWithIdentifier:@"trading"].websiteURL == nil, "HCG Trading: no link while its host does not answer");
+}
+
+static void testCentralRegistry(void) {
+    NSString *error = nil;
+    NSData *live = CCFixture(@"live-central-catalog-2026-11-26.json");
+    HCGCentralSnapshot *snap = [HCGCentralSnapshot snapshotWithData:live fetchedAt:CCNow() error:&error];
+    HCG_CHECK(snap != nil, "the live central catalogue parses (%s)", [error UTF8String] ?: "");
+    HCG_CHECK_EQ_INT(snap.products.count, 31);
+    HCG_CHECK_EQ_INT(snap.version.length, 16);
+    HCG_CHECK_EQ_STR(((HCGCentralProduct *)[snap.products objectForKey:@"hcg.connect"]).name, @"HCG Connect / HCG Auth");
+    // The version depends only on identity fields: the same catalogue (re-serialised) keeps its version.
+    id json = [NSJSONSerialization JSONObjectWithData:live options:0 error:NULL];
+    NSData *again = [NSJSONSerialization dataWithJSONObject:json options:NSJSONWritingPrettyPrinted error:NULL];
+    HCG_CHECK_EQ_STR([HCGCentralSnapshot snapshotWithData:again fetchedAt:CCNow() error:NULL].version, snap.version);
+    // Storage round trip and validation.
+    HCGCentralSnapshot *restored = [HCGCentralSnapshot snapshotFromStoredValue:[snap storedValue]];
+    HCG_CHECK_EQ_STR(restored.version, snap.version);
+    HCG_CHECK([HCGCentralSnapshot snapshotWithData:[@"{\"api_version\":\"2\",\"products\":[]}" dataUsingEncoding:NSUTF8StringEncoding] fetchedAt:CCNow() error:&error] == nil, "other api_version");
+    HCG_CHECK([HCGCentralSnapshot snapshotWithData:[@"{\"api_version\":\"1\",\"products\":[{\"product_id\":\"hcg.x\",\"name\":\"X\"}]}" dataUsingEncoding:NSUTF8StringEncoding] fetchedAt:CCNow() error:&error] == nil, "too few products");
+    HCG_CHECK([HCGCentralSnapshot snapshotWithData:[@"<html>" dataUsingEncoding:NSUTF8StringEncoding] fetchedAt:CCNow() error:&error] == nil, "not JSON");
+    HCG_CHECK([HCGCentralSnapshot snapshotFromStoredValue:@"junk"] == nil, "stored junk");
+
+    HCGRegistry *base = Registry();
+    NSUInteger matched = 0;
+    HCGRegistry *r = [base registryByApplyingCentralSnapshot:snap matched:&matched];
+    HCG_CHECK(matched >= 15, "matched %lu entries", (unsigned long)matched);
+    HCG_CHECK_EQ_INT(r.entries.count, base.entries.count);             // never adds products
+    HCG_CHECK_EQ_STR([r entryWithIdentifier:@"connect"].officialName, @"HCG Connect / HCG Auth");
+    HCG_CHECK_EQ_STR([base entryWithIdentifier:@"connect"].officialName, @"HCG Connect"); // the built-in registry is untouched
+    HCG_CHECK_EQ_STR([r entryWithIdentifier:@"terminal"].developmentStatus, @"planned");
+    HCG_CHECK_EQ_STR([r entryWithIdentifier:@"trading-lab"].developmentStatus, @"in-development");
+    HCG_CHECK_EQ_STR([r entryWithIdentifier:@"nexus"].centralRegistration, @"proposed");    // hcg.nexus is not registered centrally
+    HCG_CHECK_EQ_STR([r entryWithIdentifier:@"server"].centralRegistration, @"proposed");
+    HCG_CHECK_EQ_STR([r entryWithIdentifier:@"terminal-unleashed"].centralRegistration, @"edition"); // editions keep their own identity
+    for (HCGRegistryEntry *e in r.entries) {
+        HCGRegistryEntry *b = [base entryWithIdentifier:e.identifier];
+        HCG_CHECK((e.websiteURL == b.websiteURL || [e.websiteURL isEqualToString:b.websiteURL]) && e.endpoints.count == b.endpoints.count &&
+                  [e.visibility isEqualToString:b.visibility] && (e.adapter == b.adapter || [e.adapter isEqualToString:b.adapter]),
+                  "%s: the central registry changes identity only", [e.identifier UTF8String]);
+    }
+    HCG_CHECK([r.source rangeOfString:snap.version].location != NSNotFound, "source names the snapshot");
+    HCG_CHECK([base registryByApplyingCentralSnapshot:nil matched:NULL] == base, "no snapshot: built in");
+
+    // An imported registry file cannot redefine identity or authority.
+    NSString *update = MiniRegistry(9, @"{\"id\":\"connect\",\"officialName\":\"Totally Official\",\"category\":\"media\",\"central\":{\"productId\":\"hcg.evil\",\"registration\":\"registered\"}},"
+                                        "{\"id\":\"newcomer\",\"officialName\":\"Newcomer\",\"category\":\"media\",\"central\":{\"productId\":\"hcg.newcomer\",\"registration\":\"registered\"},\"nameVerified\":true}");
+    HCGRegistry *u = RegistryFromJSON(update, &error);
+    HCGRegistry *merged = [r registryByApplyingUpdate:u problem:NULL];
+    HCG_CHECK_EQ_STR([merged entryWithIdentifier:@"connect"].officialName, @"HCG Connect / HCG Auth");
+    HCG_CHECK_EQ_STR([merged entryWithIdentifier:@"connect"].centralProductID, @"hcg.connect");
+    HCG_CHECK_EQ_STR([merged entryWithIdentifier:@"newcomer"].centralRegistration, @"not-registered");
+    HCG_CHECK(![merged entryWithIdentifier:@"newcomer"].nameVerified, "an imported name is never verified");
+}
+
 void HCGRunCommandCenterTests(void) {
     HCGCurrentTest = "command-center";
     testBuiltInRegistry();
@@ -417,4 +540,7 @@ void HCGRunCommandCenterTests(void) {
     testGapsAndLifeOSExport();
     testInventory();
     testPublicFeeds();
+    testEvidenceLayers();
+    testLiveCaptures();
+    testCentralRegistry();
 }

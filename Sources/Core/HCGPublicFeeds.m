@@ -56,6 +56,25 @@ static NSString *Text(id value, NSUInteger limit) {
     return out;
 }
 
++ (NSArray *)storeHealthRowsFromData:(NSData *)data error:(NSString **)error {
+    id json = data.length && data.length <= 64 * 1024 ? [NSJSONSerialization JSONObjectWithData:data options:0 error:NULL] : nil;
+    NSString *status = [json isKindOfClass:[NSDictionary class]] ? Text([json objectForKey:@"status"], 40) : nil;
+    if (!status) {
+        if (error) *error = @"Not the HCG Store health answer.";
+        return nil;
+    }
+    NSMutableArray *rows = [NSMutableArray array];
+    NSArray *fields = [NSArray arrayWithObjects:@"status", @"Status", @"mode", @"Mode", @"hcgConnect", @"HCG Connect", @"entitlementAuthority", @"Entitlement authority",
+                                                @"payments", @"Payments", @"protectedDownloads", @"Protected downloads", nil];
+    NSUInteger i;
+    for (i = 0; i + 1 < fields.count; i += 2) {
+        NSString *v = Text([json objectForKey:[fields objectAtIndex:i]], 60);
+        if (v) [rows addObject:[NSArray arrayWithObjects:[fields objectAtIndex:i + 1], v, nil]];
+    }
+    [rows addObject:[NSArray arrayWithObjects:@"Release management", @"Needs HCG Connect and Store permissions (not offered to Nexus)", nil]];
+    return rows;
+}
+
 + (NSArray *)identityDiscoveryRowsFromData:(NSData *)data error:(NSString **)error {
     id json = data.length && data.length <= 256 * 1024 ? [NSJSONSerialization JSONObjectWithData:data options:0 error:NULL] : nil;
     NSDictionary *oauth = [json isKindOfClass:[NSDictionary class]] ? [json objectForKey:@"oauth"] : nil;

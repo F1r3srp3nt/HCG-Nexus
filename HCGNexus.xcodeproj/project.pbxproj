@@ -271,6 +271,10 @@
 			isa = PBXBuildFile;
 			fileRef = 1DFF45AE3D3B9B02A39F2A74;
 		};
+		B72D284943708FB1D8FD70A2 /* HCGCentralRegistry.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 9A159110A00791FA55905A78;
+		};
 		BEC19CB72860A18682631E42 /* main.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = AE2C2263398739856E9BFC7D;
@@ -551,6 +555,13 @@
 			lastKnownFileType = sourcecode.c.objc;
 			name = HCGOverlayPolicy.m;
 			path = Sources/Core/HCGOverlayPolicy.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		20A4FC2F16C6343FEA726087 /* HCGCentralRegistry.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGCentralRegistry.h;
+			path = Sources/Core/HCGCentralRegistry.h;
 			sourceTree = SOURCE_ROOT;
 		};
 		23007D7C72B8DFE7A39EC6CE /* HCGConstants.h */ = {
@@ -1041,6 +1052,13 @@
 			lastKnownFileType = sourcecode.c.objc;
 			name = HCGLayoutMigration.m;
 			path = Sources/Core/HCGLayoutMigration.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		9A159110A00791FA55905A78 /* HCGCentralRegistry.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGCentralRegistry.m;
+			path = Sources/Core/HCGCentralRegistry.m;
 			sourceTree = SOURCE_ROOT;
 		};
 		9F42A85466F7E2D5F20DCEE9 /* HCGSettings.m */ = {
@@ -1639,6 +1657,8 @@
 				8A20893A8B66B6FA9C6D9E8E,
 				6B6FCA6893B83A6C49F371E7,
 				2846CFC12CFA43627359273A,
+				20A4FC2F16C6343FEA726087,
+				9A159110A00791FA55905A78,
 				4AA491F4D237D7B84F6963AB,
 				458170BAC5097F00BA860118,
 				484D26FB7E55C542E6D33432,
@@ -1883,6 +1903,7 @@
 				3E9A601B356B02EC8C832407,
 				6680936370656B23F3581EE5,
 				636366564C619A050B091CFE,
+				B72D284943708FB1D8FD70A2,
 				8438A6A93B4DDF9758ACDAA5,
 				7CE427E6D2E461840C4CCC27,
 				6FB811E50C5164543FAB9D80,
@@ -2092,7 +2113,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = App/Info.plist;
@@ -2101,7 +2122,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.6.0;
+				MARKETING_VERSION = 0.7.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -2121,7 +2142,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = App/Info.plist;
@@ -2130,7 +2151,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.6.0;
+				MARKETING_VERSION = 0.7.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -2149,11 +2170,11 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.6.0;
+				MARKETING_VERSION = 0.7.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -2167,11 +2188,11 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.6.0;
+				MARKETING_VERSION = 0.7.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

@@ -1,4 +1,6 @@
 #import "HCGSystemInfo.h"
+#include <mach/mach.h>
+#include <sys/resource.h>
 #import <UIKit/UIKit.h>
 #include <sys/sysctl.h>
 
@@ -33,6 +35,19 @@ static NSString *HCGSysctlString(const char *name) {
     }
     if ([resolved hasPrefix:@"/Library/"] || [bundlePath hasPrefix:@"/Library/"]) return @"/ (rootful layout)";
     return @"unknown";
+}
+
++ (double)processMemoryFootprintMB {
+    task_vm_info_data_t info;
+    mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
+    if (task_info(mach_task_self(), TASK_VM_INFO, (task_info_t)&info, &count) != KERN_SUCCESS) return -1;
+    return (double)info.phys_footprint / (1024.0 * 1024.0);
+}
+
++ (double)processCPUSeconds {
+    struct rusage usage;
+    if (getrusage(RUSAGE_SELF, &usage) != 0) return -1;
+    return (double)usage.ru_utime.tv_sec + usage.ru_utime.tv_usec / 1e6 + (double)usage.ru_stime.tv_sec + usage.ru_stime.tv_usec / 1e6;
 }
 
 @end

@@ -42,12 +42,17 @@ FOUNDATION_EXPORT BOOL HCGRegistryIsValidIdentifier(NSString *_Nullable text);
     NSString *_kind;
     NSString *_detail;
     BOOL _twoWay;
+    NSString *_access;
 }
 @property (nonatomic, copy) NSString *identifier;   // local-app, url-scheme, local-ipc, hcg-server, https-api, ...
 @property (nonatomic, copy) NSString *name;
 @property (nonatomic, copy) NSString *kind;         // local, remote, device, identity, web
 @property (nonatomic, copy) NSString *detail;
 @property (nonatomic) BOOL twoWay;                  // NO: navigation only, never counts as a connection
+// What a successful exchange over this method proves: "public" (an anonymous read: the service is reachable, nothing
+// more), "local" (a product-owned interface on this iPhone answered), "authenticated" (a signed or bearer-authorized
+// exchange: HCG Device Link, HCG Connect), "none" (navigation). Only local and authenticated make a product Connected.
+@property (nonatomic, copy) NSString *access;
 @end
 
 @interface HCGRegistryConnection : NSObject {
@@ -168,6 +173,7 @@ FOUNDATION_EXPORT BOOL HCGRegistryIsValidIdentifier(NSString *_Nullable text);
 @property (nonatomic) BOOL fromUpdate;                               // added by an imported update (text only)
 @property (nonatomic, readonly) BOOL isPlanned;                      // kind planned or status planned/research
 - (nullable HCGRegistryEndpoint *)endpointWithIdentifier:(NSString *)identifier;
+- (HCGRegistryEntry *)entryCopy;   // a separate entry (the built-in registry is shared and never changed)
 - (nullable HCGRegistryConnection *)connectionForMethod:(NSString *)method;
 @end
 

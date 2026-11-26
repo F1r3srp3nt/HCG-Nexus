@@ -92,7 +92,8 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
     NSDictionary *diag = self.context.diagnosticsProvider ? self.context.diagnosticsProvider() : @{};
     NSArray *keys = @[ @"availability", @"deviceLocked", @"coverSheetVisible", @"screenBlanked", @"panelState", @"overlayWindows",
                        @"gestureRecognizers", @"installCount", @"opens", @"closes", @"forcedCloses", @"orientation", @"manualRotation",
-                       @"animationsAllowed", @"launcher", @"launcherCapabilities", @"droppedEntriesOnLoad", @"dataStore" ];
+                       @"animationsAllowed", @"launcher", @"launcherCapabilities", @"droppedEntriesOnLoad", @"dataStore",
+                       @"hostMemoryFootprint", @"hostCPUTime" ];
     for (NSString *key in keys) {
         id value = diag[key];
         if (value) [rows addObject:@[ key, [value description] ]];

@@ -1,4 +1,5 @@
 #import "HCGOverlayController.h"
+#import "HCGSystemInfo.h"
 #import "HCGNexusPortalInterface.h"
 #import "HCGEdgeHandleView.h"
 #import "HCGTheme.h"
@@ -196,6 +197,10 @@
     d[@"launcherCapabilities"] = [_model.launcher capabilitySummary] ?: @"none";
     d[@"droppedEntriesOnLoad"] = @(_model.workspaceStore.droppedEntriesOnLoad);
     d[@"haloBorderAttached"] = @([self borderDecorationAttached]);
+    // Device test (docs/DEVICE-TEST-0.6.0.md, section 13): the host process's own footprint and CPU time.
+    double mb = [HCGSystemInfo processMemoryFootprintMB], cpu = [HCGSystemInfo processCPUSeconds];
+    d[@"hostMemoryFootprint"] = mb >= 0 ? [NSString stringWithFormat:@"%.1f MB", mb] : @"unavailable";
+    d[@"hostCPUTime"] = cpu >= 0 ? [NSString stringWithFormat:@"%.1f s since launch", cpu] : @"unavailable";
     return d;
 }
 

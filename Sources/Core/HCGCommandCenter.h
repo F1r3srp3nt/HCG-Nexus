@@ -30,6 +30,8 @@ typedef NS_ENUM(NSInteger, HCGConnectionState) {
     HCGConnectionStateFailed = 11,       // attempted, never succeeded
     HCGConnectionStateBuiltIn = 12,      // part of HCG Nexus (Package Trust Center)
     HCGConnectionStateWebsite = 13,      // a website only; nothing to connect to
+    HCGConnectionStateReachable = 14,    // an anonymous public read succeeded recently: the service is available, but
+                                         // nothing is authenticated (never shown as Connected)
 };
 
 // The 14 roadmap states, in development order.
@@ -75,6 +77,7 @@ FOUNDATION_EXPORT const NSTimeInterval HCGConnectionFreshInterval; // 15 min
     NSDate *_lastSuccess;
     NSString *_lastSuccessText;
     NSDate *_lastAttempt;
+    NSString *_lastSuccessAccess;
 }
 @property (nonatomic) HCGConnectionState state;
 @property (nonatomic, copy) NSString *title;
@@ -82,6 +85,7 @@ FOUNDATION_EXPORT const NSTimeInterval HCGConnectionFreshInterval; // 15 min
 @property (nonatomic, copy, nullable) NSDate *lastSuccess;       // last successful two-way communication
 @property (nonatomic, copy, nullable) NSString *lastSuccessText;
 @property (nonatomic, copy, nullable) NSDate *lastAttempt;
+@property (nonatomic, copy, nullable) NSString *lastSuccessAccess;  // public, local, authenticated
 @end
 
 @interface HCGRoadmapAssessment : NSObject {
@@ -134,6 +138,15 @@ FOUNDATION_EXPORT const NSTimeInterval HCGConnectionFreshInterval; // 15 min
                                connection:(HCGConnectionSummary *)connection
                                 hipStatus:(nullable HCGHIPProductStatus *)hip;
 + (NSString *)titleForConnectionState:(HCGConnectionState)state;
+// The seven evidence layers, kept apart (title, value): Registered product, Installed application, Available service,
+// Authenticated connection, Verified capability, Current connection health, Historical validation. A public read only
+// ever fills "Available service"; "Authenticated connection" needs a signed or bearer-authorized exchange.
++ (NSArray<NSArray<NSString *> *> *)evidenceLayersForEntry:(HCGRegistryEntry *)entry
+                                                connection:(HCGConnectionSummary *)connection
+                                                 hipStatus:(nullable HCGHIPProductStatus *)hip
+                                                    ledger:(nullable NSArray<NSDictionary *> *)ledger
+                                                  registry:(HCGRegistry *)registry
+                                                       now:(NSDate *)now;
 + (NSString *)titleForRoadmapState:(HCGRoadmapState)state;
 + (NSString *)keyForRoadmapState:(HCGRoadmapState)state;            // "adapter-implemented"
 + (HCGRoadmapState)roadmapStateForKey:(nullable NSString *)key found:(nullable BOOL *)found;

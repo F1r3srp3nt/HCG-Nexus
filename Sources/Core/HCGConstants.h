@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
 
 // Keep in sync with `Version:` in /control (scripts/check.sh verifies this).
-#define HCG_NEXUS_VERSION @"0.6.0~beta1"
+#define HCG_NEXUS_VERSION @"0.7.0~beta1"
 
 // CFPreferences domain shared by SpringBoard (reader) and the Settings bundle.
 FOUNDATION_EXPORT NSString *const HCGNexusPreferencesDomain;
