@@ -8,8 +8,17 @@ Reproduce sections 1 and 3 with
 
 ## 0.6.0~beta1 — HCG Nexus Command Center (recorded 2026-11-26)
 
-**Status: built; not imported or published** (needs the owner's approval of the exact SHA-256). Not device-tested:
-`DEVICE-CHECKLIST.md` rows 38–47. Everything in 0.5.0~beta1, plus the Command Center (docs/COMMAND-CENTER.md):
+**Status: PUBLISHED in HCG Repo Candidate (26 Nov 2026)** as an owner-approved free public beta. The owner wrote
+"Approve publishing 0.6.0~beta1 to repo candidate" after this exact SHA-256 was presented. Not device-tested:
+`DEVICE-CHECKLIST.md` rows 38–47.
+
+* HCG-repo PR #24 was merged as `b8a2f9f`; *Prepare packages* run 45854375562 imported the pinned artifact.
+* *Publish repository* run 27 (45855776531) deployed it to production.
+* Live check: `https://repo.hakmicapitalgroup.com/repo/candidate/Packages` lists 0.6.0~beta1 with this SHA-256 and
+  size, and the `.deb` downloaded from the live server hashes to `587b2fbd…e713`. Stable lists no HCG Nexus package
+  (unchanged). The repository is unsigned (no HCG Repo key yet).
+
+Everything in 0.5.0~beta1, plus the Command Center (docs/COMMAND-CENTER.md):
 
 * the versioned ecosystem registry (41 products, 13 categories, 10 device classes);
 * evidence-only connection status and the connection ledger;
