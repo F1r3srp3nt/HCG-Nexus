@@ -66,6 +66,9 @@ typedef NS_ENUM(NSInteger, HCGChecksumState) {
     NSData *_publishedKey;
     NSString *_pinnedFingerprint;
     NSDate *_now;
+    NSString *_expectedSuite;
+    NSDate *_lastReleaseDate;
+    NSArray *_knownRevokedFingerprints;
 }
 @property (nonatomic, copy) NSString *repositoryURL;
 @property (nonatomic, copy, nullable) NSData *releaseData;       // Release
@@ -76,6 +79,11 @@ typedef NS_ENUM(NSInteger, HCGChecksumState) {
 @property (nonatomic, copy, nullable) NSData *publishedKey;      // <repo>/hcg-repo-archive-key.asc, for inspection
 @property (nonatomic, copy, nullable) NSString *pinnedFingerprint; // the primary fingerprint YOU trust, or nil
 @property (nonatomic, copy, nullable) NSDate *now;
+// What this iPhone already knows about the repository (HCGTrustedRepository), so a replayed or swapped index and a
+// stripped revocation are caught:
+@property (nonatomic, copy, nullable) NSString *expectedSuite;        // "stable" / "candidate": the Release must say so
+@property (nonatomic, copy, nullable) NSDate *lastReleaseDate;        // newest signed Release Date seen; older is refused
+@property (nonatomic, copy, nullable) NSArray<NSString *> *knownRevokedFingerprints; // stay revoked even if the key file drops the revocation
 @end
 
 @interface HCGRepositoryReport : NSObject {
@@ -89,6 +97,7 @@ typedef NS_ENUM(NSInteger, HCGChecksumState) {
     BOOL _indexConsistent;
     HCGReleaseFile *_releaseFile;
     NSArray *_packages;
+    NSArray *_revokedFingerprints;
 }
 @property (nonatomic) HCGAuthenticity authenticity;
 @property (nonatomic, copy) NSString *summary;
@@ -100,6 +109,8 @@ typedef NS_ENUM(NSInteger, HCGChecksumState) {
 @property (nonatomic) BOOL indexConsistent;                            // Release lists the served Packages' SHA-256 and size
 @property (nonatomic, strong, nullable) HCGReleaseFile *releaseFile;
 @property (nonatomic, copy) NSArray<NSDictionary *> *packages;          // stanzas: field -> value, plus "_order"
+// Every revoked fingerprint known after this evaluation (the evidence's plus any the key file revokes): remember them.
+@property (nonatomic, copy) NSArray<NSString *> *revokedFingerprints;
 @end
 
 @interface HCGPackageAssessment : NSObject {

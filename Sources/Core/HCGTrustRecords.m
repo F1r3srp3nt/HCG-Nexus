@@ -1,4 +1,5 @@
 #import "HCGTrustRecords.h"
+#import "HCGRepoTrust.h"
 #import "HCGDigest.h"
 #include <string.h>
 
@@ -343,6 +344,30 @@ NSString *const HCGTrustedRepositoriesStoreKey = @"trustedRepositories";
 
 @implementation HCGTrustedRepository
 @synthesize identifier = _identifier, name = _name, url = _url, pinnedFingerprint = _pinnedFingerprint, pinnedAt = _pinnedAt, builtIn = _builtIn;
+@synthesize expectedSuite = _expectedSuite, lastReleaseDate = _lastReleaseDate, revokedFingerprints = _revokedFingerprints;
+
+- (BOOL)rememberReport:(HCGRepositoryReport *)report {
+    BOOL changed = NO;
+    NSMutableSet *revoked = [NSMutableSet setWithArray:self.revokedFingerprints ?: [NSArray array]];
+    NSUInteger before = revoked.count;
+    [revoked addObjectsFromArray:report.revokedFingerprints ?: [NSArray array]];
+    if (revoked.count != before) {
+        self.revokedFingerprints = [[revoked allObjects] sortedArrayUsingSelector:@selector(compare:)];
+        changed = YES;
+    }
+    if (report.authenticity != HCGAuthenticityVerified) return changed;
+    NSString *suite = [report.releaseFile.fields objectForKey:@"Suite"];
+    if (!self.expectedSuite.length && suite.length && suite.length <= 40) {
+        self.expectedSuite = suite;
+        changed = YES;
+    }
+    NSDate *date = report.releaseFile.date;
+    if (date && (!self.lastReleaseDate || [date compare:self.lastReleaseDate] == NSOrderedDescending)) {
+        self.lastReleaseDate = date;
+        changed = YES;
+    }
+    return changed;
+}
 @end
 
 @implementation HCGTrustedRepositoryList
@@ -389,6 +414,8 @@ static HCGTrustedRepository *HCGBuiltIn(NSString *identifier, NSString *name, NS
     r.name = name;
     r.url = url;
     r.builtIn = YES;
+    // HCG Repo's channels (HCG-repo config/repo.toml: suite "stable"; the Candidate channel uses suite "candidate").
+    r.expectedSuite = [identifier isEqualToString:@"hcg-repo-candidate"] ? @"candidate" : @"stable";
     return r;
 }
 
@@ -418,6 +445,17 @@ static HCGTrustedRepository *HCGBuiltIn(NSString *identifier, NSString *name, NS
         }
         existing.pinnedFingerprint = fingerprint;
         existing.pinnedAt = fingerprint && [pinnedAt isKindOfClass:[NSNumber class]] ? [NSDate dateWithTimeIntervalSince1970:[pinnedAt doubleValue]] : nil;
+        id suite = [d objectForKey:@"suite"], last = [d objectForKey:@"lastReleaseDate"], revokedList = [d objectForKey:@"revoked"];
+        if (!existing.builtIn && [suite isKindOfClass:[NSString class]] && [suite length] <= 40) existing.expectedSuite = suite;
+        if ([last isKindOfClass:[NSNumber class]]) existing.lastReleaseDate = [NSDate dateWithTimeIntervalSince1970:[last doubleValue]];
+        if ([revokedList isKindOfClass:[NSArray class]]) {
+            NSMutableArray *fps = [NSMutableArray array];
+            for (id f in revokedList) {
+                NSString *n = [self normalizedFingerprint:f];
+                if (n && fps.count < 64) [fps addObject:n];
+            }
+            existing.revokedFingerprints = fps;
+        }
     }
     return out;
 }
@@ -425,7 +463,7 @@ static HCGTrustedRepository *HCGBuiltIn(NSString *identifier, NSString *name, NS
 + (NSArray *)storedValueForRepositories:(NSArray *)repositories {
     NSMutableArray *out = [NSMutableArray array];
     for (HCGTrustedRepository *r in repositories) {
-        if (r.builtIn && !r.pinnedFingerprint) continue; // nothing to remember
+        if (r.builtIn && !r.pinnedFingerprint && !r.lastReleaseDate && !r.revokedFingerprints.count) continue; // nothing to remember
         NSMutableDictionary *d = [NSMutableDictionary dictionary];
         [d setObject:r.identifier forKey:@"id"];
         if (!r.builtIn) {
@@ -436,6 +474,9 @@ static HCGTrustedRepository *HCGBuiltIn(NSString *identifier, NSString *name, NS
             [d setObject:r.pinnedFingerprint forKey:@"fingerprint"];
             [d setObject:[NSNumber numberWithDouble:[(r.pinnedAt ?: [NSDate date]) timeIntervalSince1970]] forKey:@"pinnedAt"];
         }
+        if (!r.builtIn && r.expectedSuite) [d setObject:r.expectedSuite forKey:@"suite"];
+        if (r.lastReleaseDate) [d setObject:[NSNumber numberWithDouble:[r.lastReleaseDate timeIntervalSince1970]] forKey:@"lastReleaseDate"];
+        if (r.revokedFingerprints.count) [d setObject:r.revokedFingerprints forKey:@"revoked"];
         [out addObject:d];
     }
     return out;

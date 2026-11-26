@@ -15,8 +15,15 @@ NS_ASSUME_NONNULL_BEGIN
 //     back-signature (primary key binding) from the subkey itself. Revocations from the primary are honoured.
 //   * Expiry is checked at the signature's creation time and now (a signature from an expired key reports Expired).
 //   * Verification only: no private key, no encryption, no key generation, nothing written.
-// The RSA arithmetic and digests are portable C (HCGDigest, an internal big-number routine), host-tested against
-// signatures made by GnuPG (Tests/Host/Fixtures/trust).
+//   * Bounded work: RSA keys of 2048-8192 bits with an odd exponent of at most 32 bits, at most 128 signatures and 32
+//     subkeys per key file, 1 MB per key file. A subkey listed twice is one key, and every revocation of it applies.
+//     A revocation whose digest cannot be checked is honoured (it can only take trust away).
+//   * A critical subpacket that is not implemented (notations, policy URLs, regular expressions, ...) makes a
+//     signature unacceptable, as RFC 4880 requires. InRelease must hold a text-mode (0x01) signature; Release.gpg a
+//     binary (0x00) or text-mode one. Nothing may follow the signature packets.
+// On Apple platforms RSA goes through the Security framework and digests through CommonCrypto; the portable C code
+// (HCGDigest, an internal big-number routine) runs the Linux host tests against signatures made by GnuPG
+// (Tests/Host/Fixtures/trust) and is cross-checked against the Apple path in Tests/App/HCGTrustCryptoTests.m.
 
 typedef NS_ENUM(NSInteger, HCGPGPStatus) {
     HCGPGPStatusGood = 0,            // valid signature by the given certificate, key valid now
@@ -77,6 +84,11 @@ typedef NS_ENUM(NSInteger, HCGPGPStatus) {
 @property (nonatomic, copy) NSArray<NSString *> *problems;  // ignored or invalid parts, in words
 // nil when the data holds no usable primary key; `error` explains.
 + (nullable instancetype)certificateWithData:(NSData *)data error:(NSString *_Nullable *_Nullable)error;
+// The same, but when the first key's fingerprint is not `expectedFingerprint` (40 hex digits) no signature is checked:
+// the result holds only that primary key (unbound), with a problem saying so. Use it before trusting a pinned key, so a
+// repository's key file costs nothing to reject.
++ (nullable instancetype)certificateWithData:(NSData *)data expectedFingerprint:(nullable NSString *)expectedFingerprint
+                                       error:(NSString *_Nullable *_Nullable)error;
 // "AC5D 9F79 03CF 8AD2 5747  B80B 3939 DC11 09BE CABF" (GnuPG's display grouping).
 + (NSString *)displayFingerprint:(NSString *)fingerprint;
 @end

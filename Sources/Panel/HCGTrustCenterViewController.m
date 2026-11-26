@@ -227,6 +227,8 @@ static NSArray *HCGFindStanza(HCGTrustSnapshot *s, NSString *package, NSString *
         if (![r.identifier isEqualToString:_repository.identifier]) continue;
         r.pinnedFingerprint = fingerprint;
         r.pinnedAt = fingerprint ? [NSDate date] : nil;
+        r.lastReleaseDate = nil; // the replay memory belongs to the key it was verified with; revocations are kept
+        if (!r.builtIn) r.expectedSuite = nil;
     }
     [self.context.model saveTrustedRepositories:repos];
     _repository.pinnedFingerprint = fingerprint;
@@ -516,6 +518,16 @@ typedef NS_ENUM(NSInteger, HCGTrustGroup) {
                     if (!s || s->_snapshot != snapshot) return;
                     snapshot.fetches[repo.identifier] = result;
                     snapshot.reports[repo.identifier] = report;
+                    // Anti-replay and revocation memory: remembered only from this repository's own evaluation.
+                    if (!result.failure) {
+                        NSArray *stored = [s.context.model trustedRepositories];
+                        for (HCGTrustedRepository *r in stored) {
+                            if ([r.identifier isEqualToString:repo.identifier] && [r rememberReport:report]) {
+                                [s.context.model saveTrustedRepositories:stored];
+                                break;
+                            }
+                        }
+                    }
                     [s finishOne];
                 });
             });

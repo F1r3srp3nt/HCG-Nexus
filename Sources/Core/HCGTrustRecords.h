@@ -1,5 +1,7 @@
 #import <Foundation/Foundation.h>
 
+@class HCGRepositoryReport;
+
 NS_ASSUME_NONNULL_BEGIN
 
 // Package Trust Center records (docs/TRUST-CENTER.md): HCG Repo's Release Passport and compatibility registry,
@@ -90,6 +92,9 @@ typedef NS_ENUM(NSInteger, HCGEntitlementRisk) {
     NSString *_pinnedFingerprint;
     NSDate *_pinnedAt;
     BOOL _builtIn;
+    NSString *_expectedSuite;
+    NSDate *_lastReleaseDate;
+    NSArray *_revokedFingerprints;
 }
 @property (nonatomic, copy) NSString *identifier;
 @property (nonatomic, copy) NSString *name;
@@ -97,6 +102,14 @@ typedef NS_ENUM(NSInteger, HCGEntitlementRisk) {
 @property (nonatomic, copy, nullable) NSString *pinnedFingerprint; // 40 hex; nil until YOU pin a key
 @property (nonatomic, copy, nullable) NSDate *pinnedAt;
 @property (nonatomic) BOOL builtIn;                                // HCG Repo Stable / Candidate: cannot be removed
+// Remembered from verified evaluations (anti-replay and revocation memory): built-ins have a fixed suite; a custom
+// repository's suite is learned from its first verified index. Cleared when the pin is removed.
+@property (nonatomic, copy, nullable) NSString *expectedSuite;
+@property (nonatomic, copy, nullable) NSDate *lastReleaseDate;
+@property (nonatomic, copy, nullable) NSArray<NSString *> *revokedFingerprints;
+// After an evaluation: learns the suite (custom), the newest verified Release date and every revocation. YES when
+// anything changed (save the list).
+- (BOOL)rememberReport:(HCGRepositoryReport *)report;
 @end
 
 FOUNDATION_EXPORT NSString *const HCGTrustedRepositoriesStoreKey; // "trustedRepositories"

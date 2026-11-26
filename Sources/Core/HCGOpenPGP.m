@@ -379,8 +379,18 @@ static NSString *Hex(const uint8_t *p, size_t n) {
     return s;
 }
 
-static HCGPGPKey *ParseKey(HCGPacket packet, BOOL subkey) {
+// Limits that keep an attacker-supplied key file cheap to read (independent review, 26 Nov 2026): every RSA operation
+// is bounded by the modulus and exponent sizes, and the number of signatures and subkeys checked is capped.
+static const NSUInteger kMinRSABits = 2048;
+static const NSUInteger kMaxRSABits = 8192;
+static const size_t kMaxExponentBytes = 4;
+static const NSUInteger kMaxCertificateBytes = 1024 * 1024;
+static const NSUInteger kMaxCertificateSignatures = 128;
+static const NSUInteger kMaxSubkeys = 32;
+
+static HCGPGPKey *ParseKey(HCGPacket packet, BOOL subkey, NSString **problem) {
     if (packet.length < 6 || packet.body[0] != 4) return nil; // v4 only
+    if (packet.length > 0xFFFF) { if (problem) *problem = @"The key packet is too large."; return nil; }
     HCGPGPKey *key = [[HCGPGPKey alloc] init];
     key.isSubkey = subkey;
     key.created = [NSDate dateWithTimeIntervalSince1970:Be32(packet.body + 1)];
@@ -403,6 +413,15 @@ static HCGPGPKey *ParseKey(HCGPacket packet, BOOL subkey) {
         key.exponent = ReadMPI(packet.body, packet.length, &o, NULL);
         key.bits = bits;
         if (!key.modulus || !key.exponent) return nil;
+        if (bits < kMinRSABits || bits > kMaxRSABits) {
+            if (problem) *problem = [NSString stringWithFormat:@"RSA keys of %lu bits are not accepted (2048 to 8192 bits are).", (unsigned long)bits];
+            return nil;
+        }
+        const uint8_t *ex = (const uint8_t *)key.exponent.bytes;
+        if (key.exponent.length > kMaxExponentBytes || !(ex[key.exponent.length - 1] & 1) || (key.exponent.length == 1 && ex[0] < 3)) {
+            if (problem) *problem = @"The RSA public exponent is not accepted (it must be odd, at least 3 and at most 32 bits).";
+            return nil;
+        }
     }
     return key;
 }
@@ -461,9 +480,13 @@ static BOOL ParseSubpackets(const uint8_t *p, size_t len, BOOL hashed, HCGSig *s
             case 27: if (hashed && dl >= 1) sig->keyFlags = d[0]; break;
             case 32: sig->embedded = d; sig->embeddedLength = dl; break;
             case 33: if (dl == 21 && d[0] == 4) { memcpy(sig->issuerFingerprint, d + 1, 20); sig->hasIssuerFingerprint = YES; } break;
-            case 4: case 5: case 6: case 7: case 11: case 12: case 20: case 21: case 22: case 23: case 24: case 25:
-            case 26: case 28: case 29: case 30: case 31: case 34: case 35: case 37: case 39:
-                break; // known, not needed here
+            case 11: case 21: case 22: case 23: case 25: case 30:
+                break; // preferences and features: informational, safe to honour by ignoring
+            case 4: case 5: case 6: case 7: case 12: case 20: case 24: case 26: case 28: case 29: case 31: case 34: case 35: case 37: case 39:
+                // Known but not implemented (trust, regular expressions, revocation keys, notations, policy URLs, ...):
+                // when the signer marked one critical, the signature must not be accepted.
+                if (critical && hashed) sig->unknownCritical = YES;
+                break;
             default:
                 if (critical && hashed) sig->unknownCritical = YES;
                 break;
@@ -559,6 +582,7 @@ static BOOL CheckKeySignature(const HCGSig *sig, HCGPGPKey *primary, HCGPGPKey *
     BOOL weak = NO;
     HCGDigestAlgorithm algorithm = DigestFor(sig->hashAlgorithm, &weak);
     if (!algorithm) return NO;
+    if (sig->sigExpires && (double)sig->created + (double)sig->sigExpires <= [[NSDate date] timeIntervalSince1970]) return NO; // expired certification
     HCGDigestContext c;
     HCGDigestInit(&c, algorithm);
     HashKeyPacket(&c, primary.packetBody);
@@ -591,8 +615,16 @@ static NSData *Base64Decode(NSString *text) {
     NSUInteger i;
     for (i = 0; i < text.length; i++) {
         unichar ch = [text characterAtIndex:i];
-        if (ch == '=') break;
         if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n') continue;
+        if (ch == '=') {
+            // Padding ends the data: only more padding (and whitespace) may follow.
+            NSUInteger j;
+            for (j = i + 1; j < text.length; j++) {
+                unichar c2 = [text characterAtIndex:j];
+                if (c2 != '=' && c2 != ' ' && c2 != '\t' && c2 != '\r' && c2 != '\n') return nil;
+            }
+            break;
+        }
         int v = B64Value(ch);
         if (v == kB64Invalid) return nil;
         acc = (acc << 6) | (uint32_t)v;
@@ -634,7 +666,8 @@ static NSData *DecodeArmorLines(NSArray *lines, NSUInteger start, NSString *kind
     i++;
     // Armor headers until the first blank line (a header line contains ": ").
     while (i < lines.count && [[lines objectAtIndex:i] rangeOfString:@": "].location != NSNotFound) i++;
-    if (i < lines.count && [[[lines objectAtIndex:i] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] length] == 0) i++;
+    if (i >= lines.count || [[[lines objectAtIndex:i] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] length] != 0) return nil;
+    i++; // the blank line that ends the armor headers (RFC 4880 6.2)
     NSMutableString *body = [NSMutableString string];
     NSString *checksum = nil;
     for (; i < lines.count; i++) {
@@ -681,6 +714,23 @@ static NSDate *ExpiryFrom(HCGPGPKey *key, const HCGSig *sig) {
 }
 
 + (instancetype)certificateWithData:(NSData *)data error:(NSString **)error {
+    return [self certificateWithData:data expectedFingerprint:nil error:error];
+}
+
+// A revocation the verifier cannot check (SHA-1, SHA-384, ...) that names the primary key as its issuer. Honoured:
+// a revocation can only take trust away, so failing closed is the safe reading.
+static BOOL IsUncheckableRevocationFromPrimary(const HCGSig *sig, HCGPGPKey *primary) {
+    BOOL weak = NO;
+    if (sig->version != 4 || DigestFor(sig->hashAlgorithm, &weak)) return NO;
+    if (sig->hasIssuerFingerprint) return [Hex(sig->issuerFingerprint, 20) isEqualToString:primary.fingerprint];
+    return sig->hasIssuerKeyID && [Hex(sig->issuerKeyID, 8) isEqualToString:primary.keyID];
+}
+
++ (instancetype)certificateWithData:(NSData *)data expectedFingerprint:(NSString *)expected error:(NSString **)error {
+    if (data.length > kMaxCertificateBytes) {
+        if (error) *error = @"The key file is too large (over 1 MB).";
+        return nil;
+    }
     NSData *binary = [HCGOpenPGP dearmor:data];
     if (!binary.length) {
         if (error) *error = @"Not an OpenPGP public key.";
@@ -692,16 +742,28 @@ static NSDate *ExpiryFrom(HCGPGPKey *key, const HCGSig *sig) {
     HCGPGPKey *primary = nil, *currentSubkey = nil;
     NSData *currentUserID = nil;
     NSMutableArray *subkeys = [NSMutableArray array], *userIDs = [NSMutableArray array], *problems = [NSMutableArray array];
-    uint32_t bestSelfSig = 0;
-    BOOL primaryHasSelfSig = NO;
+    uint32_t bestSelfSig = 0, bestDirectSig = 0;
+    BOOL primaryHasSelfSig = NO, directExpiry = NO, capped = NO;
+    NSDate *directExpires = nil;
+    NSUInteger signatures = 0;
     NSMutableDictionary *bindingTimes = [NSMutableDictionary dictionary];
     while (NextPacket(p, len, &offset, &packet)) {
         if (packet.tag == 6) {
             if (primary) break; // only the first key in the file
-            primary = ParseKey(packet, NO);
+            NSString *problem = nil;
+            primary = ParseKey(packet, NO, &problem);
             if (!primary) {
-                if (error) *error = @"The primary key is not a v4 key this verifier understands.";
+                if (error) *error = problem ?: @"The primary key is not a v4 key this verifier understands.";
                 return nil;
+            }
+            // The pin is compared before any signature is checked, so a key that is not the pinned one costs nothing.
+            if (expected.length && ![primary.fingerprint isEqualToString:[expected uppercaseString]]) {
+                HCGPGPCertificate *other = [[HCGPGPCertificate alloc] init];
+                other.primary = primary;
+                other.subkeys = [NSArray array];
+                other.userIDs = [NSArray array];
+                other.problems = [NSArray arrayWithObject:@"Not the pinned key: its signatures were not checked."];
+                return other;
             }
         } else if (!primary) {
             continue;
@@ -715,14 +777,38 @@ static NSDate *ExpiryFrom(HCGPGPKey *key, const HCGSig *sig) {
             currentSubkey = nil;
         } else if (packet.tag == 14) {
             currentUserID = nil;
-            currentSubkey = ParseKey(packet, YES);
-            if (currentSubkey) [subkeys addObject:currentSubkey];
-            else [problems addObject:@"A subkey that is not a v4 key was ignored."];
+            NSString *problem = nil;
+            HCGPGPKey *parsed = ParseKey(packet, YES, &problem);
+            currentSubkey = nil;
+            if (!parsed) {
+                [problems addObject:problem ? [@"A subkey was ignored: " stringByAppendingString:problem] : @"A subkey that is not a v4 key was ignored."];
+                continue;
+            }
+            // The same subkey listed twice is one key: its signatures (and any revocation) all apply to it.
+            for (HCGPGPKey *known in subkeys) if ([known.fingerprint isEqualToString:parsed.fingerprint]) currentSubkey = known;
+            if (!currentSubkey) {
+                if (subkeys.count >= kMaxSubkeys) { capped = YES; continue; }
+                currentSubkey = parsed;
+                [subkeys addObject:parsed];
+            }
         } else if (packet.tag == 2) {
+            if (++signatures > kMaxCertificateSignatures) { capped = YES; break; }
             HCGSig sig;
             if (!ParseSignature(packet.body, packet.length, &sig) || sig.version != 4) continue;
-            if (sig.type == 0x20 && !currentSubkey) {
+            if (sig.type == 0x20) {
+                // A key revocation of the primary, wherever it appears in the file.
                 if (CheckKeySignature(&sig, primary, nil, nil, primary)) primary.revoked = YES;
+                else if (IsUncheckableRevocationFromPrimary(&sig, primary)) {
+                    primary.revoked = YES;
+                    [problems addObject:@"A revocation of the key made with a digest this verifier cannot check was honoured."];
+                }
+            } else if (sig.type == 0x1F && !currentSubkey && !currentUserID) {
+                // Direct-key signature: its expiry applies to the primary key.
+                if (CheckKeySignature(&sig, primary, nil, nil, primary) && sig.created >= bestDirectSig) {
+                    bestDirectSig = sig.created;
+                    directExpiry = sig.hasKeyExpires && sig.keyExpires;
+                    directExpires = ExpiryFrom(primary, &sig);
+                }
             } else if (sig.type >= 0x10 && sig.type <= 0x13 && currentUserID && !currentSubkey) {
                 if (CheckKeySignature(&sig, primary, nil, currentUserID, primary) && sig.created >= bestSelfSig) {
                     bestSelfSig = sig.created;
@@ -752,9 +838,15 @@ static NSDate *ExpiryFrom(HCGPGPKey *key, const HCGSig *sig) {
                 if (sign && !backSigOK) [problems addObject:[NSString stringWithFormat:@"Signing subkey %@ has no valid back-signature and is not used.", currentSubkey.keyID]];
             } else if (sig.type == 0x28 && currentSubkey) {
                 if (CheckKeySignature(&sig, primary, currentSubkey, nil, primary)) currentSubkey.revoked = YES;
+                else if (IsUncheckableRevocationFromPrimary(&sig, primary)) {
+                    currentSubkey.revoked = YES;
+                    [problems addObject:[NSString stringWithFormat:@"A revocation of subkey %@ made with a digest this verifier cannot check was honoured.", currentSubkey.keyID]];
+                }
             }
         }
     }
+    if (capped) [problems addObject:@"The key file holds more signatures or subkeys than are checked; the rest were ignored."];
+    if (directExpiry && directExpires && (!primary.expires || [directExpires compare:primary.expires] == NSOrderedAscending)) primary.expires = directExpires;
     if (!primary) {
         if (error) *error = @"No public key found.";
         return nil;
@@ -843,9 +935,10 @@ static HCGPGPKey *FindSigner(HCGPGPCertificate *cert, const HCGSig *sig) {
     return nil;
 }
 
-static HCGPGPVerification *VerifyOne(const HCGSig *sig, NSData *data, HCGPGPCertificate *cert, NSDate *now) {
+static HCGPGPVerification *VerifyOne(const HCGSig *sig, NSData *data, HCGPGPCertificate *cert, NSDate *now, BOOL cleartext) {
     if (sig->version != 4) return Result(HCGPGPStatusUnsupported, [NSString stringWithFormat:@"Version %d signatures are not supported.", sig->version]);
     if (sig->type != 0x00 && sig->type != 0x01) return Result(HCGPGPStatusMalformed, @"Not a signature over a document.");
+    if (cleartext && sig->type != 0x01) return Result(HCGPGPStatusMalformed, @"A signed message (InRelease) must carry a text-mode signature.");
     HCGPGPVerification *result = nil;
     NSString *issuer = sig->hasIssuerFingerprint ? Hex(sig->issuerFingerprint + 12, 8) : (sig->hasIssuerKeyID ? Hex(sig->issuerKeyID, 8) : nil);
     BOOL weak = NO;
@@ -901,31 +994,34 @@ static HCGPGPVerification *VerifyOne(const HCGSig *sig, NSData *data, HCGPGPCert
 }
 
 // Every signature packet in `signature`; the best result wins (a good one, else the most specific failure).
-static HCGPGPVerification *VerifyPackets(NSData *signature, NSData *data, HCGPGPCertificate *cert, NSDate *now) {
+static HCGPGPVerification *VerifyPackets(NSData *signature, NSData *data, HCGPGPCertificate *cert, NSDate *now, BOOL cleartext) {
     NSData *binary = [HCGOpenPGP dearmor:signature];
     if (!binary.length) return Result(HCGPGPStatusMalformed, @"The signature file is not OpenPGP data.");
     const uint8_t *p = (const uint8_t *)binary.bytes;
     size_t len = binary.length, offset = 0;
     HCGPacket packet;
-    HCGPGPVerification *best = nil;
+    HCGPGPVerification *best = nil, *good = nil;
     NSUInteger count = 0;
+    // Every packet is read before any result is returned: anything that is not a signature, more than 16 signatures,
+    // or bytes after the last packet make the whole file malformed, even when one signature is good.
     while (NextPacket(p, len, &offset, &packet)) {
         if (packet.tag != 2) return Result(HCGPGPStatusMalformed, @"The signature file holds something other than signatures.");
-        if (++count > 16) break;
+        if (++count > 16) return Result(HCGPGPStatusMalformed, @"The signature file holds more than 16 signatures.");
+        if (good) continue;
         HCGSig sig;
-        HCGPGPVerification *one = ParseSignature(packet.body, packet.length, &sig) ? VerifyOne(&sig, data, cert, now)
+        HCGPGPVerification *one = ParseSignature(packet.body, packet.length, &sig) ? VerifyOne(&sig, data, cert, now, cleartext)
                                                                                   : Result(HCGPGPStatusMalformed, @"The signature cannot be read.");
-        if (one.good) return one;
-        if (!best || best.status == HCGPGPStatusUnknownSigner || best.status == HCGPGPStatusMalformed) best = one;
+        if (one.good) good = one;
+        else if (!best || best.status == HCGPGPStatusUnknownSigner || best.status == HCGPGPStatusMalformed) best = one;
     }
     if (offset != len) return Result(HCGPGPStatusMalformed, @"The signature file has trailing data.");
-    return best ?: Result(HCGPGPStatusNoSignature, @"No signature found.");
+    return good ?: (best ?: Result(HCGPGPStatusNoSignature, @"No signature found."));
 }
 
 + (HCGPGPVerification *)verifyDetachedSignature:(NSData *)signature data:(NSData *)data certificate:(HCGPGPCertificate *)certificate now:(NSDate *)now {
     if (signature.length == 0) return Result(HCGPGPStatusNoSignature, @"No signature was supplied.");
     if (!certificate) return Result(HCGPGPStatusUnknownSigner, @"No trusted key.");
-    return VerifyPackets(signature, data ?: [NSData data], certificate, now ?: [NSDate date]);
+    return VerifyPackets(signature, data ?: [NSData data], certificate, now ?: [NSDate date], NO);
 }
 
 // Splits an InRelease file into its message text and signature armor; nil if anything is outside them.
@@ -977,7 +1073,7 @@ static BOOL SplitCleartext(NSData *message, NSData **textOut, NSData **signature
     NSData *text = nil, *signature = nil;
     if (!SplitCleartext(message, &text, &signature)) return Result(HCGPGPStatusMalformed, @"Not exactly one signed message (text outside the signature, or malformed).");
     if (!certificate) return Result(HCGPGPStatusUnknownSigner, @"No trusted key.");
-    HCGPGPVerification *result = VerifyPackets(signature, text, certificate, now ?: [NSDate date]);
+    HCGPGPVerification *result = VerifyPackets(signature, text, certificate, now ?: [NSDate date], YES);
     NSMutableData *withNewline = [text mutableCopy];
     [withNewline appendBytes:"\n" length:1];
     result.signedText = withNewline;

@@ -71,12 +71,14 @@
 @end
 
 @implementation HCGRepositoryEvidence
+@synthesize expectedSuite = _expectedSuite, lastReleaseDate = _lastReleaseDate, knownRevokedFingerprints = _knownRevokedFingerprints;
 @synthesize repositoryURL = _repositoryURL, releaseData = _releaseData, inRelease = _inRelease, releaseSignature = _releaseSignature,
             packages = _packages, packagesPath = _packagesPath, publishedKey = _publishedKey,
             pinnedFingerprint = _pinnedFingerprint, now = _now;
 @end
 
 @implementation HCGRepositoryReport
+@synthesize revokedFingerprints = _revokedFingerprints;
 @synthesize authenticity = _authenticity, summary = _summary, rows = _rows, warnings = _warnings, detachedResult = _detachedResult,
             inlineResult = _inlineResult, publishedCertificate = _publishedCertificate, indexConsistent = _indexConsistent,
             releaseFile = _releaseFile, packages = _packages;
@@ -189,9 +191,25 @@ static HCGAuthenticity CombineSignatures(NSArray *results) {
     [rows addObject:Row(@"Repository", e.repositoryURL)];
 
     NSString *keyError = nil;
-    HCGPGPCertificate *published = e.publishedKey.length ? [HCGPGPCertificate certificateWithData:e.publishedKey error:&keyError] : nil;
-    report.publishedCertificate = published;
     NSString *pinned = HCGNormalizeFingerprint(e.pinnedFingerprint);
+    // With a pin, a key file whose first key is not the pinned one is rejected before any of its signatures is checked.
+    HCGPGPCertificate *published = e.publishedKey.length ? [HCGPGPCertificate certificateWithData:e.publishedKey expectedFingerprint:pinned error:&keyError] : nil;
+    report.publishedCertificate = published;
+    // Revocations this iPhone has seen before stay in force even when the key file no longer carries them.
+    NSMutableSet *revoked = [NSMutableSet set];
+    for (NSString *f in e.knownRevokedFingerprints ?: [NSArray array]) {
+        NSString *n = HCGNormalizeFingerprint(f);
+        if (n) [revoked addObject:n];
+    }
+    if (published) {
+        NSMutableArray *keys = [NSMutableArray arrayWithObject:published.primary];
+        [keys addObjectsFromArray:published.subkeys];
+        for (HCGPGPKey *k in keys) {
+            if ([revoked containsObject:k.fingerprint]) k.revoked = YES;
+            if (k.revoked) [revoked addObject:k.fingerprint];
+        }
+    }
+    report.revokedFingerprints = [[revoked allObjects] sortedArrayUsingSelector:@selector(compare:)];
     [rows addObject:Row(@"Published key", published ? [HCGPGPCertificate displayFingerprint:published.primary.fingerprint]
                                                : (e.publishedKey.length ? [@"Unreadable: " stringByAppendingString:keyError ?: @""] : @"None published"))];
     [rows addObject:Row(@"Your pinned key", pinned ? [HCGPGPCertificate displayFingerprint:pinned] : @"None: you have not trusted a key for this repository")];
@@ -260,6 +278,27 @@ static HCGAuthenticity CombineSignatures(NSArray *results) {
         if ([release.validUntil compare:now] != NSOrderedDescending && authenticity != HCGAuthenticityInvalid) {
             authenticity = HCGAuthenticityExpired;
             [warnings addObject:@"The Release file is past its Valid-Until date: it may be a replayed old index."];
+        }
+    } else if ([release.fields objectForKey:@"Valid-Until"]) {
+        authenticity = HCGAuthenticityInvalid;
+        [rows addObject:Row(@"Valid until", @"Unreadable")];
+        [warnings addObject:@"The Release file's Valid-Until date cannot be read, so its expiry cannot be checked."];
+    } else if (authenticity == HCGAuthenticityVerified) {
+        [warnings addObject:@"The Release file has no Valid-Until date: an old signed index could be replayed to a device that has not seen a newer one."];
+    }
+    // The signed index must be the one for this repository (Suite), and never older than one this iPhone already saw.
+    NSString *suite = [release.fields objectForKey:@"Suite"];
+    if (suite) [rows addObject:Row(@"Suite", suite)];
+    if (release && e.expectedSuite.length && ![suite isEqualToString:e.expectedSuite] &&
+        (authenticity == HCGAuthenticityVerified || authenticity == HCGAuthenticityExpired)) {
+        authenticity = HCGAuthenticityInvalid;
+        [warnings addObject:[NSString stringWithFormat:@"This address serves the '%@' index, not '%@': a signed index from another channel was substituted.",
+                                                       suite ?: @"(none)", e.expectedSuite]];
+    }
+    if (release && e.lastReleaseDate && (authenticity == HCGAuthenticityVerified || authenticity == HCGAuthenticityExpired)) {
+        if (!release.date || [release.date compare:e.lastReleaseDate] == NSOrderedAscending) {
+            authenticity = HCGAuthenticityInvalid;
+            [warnings addObject:@"This signed index is older than one this iPhone has already verified: it may be a replayed old index."];
         }
     }
 

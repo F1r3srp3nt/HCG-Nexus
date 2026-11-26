@@ -89,3 +89,31 @@ The verifier is proven against the founder-key format with test keys.
 * Phone testing is pending (`DEVICE-CHECKLIST.md` rows 32–37).
 * RSA verification is portable C. It is host-tested against GnuPG, and it is the same code that runs on the iPhone.
   It has not been cross-checked against Apple's Security framework on a device.
+
+## Independent review and Apple cryptography (0.6.0)
+
+**Platform cryptography.** On the iPhone every digest comes from CommonCrypto and every RSA check from the Security
+framework (`SecKeyVerifySignature`, PKCS#1 v1.5 with the digest already computed). The portable C code runs only in the
+Linux host tests. `Tests/App/HCGTrustCryptoTests.m` checks on the Simulator that both give the same answers as `gpgv`
+on the GnuPG-made fixtures. OpenPGP packet parsing is still Nexus's own: no audited OpenPGP library is available on iOS
+without a large dependency (GPGME/GnuPG, Sequoia, ObjectivePGP), so the parser is kept small and strict.
+
+**Review (26 Nov 2026).** An independent read-only review found no way to forge a signature and no memory-safety bug.
+It ran about 320,000 fuzz iterations under AddressSanitizer and differential big-number tests. It did find policy
+gaps, all fixed, with a regression test for each (`Tests/Host/TrustReviewTests.m`,
+`Tests/Host/Fixtures/trust/review/`):
+
+| Finding | Fix |
+|---|---|
+| A revoked subkey listed twice, or a key file with the revocation stripped, verified as Good | Subkeys merge by fingerprint, so every revocation applies. Each repository remembers the revocations it has seen (`HCGTrustedRepository.revokedFingerprints`), and they stay in force even when the key file drops them. |
+| A crafted key file could use minutes of CPU | RSA only for 2048–8192-bit keys with an odd exponent of at most 32 bits. At most 128 signatures and 32 subkeys per file, 1 MB per file. With a pin, a different key is rejected before any signature is checked. |
+| A signed Candidate index served at the Stable address, or an old signed index, verified | Each repository has an expected `Suite` (built in: `stable`, `candidate`; custom: learned from the first verified index). The newest verified `Date` is remembered and an older index is Invalid. A missing `Valid-Until` is reported as a warning. |
+| An unreadable `Valid-Until` was ignored | Invalid. |
+| Critical notations and policy URLs were ignored | A critical subpacket that is not implemented makes the signature Unsupported. |
+| A binary-mode signature inside InRelease verified | InRelease must carry a text-mode (0x01) signature. |
+| SHA-1 revocations were ignored | A revocation whose digest cannot be checked is honoured (it can only take trust away). |
+| Expired self-signatures and bindings counted; direct-key signatures were ignored; a key revocation after a subkey was ignored | Expired certifications are not used. A direct-key expiry applies. Revocations count wherever they appear. |
+| Bytes after a good signature, data after base64 padding, and armor without its blank line were accepted | Malformed. |
+
+Left as documented limits: future-dated signatures are accepted (as `gpgv` does), and the primary key's expiry is
+checked now, not at signing time.
