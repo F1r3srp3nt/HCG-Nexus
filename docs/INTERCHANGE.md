@@ -6,6 +6,10 @@ product can ship to *narrow* what Nexus offers. Code: `Sources/Core/HCGInterchan
 `Tests/Host/EcosystemTests.m`), `Sources/Panel/HCGEcosystemScanner.m` (device facts),
 `Sources/Panel/HCGProductsViewController.m` / `HCGProductDetailViewController.m` (dashboard).
 
+HCG Nexus 0.6.0 adds the Command Center on top of HIP: a versioned ecosystem registry of every HCG product (not
+only those with an adapter on this iPhone), evidence-based connection states and a roadmap. See
+[COMMAND-CENTER.md](COMMAND-CENTER.md). HIP stays the adapter layer: every route below is unchanged.
+
 ## Rules
 
 1. **Nexus is a viewer and navigator, not an authority.** HCG Connect stays the only identity system. HIP carries
