@@ -39,3 +39,7 @@
 #import "HCGOpenPGP.h"
 #import "HCGRepoTrust.h"
 #import "HCGTrustRecords.h"
+#import "HCGRegistry.h"
+#import "HCGCommandCenter.h"
+#import "HCGDeviceInventory.h"
+#import "HCGPublicFeeds.h"

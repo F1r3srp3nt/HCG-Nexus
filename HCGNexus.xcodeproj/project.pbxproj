@@ -91,6 +91,10 @@
 			isa = PBXBuildFile;
 			fileRef = FCD8FBAC879E3B2F1A5F9BF1;
 		};
+		4E1EF4DA5D1F924AB59224E4 /* HCGRegistry.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = ADBAF6A05602E6058AC61D0D;
+		};
 		4F50DC1A55407EFDE68D702E /* HCGNexusAppTests.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 9FDCAB71903DC4D63E2F81B3;
@@ -175,6 +179,14 @@
 			isa = PBXBuildFile;
 			fileRef = D424D2E2C059560735A4038A;
 		};
+		8438A6A93B4DDF9758ACDAA5 /* HCGCommandCenter.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 458170BAC5097F00BA860118;
+		};
+		8B857CADBB6BF06BF7608D5B /* HCGRegistryData.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = AA89478F6B50CD01D919AA28;
+		};
 		8F3A0B6580A55AD425BF84C9 /* UIKit.framework in Frameworks */ = {
 			isa = PBXBuildFile;
 			fileRef = 5F7B283559C888C36B65801B;
@@ -190,6 +202,10 @@
 		94C35AC56B68442714774FDF /* HCGOverlayCoordinator.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 8AF6734E2433E7E67718413A;
+		};
+		9C912B1DE7E1C02965739B40 /* HCGDeviceInventory.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = A17EDDF467928B91192B2992;
 		};
 		9CCFF03681E69B36AC362AC2 /* HCGPackageIndex.m in Sources */ = {
 			isa = PBXBuildFile;
@@ -306,6 +322,10 @@
 		E76F5DD34E5E40BB0F3B5721 /* Network.framework in Frameworks */ = {
 			isa = PBXBuildFile;
 			fileRef = A5D2210C1ED4298EAFF936A3;
+		};
+		F1C2BDDB18A9F1067F173AAA /* HCGPublicFeeds.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 2EA1A0143DFCAD8DD7AE0A9A;
 		};
 		F3C5FD26A46ADBAF5E0D7672 /* HCGSceneDelegate.m in Sources */ = {
 			isa = PBXBuildFile;
@@ -534,6 +554,13 @@
 			path = Sources/Panel/HCGPanelContext.h;
 			sourceTree = SOURCE_ROOT;
 		};
+		2EA1A0143DFCAD8DD7AE0A9A /* HCGPublicFeeds.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGPublicFeeds.m;
+			path = Sources/Core/HCGPublicFeeds.m;
+			sourceTree = SOURCE_ROOT;
+		};
 		38F01A3CAEADC3AA86D51E53 /* HCGGeometry.m */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
@@ -611,6 +638,13 @@
 			path = Sources/Panel/HCGLauncher.h;
 			sourceTree = SOURCE_ROOT;
 		};
+		458170BAC5097F00BA860118 /* HCGCommandCenter.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGCommandCenter.m;
+			path = Sources/Core/HCGCommandCenter.m;
+			sourceTree = SOURCE_ROOT;
+		};
 		466CFC28FA2F140AB98E90F4 /* HCGTrustRecords.h */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
@@ -623,6 +657,13 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGCommandMode.h;
 			path = Sources/Core/HCGCommandMode.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		4AA491F4D237D7B84F6963AB /* HCGCommandCenter.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGCommandCenter.h;
+			path = Sources/Core/HCGCommandCenter.h;
 			sourceTree = SOURCE_ROOT;
 		};
 		4B1EB2CDFC74BB0BBE9F2E2F /* HCGOverviewViewController.h */ = {
@@ -777,6 +818,13 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGAppsViewController.h;
 			path = Sources/Panel/HCGAppsViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		70B03250DE0A927C38101641 /* HCGPublicFeeds.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGPublicFeeds.h;
+			path = Sources/Core/HCGPublicFeeds.h;
 			sourceTree = SOURCE_ROOT;
 		};
 		752117A0AF7C2D457237A906 /* HCGPanelServices.m */ = {
@@ -954,6 +1002,13 @@
 			path = HCGConnectVerify/Sources/HCGConnectVerify/HCGConnectTokenVerifier.swift;
 			sourceTree = SOURCE_ROOT;
 		};
+		A17EDDF467928B91192B2992 /* HCGDeviceInventory.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGDeviceInventory.m;
+			path = Sources/Core/HCGDeviceInventory.m;
+			sourceTree = SOURCE_ROOT;
+		};
 		A1811C38D20847BCBEE8F357 /* HCGIntegrations.h */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
@@ -989,11 +1044,25 @@
 			path = System/Library/Frameworks/Network.framework;
 			sourceTree = SDKROOT;
 		};
+		A5F688F6097B6BB9DCA7F280 /* HCGDeviceInventory.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGDeviceInventory.h;
+			path = Sources/Core/HCGDeviceInventory.h;
+			sourceTree = SOURCE_ROOT;
+		};
 		A647D18F83B154FEDD1D1D94 /* HCGConnectedDevicesViewController.m */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
 			name = HCGConnectedDevicesViewController.m;
 			path = Sources/Platform/App/DeviceLink/HCGConnectedDevicesViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		AA89478F6B50CD01D919AA28 /* HCGRegistryData.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGRegistryData.m;
+			path = Sources/Core/HCGRegistryData.m;
 			sourceTree = SOURCE_ROOT;
 		};
 		AB119445E97E047545EA46E0 /* HCGTrustCenterViewController.h */ = {
@@ -1008,6 +1077,13 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGDigest.h;
 			path = Sources/Core/HCGDigest.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		ADBAF6A05602E6058AC61D0D /* HCGRegistry.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGRegistry.m;
+			path = Sources/Core/HCGRegistry.m;
 			sourceTree = SOURCE_ROOT;
 		};
 		ADD859C76040FA4DD8D760B7 /* HCGDiagnostics.h */ = {
@@ -1218,6 +1294,13 @@
 			lastKnownFileType = sourcecode.c.objc;
 			name = HCGTerminalHandoff.m;
 			path = Sources/Core/HCGTerminalHandoff.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		E48C5D2CA52821992ECBF914 /* HCGRegistry.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGRegistry.h;
+			path = Sources/Core/HCGRegistry.h;
 			sourceTree = SOURCE_ROOT;
 		};
 		E8D6DF94996D9EEBA9F617A5 /* HCGAppAccountProvider.h */ = {
@@ -1456,11 +1539,15 @@
 				8A20893A8B66B6FA9C6D9E8E,
 				6B6FCA6893B83A6C49F371E7,
 				2846CFC12CFA43627359273A,
+				4AA491F4D237D7B84F6963AB,
+				458170BAC5097F00BA860118,
 				484D26FB7E55C542E6D33432,
 				958CFF062160CC947DCB2C66,
 				23007D7C72B8DFE7A39EC6CE,
 				A4D581A24430C94CFD83FA2E,
 				6D6F4DE6DEBDCBCE27304086,
+				A5F688F6097B6BB9DCA7F280,
+				A17EDDF467928B91192B2992,
 				ADD859C76040FA4DD8D760B7,
 				67EE213C3F1743224FE903E3,
 				AB95A34EC9A7D3D9157E2DE4,
@@ -1487,8 +1574,13 @@
 				056DE006288A2972FC3E57DC,
 				01FA27804A2F3E6C92EB9034,
 				CA02812DB72F15E131452B8A,
+				70B03250DE0A927C38101641,
+				2EA1A0143DFCAD8DD7AE0A9A,
 				187646796C26C5BC3A00852D,
 				0A3E55034877A24B87DA9271,
+				E48C5D2CA52821992ECBF914,
+				ADBAF6A05602E6058AC61D0D,
+				AA89478F6B50CD01D919AA28,
 				7DC1E35C1F94A769E180571D,
 				A4C84690BDDB5F30B5EEBBD7,
 				63344EE2FA96F4DC54A9E0C8,
@@ -1691,8 +1783,10 @@
 				3E9A601B356B02EC8C832407,
 				6680936370656B23F3581EE5,
 				636366564C619A050B091CFE,
+				8438A6A93B4DDF9758ACDAA5,
 				7CE427E6D2E461840C4CCC27,
 				6FB811E50C5164543FAB9D80,
+				9C912B1DE7E1C02965739B40,
 				703A2FCF13F45E4489E73A20,
 				623C76750505BF64E008D5EF,
 				C9382163EAAE1B7DF654F3F1,
@@ -1706,7 +1800,10 @@
 				195064D9F80D74D3692B6974,
 				9CCFF03681E69B36AC362AC2,
 				5AD2BC50E7D54D6585F8FC95,
+				F1C2BDDB18A9F1067F173AAA,
 				DDFC0EECC4214499EC764E61,
+				4E1EF4DA5D1F924AB59224E4,
+				8B857CADBB6BF06BF7608D5B,
 				AAFB17DF0EAC16FC0DCAD632,
 				4264A2B8F7C5F1F160B56169,
 				DEEAFD716FB7DB4E434394C5,

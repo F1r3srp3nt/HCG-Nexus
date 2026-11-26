@@ -38,7 +38,8 @@ void HCGRunCommandModeTests(void);
 void HCGRunCompanionTests(void);   // HCG Halo border state + HCG Terminal links
 void HCGRunEcosystemTests(void);
 void HCGRunTrustTests(void);
-void HCGRunTrustReviewTests(void); // regressions from the independent OpenPGP review       // Package Trust Center: digests, OpenPGP
+void HCGRunTrustReviewTests(void);
+void HCGRunCommandCenterTests(void); // 0.6.0 registry, connections, roadmap, LifeOS, System Tester, feeds // regressions from the independent OpenPGP review       // Package Trust Center: digests, OpenPGP
 void HCGRunTrustChainTests(void);  // Package Trust Center: repository chain, passports, entitlements   // HCG Interchange Protocol, package versions, activity log
 
 #define HCG_RUN(fn) do { HCGCurrentTest = #fn; fn(); } while (0)

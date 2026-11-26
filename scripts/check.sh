@@ -40,6 +40,8 @@ absent "No invented HCG URL schemes" '(hcgnews|hcgserver|hcgnexus)://' Sources P
 check  "HCG Terminal links only as <scheme>://open/<screen> (TerminalDeepLink)" sh -c '! grep -rEoh "hcgterminal(-unleashed)?://[A-Za-z/<>.-]*" Sources Prefs Tweak PreviewHarness | grep -vxE "hcgterminal(-unleashed)?://(open/[a-z-]+|open/<screen>)?[.]?" | grep -q .'
 absent "Device Link stays out of shared, tweak, Settings and preview sources" 'HCGLinkServic|HCGLinkTypes|HCGDeviceLink|HCGConnectedDevices' Sources/Core Sources/Panel Sources/Platform/SpringBoard Sources/Platform/Preview Tweak Prefs PreviewHarness
 absent "Theos builds never compile Device Link or Swift" 'DeviceLink|\.swift' Makefile Prefs/Makefile PreviewHarness/Makefile
+check  "Ecosystem registry embedded from Resources/Registry (scripts/embed_registry.py)" python3 scripts/embed_registry.py --check
+absent "Registry: only anonymous read-only endpoints" '\\"auth\\":\\"(bearer|token|basic)|\\"access\\":\\"write' Sources/Core/HCGRegistryData.m
 check  "Tweak filter targets only SpringBoard" grep -qx '{ Filter = { Bundles = ( "com.apple.springboard" ); }; }' HCGNexus.plist
 
 echo "== Metadata =="

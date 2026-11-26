@@ -1,0 +1,43 @@
+{
+  "appVersion" : "0.3.0",
+  "devices" : [
+    {
+      "category" : "smartphone",
+      "connection" : "usb",
+      "intelligenceState" : "diagnosticsAvailable",
+      "key" : "apple:00008030-REDACTED",
+      "model" : "iPhone 11 Pro Max",
+      "name" : "iPhone",
+      "osVersion" : "17.4",
+      "provenance" : "hardware",
+      "status" : "diagnosticsAvailable"
+    },
+    {
+      "category" : "playStation",
+      "connection" : "usb",
+      "key" : "usb:054c:0ce6",
+      "name" : "DualSense Wireless Controller",
+      "provenance" : "hardware",
+      "status" : "identified"
+    },
+    {
+      "category" : "microcontroller",
+      "connection" : "synthetic",
+      "key" : "synthetic:esp32",
+      "name" : "Synthetic ESP32",
+      "provenance" : "synthetic",
+      "status" : "adapterRequired"
+    },
+    {
+      "category" : "spaceship",
+      "connection" : "warp",
+      "key" : "x:1",
+      "name" : "Unknown gadget",
+      "provenance" : "hardware",
+      "status" : "detected"
+    }
+  ],
+  "generatedAt" : "2026-11-26T09:30:00Z",
+  "installationID" : "6F1C2D3E-0000-4000-8000-00000000ABCD",
+  "schema" : "hcg.systemtester.inventory/1"
+}
