@@ -19,8 +19,23 @@ Local checks: `scripts/check.sh` with the Theos toolchain, rootless and rootful:
 (SHA vectors; GnuPG-made signatures: good, tampered, SHA-256/512, SHA-1 refused, foreign key, expired, Ed25519
 unsupported, cleartext injection refused; the live Candidate chain; signed variants; package assessments; real
 passport, compatibility and monitor output; Mach-O entitlements; trusted-repository store; verified downloads), 0
-failures. The Theos rootless package, the preview harness and the app target (iPhoneOS 14.5 and 16.5) all built. CI
-evidence is recorded when the *Build package* run completes.
+failures. The Theos rootless package, the preview harness and the app target (iPhoneOS 14.5 and 16.5) all built.
+
+| | |
+|---|---|
+| File | `com.hakmicapitalgroup.hcgnexus_0.5.0~beta1_iphoneos-arm64.deb` (1,684,900 bytes) |
+| **SHA-256** | **`279902e728aac293209acaff8f8c4ff4a90c00edc20682536b1501cc8562ac04`** |
+| Built from | `26e51a82da3b…` on `claude/hcg-nexus-tweak-yb1ii2` (build ID `26e51a82da`, `rootless-release`) |
+| Workflow | *Build package* run **#34**, ID 45685911146 (attempt 2: the jailbreak job's first attempt never got a macOS runner and was cancelled), route `both`, layout `rootless` |
+| Artifact | `hcg-nexus-rootless-deb`, ID 15059426617, zip SHA-256 `0f3e1fca874208ba31ad55ceaba0c877ec42f32be40f983f5a2c0a4ab0eba6d6`, expires 2026-12-02 |
+| Depends | `mobilesubstrate \| ellekit, preferenceloader` (unchanged) |
+| HCG Repo request | HCG-repo `claude/candidate-nexus-0.5.0`, `pending-imports/hcg-nexus-0.5.0-beta1-rootless.toml` (held until approved) |
+
+**Simulator / CI:** run #34, all 4 jobs green: lint + 28,369 Core host checks; HCG Device Link and HCGConnectVerify
+(Linux, macOS); app XCTests on the Simulator, launch and every-section screenshots; unsigned device build and archive;
+Theos jailbreak package and preview. Re-checked here on the downloaded `.deb`: `inspect-package.py
+--require-new-arm64e-abi` 16/16 OK; `Version: 0.5.0~beta1`; `HaloBorder.plist` 0.5.0~beta1; the tweak contains the
+Trust Center, the OpenPGP verifier and the fetcher. **Phone:** not tested (rows 32–37).
 
 ## 0.4.0~beta1 — HCG Ecosystem dashboard and HCG Interchange Protocol (recorded 2026-11-24)
 
