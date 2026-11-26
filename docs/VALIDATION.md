@@ -36,8 +36,26 @@ The host tests include live captures (News, identity discovery, central catalogu
 | Workflow | *Build package* run **#36**, ID 45872511908, route `both`, layout `rootless`: all four jobs passed |
 | Artifact | `hcg-nexus-rootless-deb`, ID 15142878876, zip SHA-256 `a55066811decaf5ce3169153e1da5a88aba61bbfaeae664da3f99428bb8e0991`, expires 2026-12-03 |
 
-Re-checked here on the downloaded `.deb`: `inspect-package.py --require-new-arm64e-abi` 35/35 OK. **Not published, not
-requested in HCG Repo** (needs the owner's approval of this SHA-256). **Phone:** not tested.
+Re-checked here on the downloaded `.deb`: `inspect-package.py --require-new-arm64e-abi` 35/35 OK. **Phone:** not tested.
+
+**Approved, publication held (26 Nov 2026).** The owner approved this exact SHA-256 (2,131,624 bytes, commit `2b521fb`,
+run #36) for HCG Repo Candidate as a temporarily free beta testing package. Publication waits until the owner has
+physically tested the published 0.6.0~beta1. Neither version is described as physically validated until the owner
+reports results.
+
+* **Preserved:** *Preserve candidate artifact* run 45909481089 checked the SHA-256 and re-uploaded the bytes as
+  `preserved-hcg-nexus-rootless-deb-run45872511908` (ID 15159870375, kept until 2027-02-24, the 90-day maximum). The
+  download is byte-identical, with `SHA256SUMS` and `PROVENANCE`.
+* **Not private:** this repository is public, so its artifacts can be downloaded by signed-in GitHub users. That is
+  acceptable for an approved free beta. The owner's private incoming store was not reachable (no computer attached), so
+  a private copy still needs `hcgrepo release submit` on the owner's machine (paths in
+  `hcg-nexus-0.7.0-beta1-submission.json`).
+* **Release Manager:** `docs/release/hcg-nexus-0.7.0-beta1-release-manager-result.json`: validated. Static inspection
+  passed; the script-free dpkg lifecycle passed, including the upgrade from the previous version; device levels not
+  recorded.
+* **Candidate import:** prepared on HCG-repo branch `claude/candidate-nexus-0.7.0` (marked HOLD). *Prepare packages*
+  imports it there for validation only. It is not merged and not published, and earlier versions stay for rollback.
+  Stable and the permanent (paid) pricing are unchanged.
 
 ## 0.6.0~beta1 — HCG Nexus Command Center (recorded 2026-11-26)
 

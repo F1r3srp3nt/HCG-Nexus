@@ -1,0 +1,147 @@
+{
+  "format": "hcg.repo.submission-result",
+  "formatVersion": 1,
+  "submission": "com.hakmicapitalgroup.hcgnexus_0.7.0-beta1_iphoneos-arm64_004e6a9ea2db",
+  "state": "validated",
+  "package": {
+    "architecture": "iphoneos-arm64",
+    "identifier": "com.hakmicapitalgroup.hcgnexus",
+    "version": "0.7.0~beta1"
+  },
+  "artifact": {
+    "sha256": "004e6a9ea2db3428e821249546c5baef01e113c2396ab944e232001bbad3e611",
+    "size": 2131624
+  },
+  "provider": "github-actions",
+  "levels": {
+    "application_launch": {
+      "evidence": [],
+      "state": "not-recorded"
+    },
+    "device_installation": {
+      "evidence": [],
+      "state": "not-recorded"
+    },
+    "maintainer_script_review": {
+      "executed": false,
+      "note": "the scripts were read (static analysis); they were not run",
+      "scripts": [],
+      "state": "not-applicable"
+    },
+    "runtime_verification": {
+      "evidence": [],
+      "state": "not-recorded"
+    },
+    "script_free_lifecycle": {
+      "note": "dpkg ran on a copy with the maintainer scripts removed: this proves the payload installs, reinstalls, removes and purges cleanly; it does not prove the original maintainer scripts work",
+      "scripts_executed": false,
+      "state": "passed",
+      "steps": [
+        {
+          "ok": true,
+          "problems": [],
+          "status": "install ok installed",
+          "step": "install-previous"
+        },
+        {
+          "ok": true,
+          "problems": [],
+          "status": "install ok installed",
+          "step": "upgrade"
+        },
+        {
+          "ok": true,
+          "problems": [],
+          "status": "install ok installed",
+          "step": "reinstall"
+        },
+        {
+          "ok": true,
+          "problems": [],
+          "status": "not-installed",
+          "step": "remove"
+        },
+        {
+          "ok": true,
+          "problems": [],
+          "status": "not-installed",
+          "step": "purge"
+        }
+      ],
+      "upgrade_from": "com.hakmicapitalgroup.hcgnexus_0.6.0~beta1_iphoneos-arm64.deb"
+    },
+    "static_inspection": {
+      "note": "the package was read and checked; nothing was installed",
+      "state": "passed"
+    }
+  },
+  "counts": {
+    "errors": 0,
+    "warnings": 8
+  },
+  "findings": [
+    {
+      "level": "warning",
+      "stage": "repository",
+      "code": "firmware-undeclared",
+      "message": "com.hakmicapitalgroup.hcgnexus 0.2.1~beta1 iphoneos-arm64: binaries require iOS 15.0 or later, but Depends declares no firmware range"
+    },
+    {
+      "level": "warning",
+      "stage": "repository",
+      "code": "firmware-undeclared",
+      "message": "com.hakmicapitalgroup.hcgnexus 0.2.2~beta1 iphoneos-arm64: binaries require iOS 15.0 or later, but Depends declares no firmware range"
+    },
+    {
+      "level": "warning",
+      "stage": "repository",
+      "code": "firmware-undeclared",
+      "message": "com.hakmicapitalgroup.hcgnexus 0.3.1~beta1 iphoneos-arm64: binaries require iOS 15.0 or later, but Depends declares no firmware range"
+    },
+    {
+      "level": "warning",
+      "stage": "repository",
+      "code": "firmware-undeclared",
+      "message": "com.hakmicapitalgroup.hcgnexus 0.3.2~beta1 iphoneos-arm64: binaries require iOS 15.0 or later, but Depends declares no firmware range"
+    },
+    {
+      "level": "warning",
+      "stage": "repository",
+      "code": "firmware-undeclared",
+      "message": "com.hakmicapitalgroup.hcgnexus 0.3.3~beta1 iphoneos-arm64: binaries require iOS 15.0 or later, but Depends declares no firmware range"
+    },
+    {
+      "level": "warning",
+      "stage": "repository",
+      "code": "firmware-undeclared",
+      "message": "com.hakmicapitalgroup.hcgnexus 0.4.0~beta1 iphoneos-arm64: binaries require iOS 15.0 or later, but Depends declares no firmware range"
+    },
+    {
+      "level": "warning",
+      "stage": "repository",
+      "code": "firmware-undeclared",
+      "message": "com.hakmicapitalgroup.hcgnexus 0.5.0~beta1 iphoneos-arm64: binaries require iOS 15.0 or later, but Depends declares no firmware range"
+    },
+    {
+      "level": "warning",
+      "stage": "repository",
+      "code": "legacy-lzma-member",
+      "message": "com.hakmicapitalgroup.vortex 0.1.0~beta1 iphoneos-arm64: data.tar.lzma: legacy LZMA package member. A build in this format failed to unpack on a device (docs/device-tests/vortex-0.1.0-beta1.md); prefer gzip (data.tar.gz) or a small xz preset"
+    }
+  ],
+  "requirements": [
+    {
+      "kind": "checksum-approval",
+      "satisfied": false,
+      "detail": "the owner approves exactly this SHA-256 for a Candidate import",
+      "command": "bin/hcgrepo release approve com.hakmicapitalgroup.hcgnexus_0.7.0-beta1_iphoneos-arm64_004e6a9ea2db --sha256 004e6a9ea2db3428e821249546c5baef01e113c2396ab944e232001bbad3e611 --by \"<owner>\" --record \"<approval, verbatim>\""
+    },
+    {
+      "kind": "publication-approval",
+      "satisfied": false,
+      "detail": "publishing is the manual Publish repository workflow, run only with the owner's explicit approval"
+    }
+  ],
+  "next_step": "wait for the owner's checksum approval",
+  "channel": "candidate"
+}
