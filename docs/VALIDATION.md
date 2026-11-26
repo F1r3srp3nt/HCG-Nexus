@@ -26,7 +26,29 @@ Local checks: `scripts/check.sh`, rootless and rootful, passed lint and 29,112 C
 include 677 Command Center checks and 37 review regressions. The Theos rootless package, the preview harness and the
 app target (iPhoneOS 14.5 and 16.5) all built.
 
-CI and the candidate checksum: see below (filled in from the CI run).
+| | |
+|---|---|
+| File | `com.hakmicapitalgroup.hcgnexus_0.6.0~beta1_iphoneos-arm64.deb` (2,076,696 bytes) |
+| **SHA-256** | **`587b2fbd7548b0c9e84d888503ffbfd07ff687d2b679ee241e476b858e33e713`** |
+| Built from | `1540d61c7ac2…` on `claude/hcg-nexus-tweak-yb1ii2` (build ID `1540d61c7a`, `rootless-release`) |
+| Workflow | *Build package* run **#35**, ID 45777325673, route `both`, layout `rootless` |
+| Artifact | `hcg-nexus-rootless-deb`, ID 15096538703, zip SHA-256 `2bb7ec205b08f373a16081bcea08974655326312349279e9af9a5fec79fc1c35`, expires 2026-12-03 |
+| Depends | `mobilesubstrate \| ellekit, preferenceloader, firmware (>= 15.0)` |
+| HCG Repo request | HCG-repo `claude/candidate-nexus-0.6.0`, `pending-imports/hcg-nexus-0.6.0-beta1-rootless.toml` (held until approved) |
+| Release Manager | `docs/release/hcg-nexus-0.6.0-beta1-submission.json` → `…-release-manager-result.json`: **validated**; static inspection passed; script-free dpkg lifecycle passed; device levels not recorded; `needs-free-demo-approval` |
+
+**CI:** run #35 has four jobs:
+
+* lint and the Core host checks;
+* the HCG Device Link and HCGConnectVerify tests (Linux and macOS);
+* the Theos jailbreak package and preview (Xcode toolchain);
+* the standalone app: Simulator unit tests (including `HCGTrustCryptoTests`, which checks that CommonCrypto and the
+  Security framework give the same results as the portable code and gpgv on the GnuPG fixtures), launch and
+  every-section screenshots, the unsigned device build and the archive.
+
+Re-checked here on the downloaded `.deb`: `inspect-package.py --require-new-arm64e-abi` 35/35 OK, `Version:
+0.6.0~beta1`, `HaloBorder.plist` 0.6.0~beta1, the Settings bundle 0.6.0, and the tweak contains the Command Center,
+the registry and the public reader. **Phone:** not tested (rows 38–47).
 
 ## 0.5.0~beta1 — Package Trust Center (recorded 2026-11-25)
 
