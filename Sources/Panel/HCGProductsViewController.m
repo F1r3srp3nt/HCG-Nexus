@@ -13,6 +13,7 @@ typedef NS_ENUM(NSInteger, HCGEcosystemGroup) {
     HCGEcosystemGroupTrust,
     HCGEcosystemGroupInstalled,
     HCGEcosystemGroupAvailable,
+    HCGEcosystemGroupComputers, // services this build reaches (HCG Server through HCG Device Link)
     HCGEcosystemGroupLater,
     HCGEcosystemGroupDiagnostics,
     HCGEcosystemGroupActivity,
@@ -25,6 +26,8 @@ UIColor *HCGEcosystemColorForAvailability(HCGHIPAvailability availability) {
         case HCGHIPAvailabilityAttention: return [HCGTheme warning];
         case HCGHIPAvailabilityNeedsUpdate: return [HCGTheme violet];
         case HCGHIPAvailabilityUnsupportedOS: return [HCGTheme critical];
+        case HCGHIPAvailabilityConnected: return [HCGTheme success];
+        case HCGHIPAvailabilityUnreachable: return [HCGTheme warning];
         default: return [HCGTheme secondaryText];
     }
 }
@@ -203,6 +206,7 @@ static UILabel *HCGCardLabel(UIFontTextStyle style, UIFontWeight weight, UIColor
     NSArray<NSNumber *> *_groups;
     NSArray<HCGHIPProductStatus *> *_installed;
     NSArray<HCGHIPProductStatus *> *_available;
+    NSArray<HCGHIPProductStatus *> *_computers;
     NSArray<HCGHIPProductStatus *> *_later;
     NSArray<NSArray<NSString *> *> *_diagnostics;
     NSArray<NSDictionary *> *_activity;
@@ -297,10 +301,13 @@ static UILabel *HCGCardLabel(UIFontTextStyle style, UIFontWeight weight, UIColor
 - (void)applySnapshot:(HCGEcosystemSnapshot *)snapshot {
     _snapshot = snapshot;
     NSMutableArray *installed = [NSMutableArray array], *available = [NSMutableArray array], *later = [NSMutableArray array];
+    NSMutableArray *computers = [NSMutableArray array];
     NSUInteger updates = 0, attention = 0;
     for (HCGHIPProductStatus *status in snapshot.statuses) {
         if (status.descriptor.kind == HCGHIPProductKindRepository) continue; // shown in diagnostics and on every card
         if (status.availability == HCGHIPAvailabilityNotAvailable) [later addObject:status];
+        else if (status.availability == HCGHIPAvailabilityConnected || status.availability == HCGHIPAvailabilityNotConnected ||
+                 status.availability == HCGHIPAvailabilityUnreachable) [computers addObject:status];
         else if (status.installed) [installed addObject:status];
         else [available addObject:status];
         if (status.updateAvailable) updates++;
@@ -308,6 +315,7 @@ static UILabel *HCGCardLabel(UIFontTextStyle style, UIFontWeight weight, UIColor
     }
     _installed = installed;
     _available = available;
+    _computers = computers;
     _later = later;
     _activity = [self.context.model ecosystemActivity];
     _diagnostics = [self diagnosticsRows];
@@ -324,6 +332,7 @@ static UILabel *HCGCardLabel(UIFontTextStyle style, UIFontWeight weight, UIColor
     NSMutableArray *groups = [NSMutableArray arrayWithObjects:@(HCGEcosystemGroupDevice), @(HCGEcosystemGroupTrust), nil];
     if (installed.count) [groups addObject:@(HCGEcosystemGroupInstalled)];
     if (available.count) [groups addObject:@(HCGEcosystemGroupAvailable)];
+    if (computers.count) [groups addObject:@(HCGEcosystemGroupComputers)];
     if (later.count) [groups addObject:@(HCGEcosystemGroupLater)];
     [groups addObject:@(HCGEcosystemGroupDiagnostics)];
     [groups addObject:@(HCGEcosystemGroupActivity)];
@@ -367,6 +376,7 @@ static UILabel *HCGCardLabel(UIFontTextStyle style, UIFontWeight weight, UIColor
 - (NSArray<HCGHIPProductStatus *> *)productsInGroup:(HCGEcosystemGroup)group {
     if (group == HCGEcosystemGroupInstalled) return _installed;
     if (group == HCGEcosystemGroupAvailable) return _available;
+    if (group == HCGEcosystemGroupComputers) return _computers;
     if (group == HCGEcosystemGroupLater) return _later;
     return @[];
 }
@@ -381,6 +391,7 @@ static UILabel *HCGCardLabel(UIFontTextStyle style, UIFontWeight weight, UIColor
         case HCGEcosystemGroupTrust: return @"Security";
         case HCGEcosystemGroupInstalled: return @"Installed";
         case HCGEcosystemGroupAvailable: return @"Not installed";
+        case HCGEcosystemGroupComputers: return @"Your computers";
         case HCGEcosystemGroupLater: return @"Not on this iPhone yet";
         case HCGEcosystemGroupDiagnostics: return @"Integration diagnostics";
         case HCGEcosystemGroupActivity: return @"Activity";
@@ -392,6 +403,8 @@ static UILabel *HCGCardLabel(UIFontTextStyle style, UIFontWeight weight, UIColor
     switch ([self groupAt:section]) {
         case HCGEcosystemGroupInstalled:
             return @"Read-only: Nexus reads each product's own status and settings and opens its screens. It never runs commands, changes another product's settings (except the HCG Halo border switch, through HCG Halo) or installs packages.";
+        case HCGEcosystemGroupComputers:
+            return @"Reached through HCG Device Link (Connected Devices). Connected appears only after a signed request to the server succeeded; otherwise the real reason is shown.";
         case HCGEcosystemGroupLater:
             return @"Adapters are prepared; nothing is connected. HCG Connect stays the only sign-in authority, and no credentials pass between apps.";
         case HCGEcosystemGroupActivity:

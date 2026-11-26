@@ -49,13 +49,46 @@ another device sends.
    server. If the owner revokes the device on the server, Nexus shows **Removed by the server** and creates a new key
    for the next pairing.
 
+## Local development pairing (HCG Server as a development host)
+
+While HCG has not issued Nexus's HCG Connect client, an HCG Server owner can switch on local development pairing on
+the Mac (`hcg-agent link dev-mode on --i-approve-local-development-pairing`; refused while HCG Connect is configured).
+Invitations then carry `am=local-development`.
+
+- Nexus uses `LocalDevelopmentTokens` (no HCG token is ever sent) **only** when the invitation says local
+  development. The mode is stored in the pairing record (`PairingRecord.authMode`), so it survives restarts. Every
+  other invitation follows the HCG Connect path, unchanged (still *not configured* until HCG issues a client).
+- Every place that shows such a connection says **LOCAL DEVELOPMENT — not an HCG account**: the pairing
+  confirmation, the HCG Server section, Connected host, Hosted services, Diagnostics, the account summary and the
+  HCG Server card in the Ecosystem dashboard. The owner's approval is the only authority; access covers that one
+  server, never HCG services, and remote actions are always refused.
+- `authority_changed` (the server switched between HCG Connect and local development) ends the link: Nexus stops,
+  shows **Server authority changed — pair again** with the server's reason, forgets the pairing and the key (the
+  server keeps the old entry, so a new key is needed), and offers **Pair again: enter a new invitation code…**.
+
+Once approved, Connected Devices also shows (real server answers only, refreshed with each heartbeat):
+
+- **Connected host**: host availability (*Reachable* only after a successful sync; otherwise *Unreachable: <reason>*
+  or *Not contacted yet*), the computer's name, OS, CPU, memory, load, HCG Server agent version and gateway exposure.
+  An approved pairing that has not answered since launch shows **Paired — not contacted yet**, never *Connected*.
+- **Hosted services** (e.g. HCG System Tester): status, health, uptime, restarts, last health check, capabilities.
+  Tapping a published service asks the server for a single-use ticket (`openService`, valid once within 60 s), then
+  shows the **HCG Server Local CA SHA-256** to compare with *Settings › General › About › Certificate Trust Settings*
+  and opens the link in the **system browser** (Safari). Nexus has no in-app web view and never relaxes certificate
+  checks. If the owner has not approved local-network exposure on the Mac, the server answers `gateway_local_only`
+  and Nexus explains that (approve with `hcg-agent hosting expose lan --i-approve-local-network-exposure`, then
+  install and trust the CA on the iPhone).
+- **Diagnostics › Connection diagnostics**: the server's read-only, redacted diagnostics (server, TLS and gateway,
+  services, security events, failed authentications) plus this device's own connection facts, as plain text.
+
 ## Sync (foreground only)
 
 Nexus syncs only while the Connected Devices screen is visible and the app is active. Leaving the screen, opening a
 report or sending the app to the background stops it.
 
 - While a pairing request is waiting, Nexus polls the request every 3 s.
-- Once the device is approved, Nexus sends a heartbeat every 20 s, which also refreshes paired devices and approvals.
+- Once the device is approved, Nexus sends a heartbeat every 20 s, which also refreshes paired devices, approvals and
+  hosted services (with the host summary).
   It reads the inbox every 10 s. New messages are acknowledged as `received`, and as `opened` once you open them.
 - When a request fails and can be retried, Nexus waits 1, 2, 4 … up to 60 s, with ±20 % jitter (`ReconnectPolicy`).
   It honours `retryAfterSeconds`.
@@ -75,7 +108,7 @@ There is no background connection and no push channel.
   Support, `DeviceLink/pairing.json`.
 - **Transport.** TLS 1.3 through `URLSession` with `PinnedSessionTransport`. The server's key (the SHA-256 of its SPKI)
   comes from the invitation, and any other key is refused before a request is sent. Every request is signed with the
-  installation key and carries the HCG Connect token. No cryptography is implemented by hand: the code uses CryptoKit,
+  installation key and carries the HCG Connect token (none on a local development pairing). No cryptography is implemented by hand: the code uses CryptoKit,
   Security and URLSession.
 - **Reports are data.** `ReportTextRenderer.sections` turns a report into labelled plain-text lines. The viewer shows
   them in `UILabel`s:
@@ -92,7 +125,8 @@ There is no background connection and no push channel.
 
 - **HCG Connect client.** In `App/Info.plist`, `HCGConnectClientID` and `HCGConnectRedirectURI` are **empty**: HCG has
   not issued an HCG Connect client for HCG Nexus. Until it does, the account section shows **Not configured**, sign-in
-  and pairing are refused locally, and nothing is contacted. Once HCG issues the client, fill both keys. The redirect
+  and HCG Connect pairing are refused locally, and nothing is contacted. (Local development pairing, above, is the
+  only path that works without it.) Once HCG issues the client, fill both keys. The redirect
   URI's scheme is used as the `ASWebAuthenticationSession` callback scheme. No URL type needs registering.
 - **ERP App Access.** The product and feature keys for the Device Link permissions are configured on HCG Server
   (`hcg-connect.json`). HCG Server must also list Nexus's client ID as a trusted client for `hcg.nexus`. None of this

@@ -12,6 +12,7 @@
 #import "HCGLinkTypes.h"
 #import "HCGConnectedDevicesViewController.h"
 #import "HCGLinkReportViewController.h"
+#import "HCGLinkDiagnosticsViewController.h"
 #import "HCGPanelHomeViewController.h"
 #import "HCGSections.h"
 #import "HCGTheme.h"
@@ -259,6 +260,117 @@ static void HCGCollectAccessibilityLabels(UIView *view, NSMutableArray<NSString 
     }
     UITableViewCell *header = [viewer tableView:viewer.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0]];
     XCTAssertTrue([header.textLabel.text containsString:@"data only, never executed"]);
+}
+
+static NSString *HCGTestInvitation(NSString *authMode) {
+    NSMutableDictionary *payload = [@{ @"v" : @1, @"id" : @"inv-test", @"s" : @"single-use-test-value", @"hd" : @"dev-test",
+                                       @"hn" : @"Studio Mac", @"ha" : @"studio.local:7610",
+                                       @"fp" : [@"" stringByPaddingToLength:64 withString:@"ab" startingAtIndex:0] } mutableCopy];
+    if (authMode) payload[@"am"] = authMode;
+    NSData *json = [NSJSONSerialization dataWithJSONObject:payload options:0 error:nil];
+    NSString *b64 = [[json base64EncodedStringWithOptions:0] stringByReplacingOccurrencesOfString:@"+" withString:@"-"];
+    b64 = [[b64 stringByReplacingOccurrencesOfString:@"/" withString:@"_"] stringByReplacingOccurrencesOfString:@"=" withString:@""];
+    return [@"hcg1-" stringByAppendingString:b64];
+}
+
+// Local development pairing is offered only when the invitation says so; HCG Connect pairing still needs
+// Nexus's issued HCG Connect client (not issued: Info.plist keys are empty).
+- (void)testLocalDevelopmentPairingOnlyWhenTheInvitationSaysSo {
+    id<HCGLinkServicing> service = HCGSharedLinkService();
+    XCTAssertTrue(HCGExistingLinkService() == service, @"existing service is the shared one once created");
+    HCGLinkSnapshot *snapshot = service.snapshot;
+    XCTAssertEqual(snapshot.accountState, HCGLinkAccountStateNotConfigured);
+
+    HCGLinkInvitationPreview *local = [service previewInvitationCode:HCGTestInvitation(@"local-development")];
+    XCTAssertTrue(local.localDevelopment);
+    XCTAssertEqualObjects(local.serverName, @"Studio Mac");
+    XCTAssertFalse([local.problem isEqualToString:snapshot.accountDetail], @"local development needs no HCG Connect client");
+    if (local.problem) XCTAssertEqualObjects(local.problem, snapshot.identityProblem, @"only a missing device key can block it");
+
+    HCGLinkInvitationPreview *connect = [service previewInvitationCode:HCGTestInvitation(nil)];
+    XCTAssertFalse(connect.localDevelopment);
+    XCTAssertNotNil(connect.problem, @"HCG Connect pairing stays unavailable until HCG issues Nexus a client");
+
+    HCGLinkInvitationPreview *other = [service previewInvitationCode:HCGTestInvitation(@"something-else")];
+    XCTAssertFalse(other.localDevelopment, @"only the exact local-development mode skips HCG Connect");
+    XCTAssertNotNil(other.problem);
+}
+
+- (void)testLocalDevelopmentLabelIsTheSameEverywhere {
+    XCTAssertEqualObjects(HCGLinkLocalDevelopmentLabel, @"LOCAL DEVELOPMENT — not an HCG account");
+    XCTAssertEqualObjects(HCGLinkLocalDevelopmentLabel, HCGHIPLocalDevelopmentLabel);
+}
+
+// HCG Interchange: HCG Server's card reflects the real Device Link state and says Connected only after a
+// successful sync, recently.
+- (void)testServerFactsFollowTheRealLinkState {
+    NSDate *now = [NSDate date];
+    HCGHIPFacts *f = [[HCGHIPFacts alloc] init];
+    HCGAppApplyLinkSnapshot(nil, f, now);
+    XCTAssertEqual(f.serviceLinkState, HCGHIPServiceLinkStateNotConnected, @"service not used since launch: not connected");
+
+    HCGLinkSnapshot *s = [[HCGLinkSnapshot alloc] init];
+    f = [[HCGHIPFacts alloc] init];
+    HCGAppApplyLinkSnapshot(s, f, now);
+    XCTAssertEqual(f.serviceLinkState, HCGHIPServiceLinkStateNotPaired);
+
+    s.serverName = @"Studio Mac";
+    s.connectionState = HCGLinkConnectionStatePaired;
+    HCGAppApplyLinkSnapshot(s, f, now);
+    XCTAssertEqual(f.serviceLinkState, HCGHIPServiceLinkStateNotConnected, @"approved earlier is not connected");
+
+    s.connectionState = HCGLinkConnectionStateConnected;
+    s.lastSync = nil;
+    HCGAppApplyLinkSnapshot(s, f, now);
+    XCTAssertEqual(f.serviceLinkState, HCGHIPServiceLinkStateNotConnected, @"no completed sync yet");
+
+    s.lastSync = [now dateByAddingTimeInterval:-5];
+    s.localDevelopment = YES;
+    s.servicesLoaded = YES;
+    s.services = @[ [[HCGLinkHostedServiceInfo alloc] init] ];
+    HCGAppApplyLinkSnapshot(s, f, now);
+    XCTAssertEqual(f.serviceLinkState, HCGHIPServiceLinkStateConnected);
+    XCTAssertTrue(f.serviceLinkLocalDevelopment);
+    XCTAssertEqual(f.serviceLinkHostedServices, 1);
+    XCTAssertEqualObjects(f.serviceLinkServerName, @"Studio Mac");
+    HCGHIPProductStatus *status = [HCGInterchange statusForDescriptor:[HCGInterchange descriptorForProductID:HCGHIPProductServer] facts:f];
+    XCTAssertEqualObjects(status.stateTitle, @"Connected");
+    XCTAssertTrue([status.integrationText containsString:HCGLinkLocalDevelopmentLabel]);
+
+    s.lastSync = [now dateByAddingTimeInterval:-(HCGAppLinkConnectedWindow + 1)];
+    HCGAppApplyLinkSnapshot(s, f, now);
+    XCTAssertEqual(f.serviceLinkState, HCGHIPServiceLinkStateNotConnected, @"an old sync is not a connection");
+
+    s.connectionState = HCGLinkConnectionStateOffline;
+    s.connectionDetail = @"The request timed out.";
+    HCGAppApplyLinkSnapshot(s, f, now);
+    XCTAssertEqual(f.serviceLinkState, HCGHIPServiceLinkStateUnreachable);
+    XCTAssertEqualObjects(f.serviceLinkDetail, @"The request timed out.");
+
+    s.connectionState = HCGLinkConnectionStateAuthorityChanged;
+    s.connectionDetail = @"Studio Mac changed how it authorizes apps.";
+    HCGAppApplyLinkSnapshot(s, f, now);
+    XCTAssertEqual(f.serviceLinkState, HCGHIPServiceLinkStateEnded);
+    XCTAssertEqualObjects(f.serviceLinkDetail, s.connectionDetail);
+}
+
+- (void)testDiagnosticsAreShownAsPlainData {
+    HCGLinkDiagnosticsInfo *d = [[HCGLinkDiagnosticsInfo alloc] init];
+    d.serverName = @"Studio Mac";
+    d.localDevelopment = YES;
+    HCGLinkReportSection *section = [[HCGLinkReportSection alloc] init];
+    section.title = @"Security events (redacted by the server)";
+    section.lines = @[ @"Failed authentications (24 h): 0", @"see https://example.test" ];
+    d.sections = @[ section ];
+    XCTAssertTrue([[HCGLinkDiagnosticsViewController headerTextForDiagnostics:d] containsString:HCGLinkLocalDevelopmentLabel]);
+    d.localDevelopment = NO;
+    XCTAssertFalse([[HCGLinkDiagnosticsViewController headerTextForDiagnostics:d] containsString:@"LOCAL DEVELOPMENT"]);
+    HCGLinkDiagnosticsViewController *viewer = [[HCGLinkDiagnosticsViewController alloc] initWithContext:[self appContext] diagnostics:d];
+    [viewer loadViewIfNeeded];
+    XCTAssertFalse(viewer.tableView.allowsSelection, @"read-only");
+    XCTAssertEqual([viewer numberOfSectionsInTableView:viewer.tableView], 2);
+    UITableViewCell *cell = [viewer tableView:viewer.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:1]];
+    XCTAssertEqualObjects(cell.textLabel.text, @"see https://example.test", @"verbatim plain text");
 }
 
 - (void)testConnectedDevicesWithoutServiceSaysSo {

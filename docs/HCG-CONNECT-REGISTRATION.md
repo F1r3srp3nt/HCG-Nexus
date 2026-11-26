@@ -61,6 +61,12 @@ is no trust anchor and every token response is refused; the Account screen stays
 Tests: `HCGConnectVerify/Tests` (`swift test`, in CI on Linux with swift-crypto and on macOS with CryptoKit) cover
 each rejection above with real signatures.
 
+## Local development pairing is separate
+
+HCG Server's local development pairing (owner approval only, no HCG account; `docs/CONNECTED_DEVICES.md`) does not
+use or need this registration and changes nothing here: Nexus sends no HCG token on that path and labels it
+**LOCAL DEVELOPMENT — not an HCG account**. The HCG Connect flow stays exactly as below until HCG issues the client.
+
 ## Not done yet (needs the client first)
 
 1. A real device sign-in (status `configured_untested` → tested), as required by the main-site team.

@@ -79,6 +79,10 @@
 			isa = PBXBuildFile;
 			fileRef = 582D384857292E62EC488A6B;
 		};
+		44E9DCEA6CAFB26A7DC4ED89 /* HCGLinkDiagnosticsViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = B96424DBF96CD465A2511E6E;
+		};
 		46EFBAE841492CFDBE71558B /* HCGProductDetailViewController.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = FCD8FBAC879E3B2F1A5F9BF1;
@@ -541,6 +545,13 @@
 			lastKnownFileType = sourcecode.c.objc;
 			name = HCGPanelContext.m;
 			path = Sources/Panel/HCGPanelContext.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		3C83895CBB3727DB6DB891D3 /* HCGLinkDiagnosticsViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGLinkDiagnosticsViewController.h;
+			path = Sources/Platform/App/DeviceLink/HCGLinkDiagnosticsViewController.h;
 			sourceTree = SOURCE_ROOT;
 		};
 		3CDF01D2A25E4EE40B827538 /* HCGWorkspace.h */ = {
@@ -1040,6 +1051,13 @@
 			path = App/HCGAppDelegate.h;
 			sourceTree = SOURCE_ROOT;
 		};
+		B96424DBF96CD465A2511E6E /* HCGLinkDiagnosticsViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGLinkDiagnosticsViewController.m;
+			path = Sources/Platform/App/DeviceLink/HCGLinkDiagnosticsViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
 		BA8C479F3A5600CAC03BEF7C /* HCGAction.h */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
@@ -1497,6 +1515,8 @@
 				07FD241EBC2BB6BCBE68B970,
 				A647D18F83B154FEDD1D1D94,
 				7D9CD0FE5DCFCBA8155BA6B7,
+				3C83895CBB3727DB6DB891D3,
+				B96424DBF96CD465A2511E6E,
 				4C45EFB05DC1714978C1EF7A,
 				7A230D8035737B5788F9AE48,
 				0CDC47645BB142BD7B87374D,
@@ -1699,6 +1719,7 @@
 				C6E9C37FB51D92106C6BEB67,
 				75F8ED7B79851C532C43D0E2,
 				DF42BF63CF25715B38A01C74,
+				44E9DCEA6CAFB26A7DC4ED89,
 				DBFEF11E6F8113142148F715,
 				AFEC655F706AE470EF7019EF,
 				CDE329ABF0ABF087E4711E45,

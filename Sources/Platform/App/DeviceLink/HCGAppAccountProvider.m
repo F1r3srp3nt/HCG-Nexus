@@ -52,18 +52,28 @@
 }
 
 - (NSString *)connectionSummary {
+    // A local development pairing works without an HCG account; say so instead of "needs sign-in".
+    HCGLinkSnapshot *existing = HCGExistingLinkService().snapshot;
+    if (existing.localDevelopment) {
+        return [NSString stringWithFormat:@"%@ · %@", HCGLinkLocalDevelopmentLabel, [HCGAppAccountProvider stateText:existing]];
+    }
     if (!_configuration.isConfigured) return @"Needs HCG sign-in (not configured)";
     id<HCGLinkServicing> service = [self service];
     if (!service) return @"Unavailable in this build";
-    HCGLinkSnapshot *snapshot = service.snapshot;
+    return [HCGAppAccountProvider stateText:service.snapshot];
+}
+
++ (NSString *)stateText:(HCGLinkSnapshot *)snapshot {
     switch (snapshot.connectionState) {
         case HCGLinkConnectionStateNotPaired: return @"Not paired";
         case HCGLinkConnectionStateAwaitingApproval: return @"Awaiting owner approval";
+        case HCGLinkConnectionStatePaired: return @"Paired · not contacted yet";
         case HCGLinkConnectionStateConnected: return [NSString stringWithFormat:@"Connected · %lu devices", (unsigned long)snapshot.devices.count];
         case HCGLinkConnectionStateOffline: return @"Offline · retrying";
         case HCGLinkConnectionStatePaused: return @"Paused";
         case HCGLinkConnectionStateEnded: return @"Pairing ended";
         case HCGLinkConnectionStateRemoved: return @"Removed by the server";
+        case HCGLinkConnectionStateAuthorityChanged: return @"Server authority changed · pair again";
     }
     return @"Unknown";
 }

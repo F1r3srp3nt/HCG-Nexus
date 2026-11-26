@@ -1,6 +1,7 @@
 #import <UIKit/UIKit.h>
 #import "HCGKeyValueStore.h"
 #import "HCGLauncher.h"
+#import "HCGLinkTypes.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -29,5 +30,11 @@ FOUNDATION_EXPORT NSString *const HCGAppDataSuiteName;
 // Injected for tests; defaults to [UIApplication sharedApplication].
 - (instancetype)initWithApplication:(nullable UIApplication *)application NS_DESIGNATED_INITIALIZER;
 @end
+
+// HCG Interchange: fills HCG Server's facts from the app's real HCG Device Link state. Connected only when the
+// last sync round succeeded within HCGAppLinkConnectedWindow of `now`; a nil snapshot (Connected Devices not
+// used since launch) reports "not connected", never a guess.
+FOUNDATION_EXPORT const NSTimeInterval HCGAppLinkConnectedWindow; // 120 s
+FOUNDATION_EXPORT void HCGAppApplyLinkSnapshot(HCGLinkSnapshot *_Nullable snapshot, HCGHIPFacts *facts, NSDate *now);
 
 NS_ASSUME_NONNULL_END
