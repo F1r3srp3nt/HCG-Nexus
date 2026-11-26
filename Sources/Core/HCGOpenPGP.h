@@ -1,4 +1,5 @@
 #import <Foundation/Foundation.h>
+#import "HCGDigest.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -100,6 +101,12 @@ typedef NS_ENUM(NSInteger, HCGPGPStatus) {
 @property (nonatomic, copy, nullable) NSData *signedText;            // InRelease: the message, LF line endings
 @property (nonatomic, readonly) BOOL good;
 @end
+
+// Which code performs the RSA and digest operations: Apple's Security framework and CommonCrypto on Apple platforms;
+// the portable C implementation only where those do not exist (Linux host tests).
+FOUNDATION_EXPORT NSString *HCGOpenPGPImplementationName(void);
+// The portable RSASSA-PKCS1-v1_5 check, always compiled, for cross-checks against the platform implementation.
+FOUNDATION_EXPORT BOOL HCGPortableRSAVerify(NSData *modulus, NSData *exponent, NSData *signature, HCGDigestAlgorithm algorithm, NSData *digest);
 
 @interface HCGOpenPGP : NSObject
 // Release.gpg against Release (binary-mode, or text-mode with canonical line endings). `now` lets tests fix time.

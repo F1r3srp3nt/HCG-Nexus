@@ -1,5 +1,8 @@
 #import "HCGOpenPGP.h"
 #import "HCGDigest.h"
+#if defined(__APPLE__)
+#import <Security/Security.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 
@@ -164,8 +167,9 @@ static BOOL ModExp(const HCGBN *base, const HCGBN *exp, const HCGBN *mod, uint8_
 static const uint8_t kPrefixSHA256[] = { 0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05, 0x00, 0x04, 0x20 };
 static const uint8_t kPrefixSHA512[] = { 0x30, 0x51, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x03, 0x05, 0x00, 0x04, 0x40 };
 
-// RSASSA-PKCS1-v1_5 verification of `digest` (already computed) with modulus/exponent.
-static BOOL RSAVerify(NSData *modulus, NSData *exponent, NSData *signature, HCGDigestAlgorithm algorithm, NSData *digest) {
+// RSASSA-PKCS1-v1_5 verification of `digest` (already computed) with modulus/exponent: the portable implementation,
+// used where Apple's Security framework does not exist (the Linux host tests).
+static BOOL PortableRSAVerify(NSData *modulus, NSData *exponent, NSData *signature, HCGDigestAlgorithm algorithm, NSData *digest) {
     const uint8_t *prefix = algorithm == HCGDigestAlgorithmSHA512 ? kPrefixSHA512 : kPrefixSHA256;
     size_t prefixLen = algorithm == HCGDigestAlgorithmSHA512 ? sizeof(kPrefixSHA512) : sizeof(kPrefixSHA256);
     // Strip leading zero bytes of the modulus for its true length.
@@ -196,6 +200,82 @@ static BOOL RSAVerify(NSData *modulus, NSData *exponent, NSData *signature, HCGD
     BNFree(&e);
     BNFree(&s);
     return ok;
+}
+
+#if defined(__APPLE__)
+// DER: INTEGER with a leading zero when the high bit is set (big-endian magnitude, leading zeros stripped).
+static void AppendDERLength(NSMutableData *out, size_t length) {
+    if (length < 128) {
+        uint8_t b = (uint8_t)length;
+        [out appendBytes:&b length:1];
+        return;
+    }
+    uint8_t bytes[8];
+    int n = 0;
+    while (length > 0) { bytes[n++] = (uint8_t)(length & 0xFF); length >>= 8; }
+    uint8_t first = (uint8_t)(0x80 | n);
+    [out appendBytes:&first length:1];
+    while (n > 0) [out appendBytes:&bytes[--n] length:1];
+}
+
+static NSData *DERInteger(NSData *magnitude) {
+    const uint8_t *p = (const uint8_t *)magnitude.bytes;
+    size_t len = magnitude.length;
+    while (len > 1 && *p == 0) { p++; len--; }
+    BOOL pad = len > 0 && (p[0] & 0x80);
+    NSMutableData *out = [NSMutableData data];
+    uint8_t tag = 0x02, zero = 0;
+    [out appendBytes:&tag length:1];
+    AppendDERLength(out, len + (pad ? 1 : 0));
+    if (pad) [out appendBytes:&zero length:1];
+    [out appendBytes:p length:len];
+    return out;
+}
+
+// The same check through Apple's Security framework: an RSAPublicKey (PKCS#1) built from the OpenPGP modulus and
+// exponent, and SecKeyVerifySignature with the digest already computed. The signature is left-padded to the key size.
+static BOOL RSAVerify(NSData *modulus, NSData *exponent, NSData *signature, HCGDigestAlgorithm algorithm, NSData *digest) {
+    const uint8_t *mp = (const uint8_t *)modulus.bytes;
+    size_t ml = modulus.length;
+    while (ml > 0 && *mp == 0) { mp++; ml--; }
+    if (ml < 128 || signature.length == 0 || signature.length > ml || digest.length != HCGDigestLength(algorithm)) return NO;
+    NSMutableData *body = [NSMutableData dataWithData:DERInteger([NSData dataWithBytes:mp length:ml])];
+    [body appendData:DERInteger(exponent)];
+    NSMutableData *der = [NSMutableData data];
+    uint8_t seq = 0x30;
+    [der appendBytes:&seq length:1];
+    AppendDERLength(der, body.length);
+    [der appendData:body];
+    NSDictionary *attributes = @{ (__bridge id)kSecAttrKeyType : (__bridge id)kSecAttrKeyTypeRSA,
+                                  (__bridge id)kSecAttrKeyClass : (__bridge id)kSecAttrKeyClassPublic,
+                                  (__bridge id)kSecAttrKeySizeInBits : @(ml * 8) };
+    SecKeyRef key = SecKeyCreateWithData((__bridge CFDataRef)der, (__bridge CFDictionaryRef)attributes, NULL);
+    if (!key) return NO;
+    NSMutableData *padded = [NSMutableData dataWithLength:ml - signature.length];
+    [padded appendData:signature];
+    SecKeyAlgorithm alg = algorithm == HCGDigestAlgorithmSHA512 ? kSecKeyAlgorithmRSASignatureDigestPKCS1v15SHA512
+                                                                : kSecKeyAlgorithmRSASignatureDigestPKCS1v15SHA256;
+    BOOL ok = SecKeyIsAlgorithmSupported(key, kSecKeyOperationTypeVerify, alg) &&
+              SecKeyVerifySignature(key, alg, (__bridge CFDataRef)digest, (__bridge CFDataRef)padded, NULL);
+    CFRelease(key);
+    return ok;
+}
+#else
+static BOOL RSAVerify(NSData *modulus, NSData *exponent, NSData *signature, HCGDigestAlgorithm algorithm, NSData *digest) {
+    return PortableRSAVerify(modulus, exponent, signature, algorithm, digest);
+}
+#endif
+
+NSString *HCGOpenPGPImplementationName(void) {
+#if defined(__APPLE__)
+    return @"Apple Security framework (RSA) + CommonCrypto (SHA-2)";
+#else
+    return @"portable C (host tests)";
+#endif
+}
+
+BOOL HCGPortableRSAVerify(NSData *modulus, NSData *exponent, NSData *signature, HCGDigestAlgorithm algorithm, NSData *digest) {
+    return PortableRSAVerify(modulus, exponent, signature, algorithm, digest);
 }
 
 #pragma mark - Model

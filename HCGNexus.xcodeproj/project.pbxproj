@@ -55,6 +55,10 @@
 			isa = PBXBuildFile;
 			fileRef = 752117A0AF7C2D457237A906;
 		};
+		32D3AF81DF3EBA3C7C744577 /* Security.framework in Frameworks */ = {
+			isa = PBXBuildFile;
+			fileRef = 941CEEF6B4C0F232A463E71B;
+		};
 		35DA9693C7136B95DBA5E276 /* HCGPanelHomeViewController.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = F5CFB14C421E20511E716D01;
@@ -190,6 +194,10 @@
 		9CCFF03681E69B36AC362AC2 /* HCGPackageIndex.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 056DE006288A2972FC3E57DC;
+		};
+		A39EA67E57D290B60CB9AD92 /* HCGTrustCryptoTests.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 3AB191BFC0A58A461F4AF4C7;
 		};
 		AAFB17DF0EAC16FC0DCAD632 /* HCGRepoTrust.m in Sources */ = {
 			isa = PBXBuildFile;
@@ -538,6 +546,13 @@
 			lastKnownFileType = sourcecode.c.objc;
 			name = HCGAppsViewController.m;
 			path = Sources/Panel/HCGAppsViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		3AB191BFC0A58A461F4AF4C7 /* HCGTrustCryptoTests.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGTrustCryptoTests.m;
+			path = Tests/App/HCGTrustCryptoTests.m;
 			sourceTree = SOURCE_ROOT;
 		};
 		3B2B813C1265303959118322 /* HCGPanelContext.m */ = {
@@ -896,6 +911,13 @@
 			name = HCGAppRootViewController.m;
 			path = App/HCGAppRootViewController.m;
 			sourceTree = SOURCE_ROOT;
+		};
+		941CEEF6B4C0F232A463E71B /* Security.framework */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = wrapper.framework;
+			name = Security.framework;
+			path = System/Library/Frameworks/Security.framework;
+			sourceTree = SDKROOT;
 		};
 		958CFF062160CC947DCB2C66 /* HCGCommandMode.m */ = {
 			isa = PBXFileReference;
@@ -1322,6 +1344,7 @@
 				ADB48BCB471BAFC9B8A1766B,
 				8F5A852019BDB6237D2D4C10,
 				E76F5DD34E5E40BB0F3B5721,
+				32D3AF81DF3EBA3C7C744577,
 				056FE5A114EA01184551B9ED,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1419,6 +1442,7 @@
 			isa = PBXGroup;
 			children = (
 				9FDCAB71903DC4D63E2F81B3,
+				3AB191BFC0A58A461F4AF4C7,
 			);
 			name = Tests;
 			sourceTree = "<group>";
@@ -1551,6 +1575,7 @@
 				0D4158BFF29972DC1A9B79C6,
 				76F9D685866F3288582BB70B,
 				A5D2210C1ED4298EAFF936A3,
+				941CEEF6B4C0F232A463E71B,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -1733,6 +1758,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4F50DC1A55407EFDE68D702E,
+				A39EA67E57D290B60CB9AD92,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -124,7 +124,7 @@ static void Compress(HCGDigestContext *c, const uint8_t *p) {
     else SHA512Block(c, p);
 }
 
-void HCGDigestInit(HCGDigestContext *c, HCGDigestAlgorithm algorithm) {
+static void PortableInit(HCGDigestContext *c, HCGDigestAlgorithm algorithm) {
     memset(c, 0, sizeof(*c));
     c->algorithm = algorithm;
     if (algorithm == HCGDigestAlgorithmSHA1) {
@@ -140,7 +140,7 @@ void HCGDigestInit(HCGDigestContext *c, HCGDigestAlgorithm algorithm) {
     }
 }
 
-void HCGDigestUpdate(HCGDigestContext *c, const void *bytes, size_t length) {
+static void PortableUpdate(HCGDigestContext *c, const void *bytes, size_t length) {
     const uint8_t *p = (const uint8_t *)bytes;
     size_t bs = BlockSize(c->algorithm);
     c->length += length;
@@ -158,7 +158,7 @@ void HCGDigestUpdate(HCGDigestContext *c, const void *bytes, size_t length) {
     }
 }
 
-void HCGDigestFinal(HCGDigestContext *c, uint8_t *out) {
+static void PortableFinal(HCGDigestContext *c, uint8_t *out) {
     size_t bs = BlockSize(c->algorithm), lenBytes = c->algorithm == HCGDigestAlgorithmSHA512 ? 16 : 8;
     uint64_t bits = c->length * 8;
     c->block[c->used++] = 0x80;
@@ -185,6 +185,61 @@ void HCGDigestFinal(HCGDigestContext *c, uint8_t *out) {
             out[4 * i + 3] = (uint8_t)c->h32[i];
         }
     }
+}
+
+NSString *HCGDigestImplementationName(void) {
+#if defined(__APPLE__)
+    return @"CommonCrypto";
+#else
+    return @"portable";
+#endif
+}
+
+NSData *HCGPortableDigest(NSData *data, HCGDigestAlgorithm algorithm) {
+    HCGDigestContext c;
+    uint8_t out[64];
+    PortableInit(&c, algorithm);
+    PortableUpdate(&c, data.bytes, data.length);
+    PortableFinal(&c, out);
+    return [NSData dataWithBytes:out length:HCGDigestLength(algorithm)];
+}
+
+void HCGDigestInit(HCGDigestContext *c, HCGDigestAlgorithm algorithm) {
+#if defined(__APPLE__)
+    memset(c, 0, sizeof(*c));
+    c->algorithm = algorithm;
+    if (algorithm == HCGDigestAlgorithmSHA1) CC_SHA1_Init(&c->cc.sha1);
+    else if (algorithm == HCGDigestAlgorithmSHA256) CC_SHA256_Init(&c->cc.sha256);
+    else CC_SHA512_Init(&c->cc.sha512);
+#else
+    PortableInit(c, algorithm);
+#endif
+}
+
+void HCGDigestUpdate(HCGDigestContext *c, const void *bytes, size_t length) {
+#if defined(__APPLE__)
+    const uint8_t *p = (const uint8_t *)bytes;
+    while (length > 0) { // CC_LONG is 32-bit
+        CC_LONG n = length > 0x40000000 ? 0x40000000 : (CC_LONG)length;
+        if (c->algorithm == HCGDigestAlgorithmSHA1) CC_SHA1_Update(&c->cc.sha1, p, n);
+        else if (c->algorithm == HCGDigestAlgorithmSHA256) CC_SHA256_Update(&c->cc.sha256, p, n);
+        else CC_SHA512_Update(&c->cc.sha512, p, n);
+        p += n;
+        length -= n;
+    }
+#else
+    PortableUpdate(c, bytes, length);
+#endif
+}
+
+void HCGDigestFinal(HCGDigestContext *c, uint8_t *out) {
+#if defined(__APPLE__)
+    if (c->algorithm == HCGDigestAlgorithmSHA1) CC_SHA1_Final(out, &c->cc.sha1);
+    else if (c->algorithm == HCGDigestAlgorithmSHA256) CC_SHA256_Final(out, &c->cc.sha256);
+    else CC_SHA512_Final(out, &c->cc.sha512);
+#else
+    PortableFinal(c, out);
+#endif
 }
 
 @implementation HCGDigest

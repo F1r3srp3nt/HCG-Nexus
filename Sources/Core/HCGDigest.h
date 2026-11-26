@@ -1,11 +1,16 @@
 #import <Foundation/Foundation.h>
+#if defined(__APPLE__)
+#include <CommonCrypto/CommonDigest.h>
+#endif
 
 NS_ASSUME_NONNULL_BEGIN
 
-// SHA-1 (OpenPGP v4 fingerprints only; never accepted as a signature digest), SHA-256 and SHA-512, in portable C
-// (FIPS 180-4), so the host tests run the same code the iPhone runs. Streaming contexts hash files without
-// loading them whole.
-
+// SHA-1 (OpenPGP v4 fingerprints only; never accepted as a signature digest), SHA-256 and SHA-512. Streaming
+// contexts hash files without loading them whole.
+//
+// On Apple platforms (the iPhone builds) every digest comes from CommonCrypto, Apple's audited implementation. The
+// portable C implementation (FIPS 180-4) is used only where CommonCrypto does not exist (the Linux host tests); it is
+// also exported as HCGPortableDigest so the Simulator tests can cross-check both against the same vectors.
 typedef NS_ENUM(NSInteger, HCGDigestAlgorithm) {
     HCGDigestAlgorithmSHA1 = 1,
     HCGDigestAlgorithmSHA256 = 2,
@@ -19,7 +24,19 @@ typedef struct {
     uint64_t h64[8];
     uint8_t block[128];
     size_t used;
+#if defined(__APPLE__)
+    union {
+        CC_SHA1_CTX sha1;
+        CC_SHA256_CTX sha256;
+        CC_SHA512_CTX sha512;
+    } cc;
+#endif
 } HCGDigestContext;
+
+// "CommonCrypto" on Apple platforms, "portable" elsewhere.
+FOUNDATION_EXPORT NSString *HCGDigestImplementationName(void);
+// The portable implementation, always compiled (for cross-checks).
+FOUNDATION_EXPORT NSData *HCGPortableDigest(NSData *data, HCGDigestAlgorithm algorithm);
 
 FOUNDATION_EXPORT void HCGDigestInit(HCGDigestContext *context, HCGDigestAlgorithm algorithm);
 FOUNDATION_EXPORT void HCGDigestUpdate(HCGDigestContext *context, const void *bytes, size_t length);

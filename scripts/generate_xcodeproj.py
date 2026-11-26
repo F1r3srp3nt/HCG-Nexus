@@ -57,7 +57,7 @@ APP_EXCLUDED_FILES = {
 }
 FORBIDDEN_PREFIXES = ("Sources/Platform/SpringBoard", "Sources/Platform/Preview", "Tweak", "Prefs", "PreviewHarness")
 TEST_SOURCE_DIRS = ["Tests/App"]
-FRAMEWORKS = ["Foundation", "UIKit", "QuartzCore", "CoreGraphics", "Network"]
+FRAMEWORKS = ["Foundation", "UIKit", "QuartzCore", "CoreGraphics", "Network", "Security"]
 # HCG Device Link: vendored Swift package (never edited here; see HCGDeviceLink/VENDORED.md),
 # linked into the app target only. Swift sources come from DEVICE_LINK_DIR.
 DEVICE_LINK_PACKAGE = "HCGDeviceLink"

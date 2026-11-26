@@ -11,7 +11,7 @@ HCGNexusPrefs_FILES = HCGNexusRootListController.m \
 	$(wildcard $(ROOT)/Sources/Panel/*.m) \
 	$(ROOT)/Sources/Platform/SpringBoard/HCGPreferencesKeyValueStore.m
 HCGNexusPrefs_INSTALL_PATH = /Library/PreferenceBundles
-HCGNexusPrefs_FRAMEWORKS = UIKit QuartzCore CoreFoundation Network
+HCGNexusPrefs_FRAMEWORKS = UIKit QuartzCore CoreFoundation Network Security
 HCGNexusPrefs_PRIVATE_FRAMEWORKS = Preferences
 HCGNexusPrefs_CFLAGS = -fobjc-arc -Wall -Werror \
 	-I$(ROOT)/Sources/Core -I$(ROOT)/Sources/Panel -I$(ROOT)/Sources/Platform/SpringBoard \
