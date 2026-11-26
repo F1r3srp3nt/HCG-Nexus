@@ -271,6 +271,9 @@ static NSString *HCGPermissionText(HCGHIPPermission permission) {
     _haloBusy = YES;
     BOOL ok = self.context.setHaloBorderEnabled(wanted, &error);
     _haloBusy = NO;
+    // HaloNexusControl is HCG Halo's own two-way interface: its answer is communication evidence (Command Center).
+    if (!self.context.isPreview) [self.context.model recordConnectionForProduct:@"halo" method:@"local-ipc" success:ok
+                                                                           text:ok ? @"HCG Halo accepted a border change (HaloNexusControl v1)." : @"HCG Halo refused a border change."];
     if (!ok) {
         toggle.on = !wanted;
         [self.context feedback:error ?: @"HCG Halo refused the change." success:NO];

@@ -99,6 +99,132 @@ NSNotificationName const HCGNexusModelDidChangeNotification = @"HCGNexusModelDid
     [_store flush];
 }
 
+#pragma mark Command Center
+
+static NSString *const kRegistryUpdateKey = @"registryUpdate";
+static NSString *const kExpandedCategoriesKey = @"expandedCategories";
+static const NSUInteger kMaxStoredImport = 256 * 1024;
+
+- (HCGRegistry *)ecosystemRegistry {
+    HCGRegistry *base = [HCGRegistry builtInRegistry];
+    id stored = [_store objectForKey:kRegistryUpdateKey];
+    if (![stored isKindOfClass:[NSString class]]) return base;
+    HCGRegistry *update = [HCGRegistry registryWithJSONData:[stored dataUsingEncoding:NSUTF8StringEncoding] source:@"imported" error:NULL];
+    return update ? [base registryByApplyingUpdate:update problem:NULL] : base;
+}
+
+- (BOOL)importRegistryUpdate:(NSData *)data error:(NSString **)error {
+    if (data.length > kMaxStoredImport) {
+        if (error) *error = @"The registry update is larger than 256 KB.";
+        return NO;
+    }
+    HCGRegistry *update = [HCGRegistry registryWithJSONData:data source:@"imported" error:error];
+    if (!update) return NO;
+    if (![[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]) {
+        if (error) *error = @"The registry update is not UTF-8 text.";
+        return NO;
+    }
+    NSString *problem = nil;
+    if ([[HCGRegistry builtInRegistry] registryByApplyingUpdate:update problem:&problem] == [HCGRegistry builtInRegistry]) {
+        if (error) *error = problem;
+        return NO;
+    }
+    [_store setObject:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] forKey:kRegistryUpdateKey];
+    [_store flush];
+    return YES;
+}
+
+- (void)removeRegistryUpdate {
+    [_store setObject:nil forKey:kRegistryUpdateKey];
+    [_store flush];
+}
+
+- (BOOL)hasRegistryUpdate {
+    return [[_store objectForKey:kRegistryUpdateKey] isKindOfClass:[NSString class]];
+}
+
+- (NSArray *)connectionLedger {
+    return [HCGConnectionLedger entriesFromStoredValue:[_store objectForKey:HCGConnectionLedgerStoreKey]];
+}
+
+- (void)recordConnectionForProduct:(NSString *)productID method:(NSString *)method success:(BOOL)success text:(NSString *)text {
+    NSDictionary *entry = [HCGConnectionLedger entryForProduct:productID method:method success:success text:text time:[NSDate date]];
+    if (!entry) return;
+    [_store setObject:[HCGConnectionLedger entries:[_store objectForKey:HCGConnectionLedgerStoreKey] byAdding:entry] forKey:HCGConnectionLedgerStoreKey];
+    [_store flush];
+}
+
+- (NSArray *)favoriteProductIDs {
+    return [HCGCommandCenter favoritesFromStoredValue:[_store objectForKey:HCGCommandCenterFavoritesKey]];
+}
+
+- (void)setFavorite:(BOOL)favorite forProduct:(NSString *)productID {
+    NSMutableArray *ids = [[self favoriteProductIDs] mutableCopy];
+    [ids removeObject:productID];
+    if (favorite) [ids insertObject:productID atIndex:0];
+    [_store setObject:[HCGCommandCenter favoritesFromStoredValue:ids] forKey:HCGCommandCenterFavoritesKey];
+    [_store flush];
+}
+
+- (NSArray *)expandedCategoryIDs {
+    return [HCGCommandCenter favoritesFromStoredValue:[_store objectForKey:kExpandedCategoriesKey]];
+}
+
+- (void)setCategory:(NSString *)categoryID expanded:(BOOL)expanded {
+    NSMutableArray *ids = [[self expandedCategoryIDs] mutableCopy];
+    [ids removeObject:categoryID];
+    if (expanded) [ids addObject:categoryID];
+    [_store setObject:ids forKey:kExpandedCategoriesKey];
+    [_store flush];
+}
+
+- (NSDictionary *)roadmapStore {
+    id v = [_store objectForKey:HCGRoadmapStoreKey];
+    return [v isKindOfClass:[NSDictionary class]] ? v : @{};
+}
+
+- (void)saveRoadmapStore:(NSDictionary *)store {
+    [_store setObject:store forKey:HCGRoadmapStoreKey];
+    [_store flush];
+}
+
+- (NSDictionary *)lifeOSExported {
+    id v = [_store objectForKey:HCGLifeOSExportStoreKey];
+    return [v isKindOfClass:[NSDictionary class]] ? v : @{};
+}
+
+- (void)markLifeOSExport:(HCGLifeOSExport *)export_ {
+    [_store setObject:[HCGCommandCenter exportedStore:[self lifeOSExported] byMarking:export_] forKey:HCGLifeOSExportStoreKey];
+    [_store flush];
+}
+
+- (HCGDeviceInventory *)deviceInventory {
+    id stored = [_store objectForKey:HCGDeviceInventoryStoreKey];
+    if (![stored isKindOfClass:[NSString class]]) return nil;
+    return [HCGDeviceInventory inventoryWithData:[stored dataUsingEncoding:NSUTF8StringEncoding] error:NULL];
+}
+
+- (BOOL)importDeviceInventory:(NSData *)data error:(NSString **)error {
+    if (data.length > kMaxStoredImport) {
+        if (error) *error = @"The inventory is larger than 256 KB; export fewer devices from HCG System Tester.";
+        return NO;
+    }
+    NSString *text = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    if (!text) {
+        if (error) *error = @"The inventory is not UTF-8 text.";
+        return NO;
+    }
+    if (![HCGDeviceInventory inventoryWithData:data error:error]) return NO;
+    [_store setObject:text forKey:HCGDeviceInventoryStoreKey];
+    [_store flush];
+    return YES;
+}
+
+- (void)removeDeviceInventory {
+    [_store setObject:nil forKey:HCGDeviceInventoryStoreKey];
+    [_store flush];
+}
+
 - (void)clearEcosystemActivity {
     [_store setObject:nil forKey:HCGEcosystemActivityStoreKey];
     [_store flush];

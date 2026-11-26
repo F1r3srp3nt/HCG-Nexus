@@ -51,6 +51,14 @@
 			isa = PBXBuildFile;
 			fileRef = 8DF19EEEAD6005DAE47514F9;
 		};
+		25020CD536B67575234CB1B0 /* HCGDeviceClassesViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 1E18E7053AB0CFAF9953ECCF;
+		};
+		25D82AD700B8853602CDE502 /* HCGProductProfileViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 371DEA46A092CCE2BB58D1CB;
+		};
 		2C7F3538461464795DD7FA37 /* HCGPanelServices.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 752117A0AF7C2D457237A906;
@@ -122,6 +130,10 @@
 		623C76750505BF64E008D5EF /* HCGDigest.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = C117A6F8C0B6087F48EACA52;
+		};
+		635235DA9BE6D08ADDA26190 /* HCGCommandCenterViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 69ADE74A3AC3EF15D9F43A2D;
 		};
 		636366564C619A050B091CFE /* HCGAppLibrary.m in Sources */ = {
 			isa = PBXBuildFile;
@@ -199,6 +211,10 @@
 			isa = PBXBuildFile;
 			fileRef = EE149DD8A592AB0CE92A7BAC;
 		};
+		938E58AE1738E7F2CA05BB77 /* HCGCommandCenterData.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 191814D741639C249196A03B;
+		};
 		94C35AC56B68442714774FDF /* HCGOverlayCoordinator.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 8AF6734E2433E7E67718413A;
@@ -230,6 +246,10 @@
 		AE9DDB88207B0EFE856DE12B /* HCGAppDelegate.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = 5EB962FBEE34DC85BCBFA4CC;
+		};
+		AED380CD4B171CE06AF10E22 /* HCGRoadmapViewController.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 1C6ECC2F2765F041F6DBD785;
 		};
 		AFEC655F706AE470EF7019EF /* HCGLinkTypes.m in Sources */ = {
 			isa = PBXBuildFile;
@@ -484,11 +504,32 @@
 			path = Sources/Core/HCGRecents.h;
 			sourceTree = SOURCE_ROOT;
 		};
+		191814D741639C249196A03B /* HCGCommandCenterData.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGCommandCenterData.m;
+			path = Sources/Panel/HCGCommandCenterData.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		1C6ECC2F2765F041F6DBD785 /* HCGRoadmapViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGRoadmapViewController.m;
+			path = Sources/Panel/HCGRoadmapViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
 		1DFF45AE3D3B9B02A39F2A74 /* HCGWorkspace.m */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
 			name = HCGWorkspace.m;
 			path = Sources/Core/HCGWorkspace.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		1E18E7053AB0CFAF9953ECCF /* HCGDeviceClassesViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGDeviceClassesViewController.m;
+			path = Sources/Panel/HCGDeviceClassesViewController.m;
 			sourceTree = SOURCE_ROOT;
 		};
 		1E711720A28482846A34FA39 /* HCGWorkspaceStore.m */ = {
@@ -559,6 +600,20 @@
 			lastKnownFileType = sourcecode.c.objc;
 			name = HCGPublicFeeds.m;
 			path = Sources/Core/HCGPublicFeeds.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		371DEA46A092CCE2BB58D1CB /* HCGProductProfileViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGProductProfileViewController.m;
+			path = Sources/Panel/HCGProductProfileViewController.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		37BB52A47E9588F7625ED4BD /* HCGCommandCenterViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGCommandCenterViewController.h;
+			path = Sources/Panel/HCGCommandCenterViewController.h;
 			sourceTree = SOURCE_ROOT;
 		};
 		38F01A3CAEADC3AA86D51E53 /* HCGGeometry.m */ = {
@@ -797,6 +852,13 @@
 			lastKnownFileType = sourcecode.c.objc;
 			name = HCGDiagnostics.m;
 			path = Sources/Core/HCGDiagnostics.m;
+			sourceTree = SOURCE_ROOT;
+		};
+		69ADE74A3AC3EF15D9F43A2D /* HCGCommandCenterViewController.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGCommandCenterViewController.m;
+			path = Sources/Panel/HCGCommandCenterViewController.m;
 			sourceTree = SOURCE_ROOT;
 		};
 		6B6FCA6893B83A6C49F371E7 /* HCGAppLibrary.h */ = {
@@ -1212,6 +1274,13 @@
 			path = Sources/Core/HCGOverlayCoordinator.h;
 			sourceTree = SOURCE_ROOT;
 		};
+		C8C126344AFE81C9E27F44C4 /* HCGDeviceClassesViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGDeviceClassesViewController.h;
+			path = Sources/Panel/HCGDeviceClassesViewController.h;
+			sourceTree = SOURCE_ROOT;
+		};
 		C99BB2D86F718FBBF6D2AEFD /* HCGAppRootViewController.h */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
@@ -1240,11 +1309,25 @@
 			path = Sources/Panel/HCGPanelTableViewController.h;
 			sourceTree = SOURCE_ROOT;
 		};
+		CFA115BA7AFDA4F9044ED936 /* HCGCommandCenterData.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGCommandCenterData.h;
+			path = Sources/Panel/HCGCommandCenterData.h;
+			sourceTree = SOURCE_ROOT;
+		};
 		D0B2CD76C568394C91E42BD0 /* HCGPanelServices.h */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGPanelServices.h;
 			path = Sources/Panel/HCGPanelServices.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		D20CEA5EF4526C99E13D8EE5 /* HCGRoadmapViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGRoadmapViewController.h;
+			path = Sources/Panel/HCGRoadmapViewController.h;
 			sourceTree = SOURCE_ROOT;
 		};
 		D241D27FABB933E4A7AC907A /* Info.plist */ = {
@@ -1273,6 +1356,13 @@
 			lastKnownFileType = sourcecode.c.h;
 			name = HCGTerminalHandoff.h;
 			path = Sources/Core/HCGTerminalHandoff.h;
+			sourceTree = SOURCE_ROOT;
+		};
+		DCBAE2097C7BD69D35BDAB95 /* HCGProductProfileViewController.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGProductProfileViewController.h;
+			path = Sources/Panel/HCGProductProfileViewController.h;
 			sourceTree = SOURCE_ROOT;
 		};
 		DF9C83BBE76AF761A4BFCBA0 /* HCGAppPlatform.m */ = {
@@ -1473,8 +1563,14 @@
 				39EF3848BD49042D56DBC0AF,
 				55818FD4549F46929772A131,
 				EE149DD8A592AB0CE92A7BAC,
+				CFA115BA7AFDA4F9044ED936,
+				191814D741639C249196A03B,
+				37BB52A47E9588F7625ED4BD,
+				69ADE74A3AC3EF15D9F43A2D,
 				827767D087BAEB75330C341B,
 				AF198653D9F346A35527FD9F,
+				C8C126344AFE81C9E27F44C4,
+				1E18E7053AB0CFAF9953ECCF,
 				1354BEA2CAA61D42EB10747B,
 				E1FBBECA914FBC93D6181E9E,
 				B2A15363F280791D6EE287C6,
@@ -1498,8 +1594,12 @@
 				81D56076A1B1A36DA6650C8C,
 				0058C3A3F7F883AEF0B139C0,
 				FCD8FBAC879E3B2F1A5F9BF1,
+				DCBAE2097C7BD69D35BDAB95,
+				371DEA46A092CCE2BB58D1CB,
 				6327A07C1D8FA41BE048B43C,
 				64ECB23ADC864B3D02A955A3,
+				D20CEA5EF4526C99E13D8EE5,
+				1C6ECC2F2765F041F6DBD785,
 				BDD210F0099F5937A90060FA,
 				7842903A1820C82A3F56D334,
 				EAAFE77D1C832D4112DE5862,
@@ -1817,7 +1917,10 @@
 				D4808BAF38595B9A96A0D334,
 				C6B87B8593877A40BE63C2F3,
 				91DECF5C94A03BC8BFF41104,
+				938E58AE1738E7F2CA05BB77,
+				635235DA9BE6D08ADDA26190,
 				3C058E8672C2EE55A39088E4,
+				25020CD536B67575234CB1B0,
 				8105ACE2A4AB2314CCD7B344,
 				23E1B031BF4655142ED5428B,
 				04FDA5E24F9F88C6B9E8B43D,
@@ -1829,7 +1932,9 @@
 				CF37F9723E4697D1402DEF09,
 				067CE4BEEFC11A261324CC0E,
 				46EFBAE841492CFDBE71558B,
+				25D82AD700B8853602CDE502,
 				B09B52C095DED110D8049E38,
+				AED380CD4B171CE06AF10E22,
 				B0F2008134CB47D792B1D6F2,
 				1B813C12CB1E3EA62F868DD2,
 				134E79769D43BD65D02E6EBA,
@@ -1987,7 +2092,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = App/Info.plist;
@@ -1996,7 +2101,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.5.0;
+				MARKETING_VERSION = 0.6.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -2016,7 +2121,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = App/Info.plist;
@@ -2025,7 +2130,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.5.0;
+				MARKETING_VERSION = 0.6.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -2044,11 +2149,11 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.5.0;
+				MARKETING_VERSION = 0.6.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -2062,11 +2167,11 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.5.0;
+				MARKETING_VERSION = 0.6.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

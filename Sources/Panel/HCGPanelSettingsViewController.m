@@ -178,6 +178,10 @@ NSArray<NSNumber *> *HCGSettingsSectionsForMode(HCGPanelMode mode) {
     BOOL wanted = control.isOn;
     NSString *error = nil;
     BOOL ok = self.context.setHaloBorderEnabled && self.context.setHaloBorderEnabled(wanted, &error);
+    if (self.context.setHaloBorderEnabled && !self.context.isPreview) {
+        [self.context.model recordConnectionForProduct:@"halo" method:@"local-ipc" success:ok
+                                                  text:ok ? @"HCG Halo accepted a border change (HaloNexusControl v1)." : @"HCG Halo refused a border change."];
+    }
     if (!ok) {
         [control setOn:!wanted animated:YES];
         [self.context feedback:error ?: @"HCG Halo border can't be switched here." success:NO];

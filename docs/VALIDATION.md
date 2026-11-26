@@ -6,6 +6,28 @@ substituted for one another. Only section 4 can show that the tweak works.
 Reproduce sections 1 and 3 with
 `THEOS=… HCG_ENV=rootless scripts/check.sh` (and again with `HCG_ENV=rootful`).
 
+## 0.6.0~beta1 — HCG Nexus Command Center (recorded 2026-11-26)
+
+**Status: built; not imported or published** (needs the owner's approval of the exact SHA-256). Not device-tested:
+`DEVICE-CHECKLIST.md` rows 38–47. Everything in 0.5.0~beta1, plus the Command Center (docs/COMMAND-CENTER.md):
+
+* the versioned ecosystem registry (41 products, 13 categories, 10 device classes);
+* evidence-only connection status and the connection ledger;
+* product profiles;
+* the 14-state roadmap with history, development gaps and the HCG LifeOS export;
+* HCG System Tester inventory import;
+* read-only *Check now* for HCG News and the identity discovery.
+
+It also includes the independent OpenPGP review fixes and Apple CommonCrypto/Security for all Trust Center
+cryptography (docs/TRUST-CENTER.md). `Depends` now declares `firmware (>= 15.0)`, which clears HCG Repo's
+`firmware-undeclared` warning.
+
+Local checks: `scripts/check.sh`, rootless and rootful, passed lint and 29,112 Core host checks with 0 failures. Those
+include 677 Command Center checks and 37 review regressions. The Theos rootless package, the preview harness and the
+app target (iPhoneOS 14.5 and 16.5) all built.
+
+CI and the candidate checksum: see below (filled in from the CI run).
+
 ## 0.5.0~beta1 — Package Trust Center (recorded 2026-11-25)
 
 **Status: built; not imported or published** (needs the owner's approval of the exact SHA-256). Not device-tested:
@@ -36,6 +58,17 @@ failures. The Theos rootless package, the preview harness and the app target (iP
 Theos jailbreak package and preview. Re-checked here on the downloaded `.deb`: `inspect-package.py
 --require-new-arm64e-abi` 16/16 OK; `Version: 0.5.0~beta1`; `HaloBorder.plist` 0.5.0~beta1; the tweak contains the
 Trust Center, the OpenPGP verifier and the fetcher. **Phone:** not tested (rows 32–37).
+
+**Preservation (2026-11-26).** The exact run #34 bytes are kept beyond the 2 December expiry. They were copied by
+`.github/workflows/preserve-artifact.yml` (run 45769182876, artifact `preserved-hcg-nexus-rootless-deb-run45685911146`,
+ID 15093267208, kept until 2027-02-24); the workflow checks the SHA-256 above before uploading. The downloaded copy is
+byte-identical (1,684,900 bytes, `279902e7…62ac04`). HCG Repo's Release Manager validated it:
+`docs/release/hcg-nexus-0.5.0-beta1-submission.json` → `docs/release/hcg-nexus-0.5.0-beta1-release-manager-result.json`
+(state `validated`; script-free lifecycle passed; device installation, launch and runtime not recorded). The owner's
+private incoming store (`$HCG_REPO_INCOMING`) is on the owner's computer, which was not attached to this session; the
+held request in HCG-repo `claude/candidate-nexus-0.5.0` names both import paths (the GitHub artifact until
+2 December, then `hcgrepo release submit/approve/prepare --via local-file` from the preserved copy). Nothing was
+imported or published, and no earlier version was overwritten.
 
 ## 0.4.0~beta1 — HCG Ecosystem dashboard and HCG Interchange Protocol (recorded 2026-11-24)
 

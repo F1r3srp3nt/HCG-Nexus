@@ -42,6 +42,28 @@ FOUNDATION_EXPORT NSNotificationName const HCGNexusModelDidChangeNotification;
 // Package Trust Center: the repositories you check, and the key fingerprints YOU pinned.
 - (NSArray<HCGTrustedRepository *> *)trustedRepositories;
 - (void)saveTrustedRepositories:(NSArray<HCGTrustedRepository *> *)repositories;
+// HCG Nexus Command Center (docs/COMMAND-CENTER.md). Stored in Nexus's own preferences; nothing is sent anywhere.
+// The ecosystem registry: built in, plus an imported update (narrowing only) when one was imported.
+- (HCGRegistry *)ecosystemRegistry;
+// Validates and stores an hcg.nexus.registry/1 update (at most 256 KB). NO with `error` when refused.
+- (BOOL)importRegistryUpdate:(NSData *)data error:(NSString *_Nullable *_Nullable)error;
+- (void)removeRegistryUpdate;
+- (BOOL)hasRegistryUpdate;
+// Two-way reads Nexus made (HCGConnectionLedger), newest first.
+- (NSArray<NSDictionary *> *)connectionLedger;
+- (void)recordConnectionForProduct:(NSString *)productID method:(NSString *)method success:(BOOL)success text:(NSString *)text;
+- (NSArray<NSString *> *)favoriteProductIDs;
+- (void)setFavorite:(BOOL)favorite forProduct:(NSString *)productID;
+- (NSArray<NSString *> *)expandedCategoryIDs;
+- (void)setCategory:(NSString *)categoryID expanded:(BOOL)expanded;
+- (NSDictionary *)roadmapStore;
+- (void)saveRoadmapStore:(NSDictionary *)store;
+- (NSDictionary *)lifeOSExported;
+- (void)markLifeOSExport:(HCGLifeOSExport *)export_;
+// HCG System Tester inventory (validated; at most 256 KB kept).
+- (nullable HCGDeviceInventory *)deviceInventory;
+- (BOOL)importDeviceInventory:(NSData *)data error:(NSString *_Nullable *_Nullable)error;
+- (void)removeDeviceInventory;
 // Call after any HCGAppLibrary mutation (the library already persisted).
 - (void)appsDidChange;
 // Tools › Import Workspace Shortcuts: returns how many entries were added.

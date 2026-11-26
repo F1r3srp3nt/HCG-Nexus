@@ -1,0 +1,116 @@
+{
+  "format": "hcg.repo.submission-result",
+  "formatVersion": 1,
+  "submission": "com.hakmicapitalgroup.hcgnexus_0.5.0-beta1_iphoneos-arm64_279902e728aa",
+  "state": "validated",
+  "package": {
+    "architecture": "iphoneos-arm64",
+    "identifier": "com.hakmicapitalgroup.hcgnexus",
+    "version": "0.5.0~beta1"
+  },
+  "artifact": {
+    "sha256": "279902e728aac293209acaff8f8c4ff4a90c00edc20682536b1501cc8562ac04",
+    "size": 1684900
+  },
+  "provider": "github-actions",
+  "levels": {
+    "application_launch": {
+      "evidence": [],
+      "state": "not-recorded"
+    },
+    "device_installation": {
+      "evidence": [],
+      "state": "not-recorded"
+    },
+    "maintainer_script_review": {
+      "executed": false,
+      "note": "the scripts were read (static analysis); they were not run",
+      "scripts": [],
+      "state": "not-applicable"
+    },
+    "runtime_verification": {
+      "evidence": [],
+      "state": "not-recorded"
+    },
+    "script_free_lifecycle": {
+      "note": "dpkg ran on a copy with the maintainer scripts removed: this proves the payload installs, reinstalls, removes and purges cleanly; it does not prove the original maintainer scripts work",
+      "scripts_executed": false,
+      "state": "passed",
+      "steps": [
+        {
+          "ok": true,
+          "problems": [],
+          "status": "install ok installed",
+          "step": "install-previous"
+        },
+        {
+          "ok": true,
+          "problems": [],
+          "status": "install ok installed",
+          "step": "upgrade"
+        },
+        {
+          "ok": true,
+          "problems": [],
+          "status": "install ok installed",
+          "step": "reinstall"
+        },
+        {
+          "ok": true,
+          "problems": [],
+          "status": "not-installed",
+          "step": "remove"
+        },
+        {
+          "ok": true,
+          "problems": [],
+          "status": "not-installed",
+          "step": "purge"
+        }
+      ],
+      "upgrade_from": "com.hakmicapitalgroup.hcgnexus_0.3.3~beta1_iphoneos-arm64.deb"
+    },
+    "static_inspection": {
+      "note": "the package was read and checked; nothing was installed",
+      "state": "passed-with-warnings"
+    }
+  },
+  "counts": {
+    "errors": 0,
+    "warnings": 2
+  },
+  "findings": [
+    {
+      "level": "warning",
+      "stage": "static",
+      "code": "firmware-undeclared",
+      "message": "binaries require iOS 15.0 or later, but Depends declares no firmware range"
+    },
+    {
+      "level": "warning",
+      "stage": "repository",
+      "code": "needs-free-demo-approval",
+      "message": "com.hakmicapitalgroup.hcgnexus is 'paid' and 0.5.0~beta1 has no approved exception; Candidate serves only free public builds"
+    }
+  ],
+  "requirements": [
+    {
+      "kind": "checksum-approval",
+      "satisfied": false,
+      "detail": "the owner approves exactly this SHA-256 for a Candidate import",
+      "command": "bin/hcgrepo release approve com.hakmicapitalgroup.hcgnexus_0.5.0-beta1_iphoneos-arm64_279902e728aa --sha256 279902e728aac293209acaff8f8c4ff4a90c00edc20682536b1501cc8562ac04 --by \"<owner>\" --record \"<approval, verbatim>\""
+    },
+    {
+      "kind": "free-demo-approval",
+      "satisfied": false,
+      "detail": "com.hakmicapitalgroup.hcgnexus is 'paid': Candidate serves only free public builds, so 0.5.0~beta1 needs the owner's version-specific free-demo approval"
+    },
+    {
+      "kind": "publication-approval",
+      "satisfied": false,
+      "detail": "publishing is the manual Publish repository workflow, run only with the owner's explicit approval"
+    }
+  ],
+  "next_step": "wait for the owner's checksum approval",
+  "channel": "candidate"
+}

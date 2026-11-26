@@ -1,0 +1,55 @@
+{
+  "format": "hcg.repo.artifact-submission",
+  "formatVersion": 1,
+  "package": {
+    "identifier": "com.hakmicapitalgroup.hcgnexus",
+    "version": "0.5.0~beta1",
+    "architecture": "iphoneos-arm64"
+  },
+  "artifact": {
+    "filename": "com.hakmicapitalgroup.hcgnexus_0.5.0~beta1_iphoneos-arm64.deb",
+    "sha256": "279902e728aac293209acaff8f8c4ff4a90c00edc20682536b1501cc8562ac04",
+    "size": 1684900
+  },
+  "compatibility": {
+    "minimumOS": "15.0",
+    "environment": "rootless"
+  },
+  "source": {
+    "repository": "F1r3srp3nt/HCG-Nexus",
+    "commit": "26e51a82da3b6fb87a5df54866fe70cac7fd7c63",
+    "dirty": false,
+    "branch": "claude/hcg-nexus-tweak-yb1ii2"
+  },
+  "build": {
+    "provider": "github-actions",
+    "toolchain": "Theos + Xcode (macos-latest), HCG-Nexus Build package run #34",
+    "builtAt": "2026-11-25T20:08:08Z",
+    "runId": 45685911146,
+    "artifactName": "hcg-nexus-rootless-deb",
+    "runRepository": "F1r3srp3nt/HCG-Nexus"
+  },
+  "dependencies": [
+    "mobilesubstrate",
+    "ellekit",
+    "preferenceloader"
+  ],
+  "maintainerScripts": {
+    "declared": []
+  },
+  "validation": {
+    "checks": [
+      {
+        "id": "core-host-tests",
+        "result": "passed",
+        "detail": "28,369 checks"
+      },
+      {
+        "id": "inspect-package",
+        "result": "passed",
+        "detail": "16/16 with --require-new-arm64e-abi"
+      }
+    ]
+  },
+  "channel": "candidate"
+}

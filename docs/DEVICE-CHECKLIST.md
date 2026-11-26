@@ -49,6 +49,16 @@ Apps. Tools › Restore Previous Layout undoes that.
 | 35 | Installed on this iPhone | Every installed HCG package with its version and "In the … index" or "Not in any checked index"; total count matches `dpkg -l` |
 | 36 | Security warnings | No `trusted=yes` warning unless such a source exists (compare `/var/jb/etc/apt/sources.list.d`); Zebra note if Zebra is installed; HCG Terminal Unleashed's no-sandbox entitlement listed |
 | 37 | HCG Repo › Trust This Key… | Shows "No key to trust yet" while HCG Repo is unsigned; nothing is stored |
+| 38 | 0.6.0 · HCG Ecosystem › Command Center › All HCG products | 41 products in 13 categories; categories expand and collapse; search finds "simulator" (HCG Trading Lab) |
+| 39 | Command Center › HCG Terminal Unleashed (installed) | *Installed*, never *Connected*; Open and screens still opens its screens as in 0.5.0 |
+| 40 | Command Center › HCG News › Check now | Lists the latest published articles, or the real failure; the connection state becomes *Connected* for 15 minutes, then *Disconnected* |
+| 41 | Command Center › HCG Connect › Check now | Shows the sign-in issuer and "HCG Nexus client: Not issued"; no sign-in is offered |
+| 42 | Package Trust Center › open, then Command Center › HCG Package Repository | Last successful communication is the Trust Center read |
+| 43 | Roadmap | Products grouped by state with evidence; Export to HCG LifeOS offered in Settings › HCG Nexus only, not in the overlay |
+| 44 | Settings › HCG Nexus › … › Connected devices › Import device inventory | An HCG System Tester export imports; synthetic devices are labelled; a different file is refused |
+| 45 | Favorites | Star a product in its profile; it appears under Favorites after reopening the panel |
+| 46 | Open Nexus, wait, then check battery/CPU | No network request is made until Check now (no startup connections) |
+| 47 | Reopen the panel 10 times | Scrolling and opening stay smooth; no respring |
 
 Report back with: a pass or fail for each row, the pasted diagnostics report, and screenshots of rows 2, 3, 4 and 10.
 

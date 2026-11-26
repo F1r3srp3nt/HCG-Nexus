@@ -518,6 +518,11 @@ typedef NS_ENUM(NSInteger, HCGTrustGroup) {
                     if (!s || s->_snapshot != snapshot) return;
                     snapshot.fetches[repo.identifier] = result;
                     snapshot.reports[repo.identifier] = report;
+                    // A real read of HCG Repo's public files is two-way communication evidence for HCG Repo (Command Center).
+                    if (repo.builtIn) {
+                        [s.context.model recordConnectionForProduct:@"repo" method:@"https-api" success:!result.failure
+                                                               text:result.failure ? @"Package Trust Center could not read HCG Repo." : [NSString stringWithFormat:@"Package Trust Center read %@ (%@).", repo.name, [HCGRepoTrust titleForAuthenticity:report.authenticity]]];
+                    }
                     // Anti-replay and revocation memory: remembered only from this repository's own evaluation.
                     if (!result.failure) {
                         NSArray *stored = [s.context.model trustedRepositories];
