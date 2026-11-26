@@ -1,0 +1,66 @@
+# Keeps the exact bytes of a candidate package past its build run's artifact expiry, for an approval that may come
+# later. Manual only. It copies one artifact, refuses unless the single .deb inside has exactly the expected SHA-256,
+# and re-uploads it unchanged (plus SHA256SUMS and PROVENANCE) with 90-day retention. It publishes nothing: HCG Repo
+# imports only through its own reviewed, approved flow (HCG-repo docs/DISTRIBUTION_V2.md).
+name: Preserve candidate artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Build package run that produced the artifact (numeric run ID)
+        required: true
+      artifact:
+        description: Artifact name
+        required: true
+        default: hcg-nexus-rootless-deb
+      sha256:
+        description: Expected SHA-256 of the one .deb inside (64 lowercase hex)
+        required: true
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  preserve:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check inputs
+        env:
+          RUN_ID: ${{ inputs.run_id }}
+          ARTIFACT: ${{ inputs.artifact }}
+          EXPECTED: ${{ inputs.sha256 }}
+        run: |
+          set -euo pipefail
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]] || { echo "::error::run_id must be numeric"; exit 1; }
+          [[ "$ARTIFACT" =~ ^[A-Za-z0-9._-]+$ ]] || { echo "::error::invalid artifact name"; exit 1; }
+          [[ "$EXPECTED" =~ ^[0-9a-f]{64}$ ]] || { echo "::error::sha256 must be 64 lowercase hex"; exit 1; }
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact }}
+          run-id: ${{ inputs.run_id }}
+          github-token: ${{ github.token }}
+          path: preserved
+      - name: Verify the exact bytes
+        env:
+          RUN_ID: ${{ inputs.run_id }}
+          ARTIFACT: ${{ inputs.artifact }}
+          EXPECTED: ${{ inputs.sha256 }}
+        run: |
+          set -euo pipefail
+          mapfile -t debs < <(find preserved -type f -name '*.deb')
+          [ "${#debs[@]}" -eq 1 ] || { echo "::error::expected exactly one .deb, found ${#debs[@]}"; exit 1; }
+          actual=$(sha256sum "${debs[0]}" | cut -d' ' -f1)
+          size=$(stat -c %s "${debs[0]}")
+          if [ "$actual" != "$EXPECTED" ]; then echo "::error::SHA-256 $actual does not match $EXPECTED"; exit 1; fi
+          (cd "$(dirname "${debs[0]}")" && sha256sum "$(basename "${debs[0]}")") > preserved/SHA256SUMS
+          printf 'source_repository=%s\nsource_run_id=%s\nsource_artifact=%s\nsha256=%s\nsize=%s\npreserved_by_run=%s\n' \
+            "$GITHUB_REPOSITORY" "$RUN_ID" "$ARTIFACT" "$actual" "$size" "$GITHUB_RUN_ID" > preserved/PROVENANCE
+          cat preserved/SHA256SUMS preserved/PROVENANCE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: preserved-${{ inputs.artifact }}-run${{ inputs.run_id }}
+          path: preserved
+          retention-days: 90
+          if-no-files-found: error
