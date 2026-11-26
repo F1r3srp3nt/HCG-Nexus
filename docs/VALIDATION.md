@@ -28,6 +28,17 @@ includes everything in 0.6.0~beta1 (published on Candidate, unchanged), plus (do
 The host tests include live captures (News, identity discovery, central catalogue, Store health) taken anonymously on
 26 Nov 2026.
 
+| | |
+|---|---|
+| File | `com.hakmicapitalgroup.hcgnexus_0.7.0~beta1_iphoneos-arm64.deb` (2,131,624 bytes) |
+| **SHA-256** | **`004e6a9ea2db3428e821249546c5baef01e113c2396ab944e232001bbad3e611`** |
+| Built from | `2b521fb1e67f…` on `claude/hcg-nexus-tweak-yb1ii2` |
+| Workflow | *Build package* run **#36**, ID 45872511908, route `both`, layout `rootless`: all four jobs passed |
+| Artifact | `hcg-nexus-rootless-deb`, ID 15142878876, zip SHA-256 `a55066811decaf5ce3169153e1da5a88aba61bbfaeae664da3f99428bb8e0991`, expires 2026-12-03 |
+
+Re-checked here on the downloaded `.deb`: `inspect-package.py --require-new-arm64e-abi` 35/35 OK. **Not published, not
+requested in HCG Repo** (needs the owner's approval of this SHA-256). **Phone:** not tested.
+
 ## 0.6.0~beta1 — HCG Nexus Command Center (recorded 2026-11-26)
 
 **Status: PUBLISHED in HCG Repo Candidate (26 Nov 2026)** as an owner-approved free public beta. The owner wrote
