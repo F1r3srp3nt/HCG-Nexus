@@ -127,6 +127,28 @@ is *Partially integrated* (HCG Connect: discovery reachable, no client).
 - Nexus will never upload, approve or publish.
 - Today Nexus reads the public Store health (*Check now*).
 
+**HCG Store v3 (update 27 Nov 2026).**
+
+- **Publishing API:** now deployed. Without an HCG Connect token, `publishing/manager`, `publishing/capabilities` and
+  `repo/releases` answer 401 `sign_in_required`.
+- **Public release resolution:** now live (`hcg.store.release-resolution/1`, anonymous, CORS `*`, 60 s cache). HCG
+  Nexus is listed as `testing` with no published Store release; HCG ONE: UNLEASHED as `in-development`, also with
+  none.
+- **What Nexus reads today**, through HCG Store › Check now (public, read-only):
+  - Store availability (health);
+  - current published versions and download access, including temporary free testing windows with their end date.
+- **Still needing HCG Connect and a read-only Store permission:**
+  - private release drafts;
+  - upload progress;
+  - release validation;
+  - superseded and disabled versions;
+  - Store-side Release Passports;
+  - pending approvals.
+- **Product catalogue:** the Store has no public product-catalogue route (`/api/public/v1/catalog` and
+  `/api/public/v1/products` answer 404).
+
+Nexus never uploads, approves, publishes or disables releases.
+
 **HCG Trading.**
 
 - `trading.hakmicapitalgroup.com` did not answer and appears in no registry. Nexus shows no link and invents no

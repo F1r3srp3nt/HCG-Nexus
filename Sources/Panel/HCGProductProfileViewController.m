@@ -141,6 +141,15 @@ static NSString *PermissionText(HCGHIPPermission p) {
     NSArray *evidence = [HCGCommandCenter evidenceLayersForEntry:e connection:c hipStatus:hip ledger:[self.context.model connectionLedger]
                                                         registry:_snapshot.registry now:[NSDate date]];
     for (NSUInteger i = 0; i < evidence.count; i++) [layers addObject:Row(evidence[i][0], evidence[i][1], i < symbols.count ? symbols[i] : @"circle", @"")];
+    NSMutableArray *progressRows = [NSMutableArray array];
+    for (NSArray *step in [HCGCommandCenter integrationProgressForEntry:e connection:c hipStatus:hip]) {
+        NSString *state = step[1];
+        NSString *symbol = [state isEqualToString:@"done"] ? @"checkmark.circle.fill" : ([state isEqualToString:@"partial"] ? @"circle.lefthalf.filled"
+                         : ([state isEqualToString:@"not needed"] ? @"minus.circle" : @"circle"));
+        [progressRows addObject:Row([NSString stringWithFormat:@"%@ · %@", step[0], state], step[2], symbol, @"")];
+    }
+    [sections addObject:@{ @"title": @"Integration progress", @"rows": progressRows,
+                           @"footer": @"Each checkpoint comes from evidence. Being registered does not mean connected; physical testing counts only from a recorded device result." }];
     [sections addObject:@{ @"title": @"Evidence", @"rows": layers,
                            @"footer": @"Each layer is separate evidence. Registration grants nothing; a public read does not authenticate; a past validation is not the current state." }];
 
@@ -150,7 +159,8 @@ static NSString *PermissionText(HCGHIPPermission p) {
     if (active && hip && ![e.kind isEqualToString:@"hub"]) [actions addObject:Row(hip.routes.count ? @"Open and screens" : @"Integration details", hip.routes.count ? [NSString stringWithFormat:@"%lu ways to open it from here", (unsigned long)hip.routes.count] : @"What Nexus knows on this iPhone", @"arrow.up.forward.app", @"hip")];
     if (active && e.websiteURL) [actions addObject:Row(@"Open website", [[e.websiteURL substringFromIndex:8] stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"/"]], @"safari", @"web")];
     if ([e.adapter isEqualToString:@"central.registry"]) [actions addObject:Row(@"Central registry", @"Update product identities from the central HCG registry, or roll back", @"building.columns", @"registry")];
-    if (active && ([e.adapter isEqualToString:@"news.v1"] || [e.adapter isEqualToString:@"connect.discovery"] || [e.adapter isEqualToString:@"store.health"])) {
+    if (active && ([e.adapter isEqualToString:@"news.v1"] || [e.adapter isEqualToString:@"connect.discovery"] || [e.adapter isEqualToString:@"store.health"] ||
+                   [e.adapter isEqualToString:@"store.release"])) {
         [actions addObject:Row(_checking ? @"Checking…" : @"Check now", @"A read-only request to the registered endpoint. Sends no account, key or cookie.", @"arrow.clockwise", @"check")];
     }
     if ([e.adapter isEqualToString:@"trust-center"] || [e.identifier isEqualToString:@"repo"]) [actions addObject:Row(@"Package Trust Center", @"Signatures, checksums and device evidence", @"checkmark.shield", @"trust")];
@@ -308,6 +318,22 @@ static NSString *PermissionText(HCGHIPPermission p) {
     }
 }
 
+// A second public read for HCG Store: HCG Nexus's own release resolution, appended to the live rows.
+- (void)appendStoreRelease:(HCGRegistryEndpoint *)endpoint {
+    __weak typeof(self) weakSelf = self;
+    [[HCGPublicReader sharedReader] getURLString:endpoint.url completion:^(NSData *data, NSString *state) {
+        typeof(self) s = weakSelf;
+        if (!s) return;
+        NSString *error = nil;
+        NSArray *resolution = data ? [HCGPublicFeeds storeReleaseRowsFromData:data error:&error] : nil;
+        NSMutableArray *rows = [NSMutableArray arrayWithArray:s->_live ?: @[]];
+        if (resolution) for (NSArray *pair in resolution) [rows addObject:Row(pair[0], pair[1], @"shippingbox", @"")];
+        else [rows addObject:Row(@"HCG Nexus in HCG Store", [NSString stringWithFormat:@"Not read: %@", error ?: state], @"shippingbox", @"")];
+        s->_live = rows;
+        [s rebuild];
+    }];
+}
+
 - (void)openWebsite {
     HCGRegistryEntry *e = _item.entry;
     id<HCGLauncher> launcher = self.context.model.launcher;
@@ -336,8 +362,9 @@ static NSString *PermissionText(HCGHIPPermission p) {
 - (void)checkNow {
     if (_checking) return;
     HCGRegistryEntry *e = _item.entry;
-    BOOL news = [e.adapter isEqualToString:@"news.v1"], store = [e.adapter isEqualToString:@"store.health"];
-    HCGRegistryEndpoint *ep = [e endpointWithIdentifier:news ? @"news.articles" : (store ? @"store.health" : @"identity.discovery")];
+    BOOL news = [e.adapter isEqualToString:@"news.v1"], store = [e.adapter isEqualToString:@"store.health"], release = [e.adapter isEqualToString:@"store.release"];
+    HCGRegistryEndpoint *ep = [e endpointWithIdentifier:news ? @"news.articles" : (store ? @"store.health" : (release ? @"store.release" : @"identity.discovery"))];
+    HCGRegistryEndpoint *releaseEndpoint = store ? [e endpointWithIdentifier:@"store.release"] : nil;
     if (!ep) {
         [self.context feedback:@"The registry lists no endpoint for this product." success:NO];
         return;
@@ -374,7 +401,13 @@ static NSString *PermissionText(HCGHIPPermission p) {
             NSArray *health = data ? [HCGPublicFeeds storeHealthRowsFromData:data error:&error] : nil;
             for (NSArray *pair in health) [rows addObject:Row(pair[0], pair[1], @"shippingbox", @"")];
             if (health) ledgerText = @"Read the HCG Store's public health.";
-            s->_liveTitle = @"HCG Store health (public)";
+            s->_liveTitle = @"HCG Store (public)";
+            if (health && releaseEndpoint) [s appendStoreRelease:releaseEndpoint];
+        } else if (release) {
+            NSArray *resolution = data ? [HCGPublicFeeds storeReleaseRowsFromData:data error:&error] : nil;
+            for (NSArray *pair in resolution) [rows addObject:Row(pair[0], pair[1], @"shippingbox", @"")];
+            if (resolution) ledgerText = @"Read its public HCG Store release resolution.";
+            s->_liveTitle = @"HCG Store release (public)";
         } else {
             NSArray *discovery = data ? [HCGPublicFeeds identityDiscoveryRowsFromData:data error:&error] : nil;
             for (NSArray *pair in discovery) [rows addObject:Row(pair[0], pair[1], @"person.badge.key", @"")];

@@ -56,6 +56,45 @@ static NSString *Text(id value, NSUInteger limit) {
     return out;
 }
 
++ (NSArray *)storeReleaseRowsFromData:(NSData *)data error:(NSString **)error {
+    id json = data.length && data.length <= 512 * 1024 ? [NSJSONSerialization JSONObjectWithData:data options:0 error:NULL] : nil;
+    NSDictionary *product = [json isKindOfClass:[NSDictionary class]] ? [json objectForKey:@"product"] : nil;
+    id releases = [json isKindOfClass:[NSDictionary class]] ? [json objectForKey:@"releases"] : nil, options = [json isKindOfClass:[NSDictionary class]] ? [json objectForKey:@"options"] : nil;
+    if (![[json objectForKey:@"format"] isEqual:@"hcg.store.release-resolution/1"] || ![product isKindOfClass:[NSDictionary class]] ||
+        ![releases isKindOfClass:[NSArray class]] || ![options isKindOfClass:[NSArray class]]) {
+        if (error) *error = @"Not an HCG Store release resolution (hcg.store.release-resolution/1).";
+        return nil;
+    }
+    NSMutableArray *rows = [NSMutableArray array];
+    [rows addObject:[NSArray arrayWithObjects:@"In HCG Store", [NSString stringWithFormat:@"%@ · %@", Text([product objectForKey:@"name"], 80) ?: @"—",
+                                                                Text([product objectForKey:@"developmentStatus"], 40) ?: @"status not stated"], nil]];
+    if (![releases count]) [rows addObject:[NSArray arrayWithObjects:@"Published releases", @"None published in HCG Store yet", nil]];
+    for (id r in releases) {
+        if (![r isKindOfClass:[NSDictionary class]] || rows.count > 12) continue;
+        NSString *version = Text([r objectForKey:@"version"], 60);
+        if (!version) continue;
+        [rows addObject:[NSArray arrayWithObjects:[NSString stringWithFormat:@"Current release %@", version],
+                         [NSString stringWithFormat:@"%@ channel%@%@", Text([r objectForKey:@"channel"], 30) ?: @"—",
+                          Text([r objectForKey:@"releaseDate"], 10) ? [@" · " stringByAppendingString:Text([r objectForKey:@"releaseDate"], 10)] : @"",
+                          [[r objectForKey:@"source"] isEqual:@"hcg-store-publication"] ? @" · published through HCG Store" : @" · from the Store catalogue"], nil]];
+    }
+    for (id o in options) {
+        if (![o isKindOfClass:[NSDictionary class]] || rows.count > 20) continue;
+        NSDictionary *access = [o objectForKey:@"access"];
+        NSString *kind = [access isKindOfClass:[NSDictionary class]] ? Text([access objectForKey:@"kind"], 40) : nil;
+        NSString *accessText = [kind isEqualToString:@"free-testing"] ? [NSString stringWithFormat:@"temporary free testing until %@", Text([access objectForKey:@"freeUntil"], 10) ?: @"—"]
+                             : [kind isEqualToString:@"free-with-account"] ? @"free with an HCG account"
+                             : [kind isEqualToString:@"licence-required"] ? @"licence required"
+                             : @"not available yet";
+        NSString *sha = Text([o objectForKey:@"sha256"], 64);
+        [rows addObject:[NSArray arrayWithObjects:[NSString stringWithFormat:@"%@ · %@", Text([o objectForKey:@"platform"], 30) ?: @"—", Text([o objectForKey:@"fileName"], 120) ?: @"file"],
+                         [NSString stringWithFormat:@"%@%@ · signing %@", accessText, sha.length == 64 ? [NSString stringWithFormat:@" · SHA-256 %@…", [sha substringToIndex:12]] : @"",
+                          Text([o objectForKey:@"signing"], 30) ?: @"not reported"], nil]];
+    }
+    [rows addObject:[NSArray arrayWithObjects:@"Drafts, approvals, superseded and disabled versions", @"Only in the Store publishing API: needs HCG Connect and a Store permission (not offered to Nexus)", nil]];
+    return rows;
+}
+
 + (NSArray *)storeHealthRowsFromData:(NSData *)data error:(NSString **)error {
     id json = data.length && data.length <= 64 * 1024 ? [NSJSONSerialization JSONObjectWithData:data options:0 error:NULL] : nil;
     NSString *status = [json isKindOfClass:[NSDictionary class]] ? Text([json objectForKey:@"status"], 40) : nil;

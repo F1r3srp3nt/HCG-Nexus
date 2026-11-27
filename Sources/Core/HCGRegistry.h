@@ -137,6 +137,7 @@ FOUNDATION_EXPORT BOOL HCGRegistryIsValidIdentifier(NSString *_Nullable text);
     NSString *_lastVerified;
     NSString *_verifiedFrom;
     BOOL _fromUpdate;
+    NSString *_securityReview;
 }
 @property (nonatomic, copy) NSString *identifier;
 @property (nonatomic, copy) NSString *officialName;
@@ -171,6 +172,7 @@ FOUNDATION_EXPORT BOOL HCGRegistryIsValidIdentifier(NSString *_Nullable text);
 @property (nonatomic, copy) NSString *lastVerified;                  // YYYY-MM-DD
 @property (nonatomic, copy) NSString *verifiedFrom;
 @property (nonatomic) BOOL fromUpdate;                               // added by an imported update (text only)
+@property (nonatomic, copy, nullable) NSString *securityReview;      // "2026-11-26: independent review …" (never imported)
 @property (nonatomic, readonly) BOOL isPlanned;                      // kind planned or status planned/research
 - (nullable HCGRegistryEndpoint *)endpointWithIdentifier:(NSString *)identifier;
 - (HCGRegistryEntry *)entryCopy;   // a separate entry (the built-in registry is shared and never changed)

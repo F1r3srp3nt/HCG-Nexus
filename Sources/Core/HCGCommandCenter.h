@@ -138,6 +138,13 @@ FOUNDATION_EXPORT const NSTimeInterval HCGConnectionFreshInterval; // 15 min
                                connection:(HCGConnectionSummary *)connection
                                 hipStatus:(nullable HCGHIPProductStatus *)hip;
 + (NSString *)titleForConnectionState:(HCGConnectionState)state;
+// Integration progress, nine checkpoints, each from evidence (dimension, state, evidence): state is "done",
+// "partial", "pending" or "not needed". Central registration, Authentication, API contract, Adapter implementation,
+// Configuration, Successful communication, Capability validation, Physical testing, Security review. Being registered
+// never makes a product connected; physical testing comes only from recorded device results.
++ (NSArray<NSArray<NSString *> *> *)integrationProgressForEntry:(HCGRegistryEntry *)entry
+                                                     connection:(HCGConnectionSummary *)connection
+                                                      hipStatus:(nullable HCGHIPProductStatus *)hip;
 // The seven evidence layers, kept apart (title, value): Registered product, Installed application, Available service,
 // Authenticated connection, Verified capability, Current connection health, Historical validation. A public read only
 // ever fills "Available service"; "Authenticated connection" needs a signed or bearer-authorized exchange.

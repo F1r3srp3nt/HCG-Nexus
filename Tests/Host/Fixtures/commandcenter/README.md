@@ -21,3 +21,4 @@ Constructed for the host tests (not captured from live services; this session ca
 * `live-central-catalog-2026-11-26.json`: `GET https://beta.hakmicapitalgroup.com/api/public/pricing/v1/catalog`
   answered 200 (`Cache-Control: public, max-age=30`, no ETag, no signature), api_version "1", 31 products.
 * `live-store-health-2026-11-26.json`: `GET https://store.hakmicapitalgroup.com/api/v1/health` answered 200 (mode production).
+* `live-store-release-hcg-nexus-2026-11-27.json`: `GET https://store.hakmicapitalgroup.com/api/public/v1/release-resolution/hcg-nexus` answered 200 (`hcg.store.release-resolution/1`, no releases published).

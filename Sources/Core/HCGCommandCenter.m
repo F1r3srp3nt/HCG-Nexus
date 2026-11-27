@@ -451,6 +451,46 @@ static NSString *const kProjectID = @"nexus.ecosystem";
     return out;
 }
 
+#pragma mark Integration progress
+
+static NSArray *Step(NSString *dimension, NSString *state, NSString *evidence) {
+    return [NSArray arrayWithObjects:dimension, state, evidence ?: @"", nil];
+}
+
++ (NSArray *)integrationProgressForEntry:(HCGRegistryEntry *)entry connection:(HCGConnectionSummary *)connection hipStatus:(HCGHIPProductStatus *)hip {
+    NSMutableArray *rows = [NSMutableArray array];
+    BOOL registered = [entry.centralRegistration isEqualToString:@"registered"];
+    BOOL inherits = [@[ @"edition", @"surface", @"component", @"feature" ] containsObject:entry.centralRegistration];
+    [rows addObject:Step(@"Central registration", registered ? @"done" : (inherits ? @"not needed" : @"pending"),
+                         registered ? [NSString stringWithFormat:@"%@%@", entry.centralProductID ?: @"", [entry.centralNote hasPrefix:@"Central registry (live)"] ? @" (verified live)" : @""]
+                                    : (inherits ? [NSString stringWithFormat:@"Part of %@", entry.centralProductID ?: @"HCG Nexus"] : @"Not in the central product registry"))];
+    HCGRegistryConnection *connect = [entry connectionForMethod:@"hcg-connect"];
+    BOOL authenticated = hip.availability == HCGHIPAvailabilityConnected;
+    [rows addObject:Step(@"Authentication", authenticated ? @"done" : (connect ? @"pending" : @"not needed"),
+                         authenticated ? @"Signed HCG Device Link exchange" : (connect ? (connect.detail.length ? connect.detail : @"Needs an HCG Connect client for HCG Nexus") : @"No authenticated access is part of this integration"))];
+    NSString *contract = [entry.contractStatus isEqualToString:@"available"] ? @"done" : ([entry.contractStatus isEqualToString:@"planned"] ? @"partial" : @"pending");
+    [rows addObject:Step(@"API contract", contract, entry.contractID ?: (entry.contractDetail ?: @"No contract published"))];
+    [rows addObject:Step(@"Adapter implementation", entry.adapter ? @"done" : @"pending", entry.adapter ? [NSString stringWithFormat:@"Nexus adapter: %@", entry.adapter] : @"Nexus has no adapter")];
+    HCGRegistryRequirement *config = nil;
+    for (HCGRegistryRequirement *r in entry.requirements) if (r.blocking && ([r.kind isEqualToString:@"configuration"] || [r.kind isEqualToString:@"registration"])) config = r;
+    [rows addObject:Step(@"Configuration", config ? @"pending" : (entry.adapter ? @"done" : @"pending"), config ? config.title : (entry.adapter ? @"Nothing left to configure" : @"Needs an adapter first"))];
+    BOOL fresh = connection.state == HCGConnectionStateConnected || connection.state == HCGConnectionStateReachable;
+    [rows addObject:Step(@"Successful communication", connection.lastSuccess ? (fresh ? @"done" : @"partial") : @"pending",
+                         connection.lastSuccess ? [NSString stringWithFormat:@"%@ (%@)", connection.lastSuccessText ?: @"Succeeded", When(connection.lastSuccess)] : @"No successful exchange recorded on this iPhone")];
+    NSUInteger verified = 0, total = 0;
+    for (HCGHIPCapability *c in (hip ? hip.descriptor.capabilities : entry.capabilities)) {
+        if (c.state == HCGHIPCapabilityStateUnavailable) continue;
+        total++;
+        if (c.state == HCGHIPCapabilityStateVerified) verified++;
+    }
+    [rows addObject:Step(@"Capability validation", verified ? (verified == total ? @"done" : @"partial") : @"pending",
+                         total ? [NSString stringWithFormat:@"%lu of %lu capabilities verified on a device", (unsigned long)verified, (unsigned long)total] : @"No capabilities listed")];
+    HCGRegistryValidation *v = entry.validations.count ? [entry.validations objectAtIndex:0] : nil;
+    [rows addObject:Step(@"Physical testing", v ? @"done" : @"pending", v ? [NSString stringWithFormat:@"%@ on %@ (%@)", v.version, v.device, v.date] : @"No recorded device result")];
+    [rows addObject:Step(@"Security review", entry.securityReview ? @"done" : @"pending", entry.securityReview ?: @"No security review recorded")];
+    return rows;
+}
+
 #pragma mark Evidence layers
 
 static NSArray *Layer(NSString *title, NSString *value) {

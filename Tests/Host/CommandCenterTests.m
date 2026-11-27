@@ -36,7 +36,7 @@ static NSString *MiniRegistry(NSInteger version, NSString *products) {
 static void testBuiltInRegistry(void) {
     HCGRegistry *r = Registry();
     HCG_CHECK(r != nil, "the built-in registry loads");
-    HCG_CHECK_EQ_INT(r.version, 3);
+    HCG_CHECK_EQ_INT(r.version, 4);
     HCG_CHECK_EQ_INT(r.categories.count, 13);
     HCG_CHECK_EQ_INT(r.problems.count, 0);
     if (r.problems.count) NSLog(@"registry problems: %@", r.problems);
@@ -124,7 +124,7 @@ static void testVisibilityAndValidation(void) {
 static void testUpdatesOnlyNarrow(void) {
     HCGRegistry *base = Registry();
     NSString *error = nil;
-    NSString *updateJSON = MiniRegistry(4,
+    NSString *updateJSON = MiniRegistry(5,
         @"{\"id\":\"news\",\"officialName\":\"HCG News\",\"category\":\"media\",\"kind\":\"app\",\"developmentStatus\":\"released\",\"lifecycle\":\"active\","
          "\"links\":{\"website\":\"https://news.hakmicapitalgroup.com/\"},"
          "\"endpoints\":[{\"id\":\"news.articles\",\"url\":\"https://other.hakmicapitalgroup.com/feed\",\"auth\":\"none\",\"access\":\"read\"}],"
@@ -154,7 +154,7 @@ static void testUpdatesOnlyNarrow(void) {
     HCG_CHECK([[merged entryWithIdentifier:@"terminal-unleashed"].validations count] == 1, "untouched entries keep their evidence");
     HCG_CHECK(merged.methods.count == base.methods.count, "methods are never imported");
     // Not newer: refused.
-    HCGRegistry *old = RegistryFromJSON(MiniRegistry(3, @"{\"id\":\"x1\",\"officialName\":\"X\",\"category\":\"media\"}"), &error);
+    HCGRegistry *old = RegistryFromJSON(MiniRegistry(4, @"{\"id\":\"x1\",\"officialName\":\"X\",\"category\":\"media\"}"), &error);
     problem = nil;
     HCG_CHECK([base registryByApplyingUpdate:old problem:&problem] == base && problem.length, "older update refused");
 }
@@ -529,6 +529,69 @@ static void testCentralRegistry(void) {
     HCG_CHECK(![merged entryWithIdentifier:@"newcomer"].nameVerified, "an imported name is never verified");
 }
 
+static void testStoreProgressAndUEM(void) {
+    NSString *error = nil;
+    // HCG Store release resolution (live capture).
+    NSArray *rows = [HCGPublicFeeds storeReleaseRowsFromData:CCFixture(@"live-store-release-hcg-nexus-2026-11-27.json") error:&error];
+    HCG_CHECK(rows.count >= 3, "live release resolution parses (%s)", [error UTF8String] ?: "");
+    NSString *all = [rows description];
+    HCG_CHECK([all rangeOfString:@"None published in HCG Store yet"].location != NSNotFound, "no releases published (live)");
+    HCG_CHECK([all rangeOfString:@"https://"].location == NSNotFound, "no URLs shown");
+    NSString *withRelease = @"{\"format\":\"hcg.store.release-resolution/1\",\"product\":{\"name\":\"HCG Nexus\",\"developmentStatus\":\"testing\"},"
+        "\"releases\":[{\"version\":\"0.7.0\",\"channel\":\"beta\",\"releaseDate\":\"2026-12-01\",\"source\":\"hcg-store-publication\"}],"
+        "\"options\":[{\"platform\":\"ios\",\"fileName\":\"HCGNexus.ipa\",\"sha256\":\"004e6a9ea2db3428e821249546c5baef01e113c2396ab944e232001bbad3e611\",\"signing\":\"signed\","
+        "\"access\":{\"kind\":\"free-testing\",\"requiresHcgAccount\":true,\"freeUntil\":\"2026-12-15T00:00:00Z\"},\"getUrl\":\"https://store.hakmicapitalgroup.com/apps/hcg-nexus\"}]}";
+    rows = [HCGPublicFeeds storeReleaseRowsFromData:[withRelease dataUsingEncoding:NSUTF8StringEncoding] error:&error];
+    all = [rows description];
+    HCG_CHECK([all rangeOfString:@"temporary free testing until 2026-12-15"].location != NSNotFound, "testing offer");
+    HCG_CHECK([all rangeOfString:@"Current release 0.7.0"].location != NSNotFound, "current release");
+    HCG_CHECK([all rangeOfString:@"getUrl"].location == NSNotFound && [all rangeOfString:@"apps/hcg-nexus"].location == NSNotFound, "links are not shown from data");
+    HCG_CHECK([HCGPublicFeeds storeReleaseRowsFromData:[@"{\"format\":\"x\"}" dataUsingEncoding:NSUTF8StringEncoding] error:&error] == nil, "other format");
+
+    // Integration progress: nine checkpoints from evidence.
+    HCGRegistry *r = Registry();
+    NSDate *now = CCNow();
+    HCGRegistryEntry *trust = [r entryWithIdentifier:@"trust-center"];
+    HCGConnectionSummary *c = [HCGCommandCenter connectionForEntry:trust hipStatus:nil ledger:nil registry:r now:now];
+    NSArray *progress = [HCGCommandCenter integrationProgressForEntry:trust connection:c hipStatus:nil];
+    HCG_CHECK_EQ_INT(progress.count, 9);
+    NSArray *dims = [@"Central registration|Authentication|API contract|Adapter implementation|Configuration|Successful communication|Capability validation|Physical testing|Security review" componentsSeparatedByString:@"|"];
+    NSUInteger i;
+    for (i = 0; i < 9 && i < progress.count; i++) HCG_CHECK_EQ_STR([[progress objectAtIndex:i] objectAtIndex:0], [dims objectAtIndex:i]);
+    HCG_CHECK_EQ_STR([[progress objectAtIndex:8] objectAtIndex:1], @"done");    // the recorded independent review
+    HCG_CHECK_EQ_STR([[progress objectAtIndex:7] objectAtIndex:1], @"pending"); // never physically validated without a result
+    HCGRegistryEntry *uem = [r entryWithIdentifier:@"uem"];
+    progress = [HCGCommandCenter integrationProgressForEntry:uem connection:[HCGCommandCenter connectionForEntry:uem hipStatus:nil ledger:nil registry:r now:now] hipStatus:nil];
+    HCG_CHECK_EQ_STR([[progress objectAtIndex:0] objectAtIndex:1], @"pending");
+    HCG_CHECK_EQ_STR([[progress objectAtIndex:3] objectAtIndex:1], @"pending");
+    HCG_CHECK_EQ_STR([[progress objectAtIndex:5] objectAtIndex:1], @"pending");
+    HCG_CHECK([HCGCommandCenter connectionForEntry:uem hipStatus:nil ledger:nil registry:r now:now].state == HCGConnectionStatePlanned, "UEM is planned, not connected");
+    // Registered is not connected: HCG News is registered centrally but has no successful communication yet.
+    HCGRegistryEntry *news = [r entryWithIdentifier:@"news"];
+    progress = [HCGCommandCenter integrationProgressForEntry:news connection:[HCGCommandCenter connectionForEntry:news hipStatus:nil ledger:nil registry:r now:now] hipStatus:nil];
+    HCG_CHECK_EQ_STR([[progress objectAtIndex:0] objectAtIndex:1], @"done");
+    HCG_CHECK_EQ_STR([[progress objectAtIndex:5] objectAtIndex:1], @"pending");
+    HCG_CHECK_EQ_STR([[progress objectAtIndex:1] objectAtIndex:1], @"not needed");
+
+    // HCG UEM (proposed contract): tiers only from the document's policy; Nexus never authorizes.
+    HCG_CHECK(!HCGUEMNexusMayAuthorize(), "Nexus never authorizes");
+    NSString *status = @"{\"schema\":\"hcg.uem.device-status/1\",\"policy\":{\"id\":\"p\",\"version\":3,\"tiers\":[{\"level\":4,\"name\":\"Administrative Device\"},{\"level\":1,\"name\":\"Personal Device\"}]},"
+        "\"device\":{\"hcgDeviceId\":\"dev-123\",\"enrollment\":\"enrolled\",\"identityVerified\":true,\"tier\":4,\"credential\":\"valid\",\"posture\":{\"state\":\"compliant\"},"
+        "\"permissions\":[\"hcg.server/link.devices.read\"],\"lifecycle\":\"active\",\"jailbroken\":true},\"history\":[{}],\"inventory\":[{},{}]}";
+    rows = [HCGUEM rowsFromDeviceStatus:[status dataUsingEncoding:NSUTF8StringEncoding] error:&error];
+    all = [rows description];
+    HCG_CHECK([all rangeOfString:@"Tier 4: Administrative Device (policy 3)"].location != NSNotFound, "tier name from policy");
+    HCG_CHECK([all rangeOfString:@"never adds privileges"].location != NSNotFound, "jailbreak gains nothing");
+    HCG_CHECK([all rangeOfString:@"Nexus grants nothing"].location != NSNotFound, "authorization stays with UEM / Connect");
+    NSString *unknownTier = [status stringByReplacingOccurrencesOfString:@"\"tier\":4" withString:@"\"tier\":5"];
+    all = [[HCGUEM rowsFromDeviceStatus:[unknownTier dataUsingEncoding:NSUTF8StringEncoding] error:&error] description];
+    HCG_CHECK([all rangeOfString:@"Not classified by HCG UEM policy"].location != NSNotFound, "no hard-coded tier names");
+    NSString *suspended = [status stringByReplacingOccurrencesOfString:@"\"lifecycle\":\"active\"" withString:@"\"lifecycle\":\"suspended\""];
+    all = [[HCGUEM rowsFromDeviceStatus:[suspended dataUsingEncoding:NSUTF8StringEncoding] error:&error] description];
+    HCG_CHECK([all rangeOfString:@"not in effect while suspended"].location != NSNotFound && [all rangeOfString:@"link.devices.read"].location == NSNotFound, "suspension wins");
+    HCG_CHECK([HCGUEM rowsFromDeviceStatus:[@"{\"schema\":\"other\"}" dataUsingEncoding:NSUTF8StringEncoding] error:&error] == nil, "other schema");
+}
+
 void HCGRunCommandCenterTests(void) {
     HCGCurrentTest = "command-center";
     testBuiltInRegistry();
@@ -543,4 +606,5 @@ void HCGRunCommandCenterTests(void) {
     testEvidenceLayers();
     testLiveCaptures();
     testCentralRegistry();
+    testStoreProgressAndUEM();
 }
