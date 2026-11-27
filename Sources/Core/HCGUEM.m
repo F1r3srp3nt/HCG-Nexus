@@ -23,6 +23,66 @@ static BOOL OneOf(NSString *value, NSString *list) {
 
 @implementation HCGUEM
 
++ (NSArray *)rowsFromUEMSelfStatus:(NSData *)data catalog:(NSData *)catalog error:(NSString **)error {
+    id json = data.length && data.length <= 512 * 1024 ? [NSJSONSerialization JSONObjectWithData:data options:0 error:NULL] : nil;
+    NSDictionary *summary = [json isKindOfClass:[NSDictionary class]] ? [json objectForKey:@"summary"] : nil;
+    if (![summary isKindOfClass:[NSDictionary class]] || !Text([summary objectForKey:@"deviceId"], 40)) {
+        if (error) *error = @"Not an HCG UEM device status (summary.deviceId missing).";
+        return nil;
+    }
+    NSMutableArray *rows = [NSMutableArray array];
+    NSString *deviceID = Text([summary objectForKey:@"deviceId"], 40);
+    // HCG Device IDs: a 3-4 letter prefix, "_" and 26 base32 characters (HCG UEM internal/ids).
+    NSRange us = [deviceID rangeOfString:@"_"];
+    BOOL validID = us.location >= 3 && us.location <= 4 && deviceID.length == us.location + 27;
+    [rows addObject:Row(@"HCG Device ID", validID ? deviceID : @"Invalid device ID: status not shown")];
+    if (!validID) return rows;
+    NSString *state = Text([summary objectForKey:@"state"], 40);
+    NSString *states = @"unregistered enrollment_requested pending_verification pending_approval enrolled active suspended quarantined credential_rotation_required retired revoked";
+    if (!OneOf(state, states)) state = @"unknown";
+    BOOL blocked = !OneOf(state, @"active enrolled");
+    [rows addObject:Row(@"Lifecycle", [state stringByReplacingOccurrencesOfString:@"_" withString:@" "])];
+    // Classification: the key from HCG UEM; its name only from HCG UEM's catalogue.
+    NSString *key = Text([summary objectForKey:@"classification"], 40);
+    NSString *classification = key ? [NSString stringWithFormat:@"%@ (name from HCG UEM's catalogue not available)", key] : @"Not classified by HCG UEM";
+    id cat = catalog.length ? [NSJSONSerialization JSONObjectWithData:catalog options:0 error:NULL] : nil;
+    id classes = [cat isKindOfClass:[NSDictionary class]] ? [cat objectForKey:@"classifications"] : nil;
+    if (key && [classes isKindOfClass:[NSArray class]]) {
+        for (id c in classes) {
+            if ([c isKindOfClass:[NSDictionary class]] && [[c objectForKey:@"key"] isEqual:key] && Text([c objectForKey:@"name"], 60)) {
+                id rev = [cat objectForKey:@"revision"];
+                classification = [NSString stringWithFormat:@"%@ (catalogue revision %@)", Text([c objectForKey:@"name"], 60), rev ? [rev description] : @"—"];
+            }
+        }
+    }
+    id unmet = [json objectForKey:@"classificationUnmet"];
+    if ([unmet isKindOfClass:[NSArray class]] && [unmet count]) classification = [classification stringByAppendingFormat:@"; %lu requirement%@ unmet", (unsigned long)[unmet count], [unmet count] == 1 ? @"" : @"s"];
+    [rows addObject:Row(@"Trust classification", blocked ? [NSString stringWithFormat:@"%@ (not in effect while %@)", classification, state] : classification)];
+    NSString *assurance = Text([summary objectForKey:@"keyAssurance"], 40);
+    [rows addObject:Row(@"Verified device identity", OneOf(assurance, @"hardware_attested hardware_admin_confirmed") && !blocked ? [@"Key assurance: " stringByAppendingString:assurance] :
+                                                    [NSString stringWithFormat:@"Not verified (key assurance %@)", OneOf(assurance, @"software hardware_claimed hardware_admin_confirmed hardware_attested") ? assurance : @"unknown"])];
+    NSUInteger active = 0, revoked = 0;
+    id creds = [json objectForKey:@"credentials"];
+    if ([creds isKindOfClass:[NSArray class]]) for (id c in creds) {
+        NSString *st = [c isKindOfClass:[NSDictionary class]] ? Text([c objectForKey:@"status"], 20) : nil;
+        if ([st isEqualToString:@"active"]) active++;
+        if ([st isEqualToString:@"revoked"] || [st isEqualToString:@"expired"]) revoked++;
+    }
+    [rows addObject:Row(@"Credentials", [NSString stringWithFormat:@"%lu active, %lu revoked or expired", (unsigned long)active, (unsigned long)revoked])];
+    NSString *compliance = Text([summary objectForKey:@"compliance"], 20);
+    [rows addObject:Row(@"Security posture", OneOf(compliance, @"compliant noncompliant stale unknown") ? compliance : @"unknown")];
+    NSString *connectivity = Text([summary objectForKey:@"connectivity"], 20);
+    [rows addObject:Row(@"Connectivity", OneOf(connectivity, @"never_seen online offline") ? [connectivity stringByReplacingOccurrencesOfString:@"_" withString:@" "] : @"unknown")];
+    id jailbroken = [summary objectForKey:@"jailbroken"];
+    if ([jailbroken isKindOfClass:[NSNumber class]] && [jailbroken boolValue]) {
+        [rows addObject:Row(@"Jailbreak", @"Reported by HCG UEM (development or research only). It never adds privileges; Nexus offers no administrative action")];
+    }
+    id history = [json objectForKey:@"history"];
+    [rows addObject:Row(@"Lifecycle history", [history isKindOfClass:[NSArray class]] ? [NSString stringWithFormat:@"%lu transitions", (unsigned long)[history count]] : @"Not provided")];
+    [rows addObject:Row(@"Authorization", @"Decided by HCG UEM and HCG Connect. Nexus grants nothing")];
+    return rows;
+}
+
 + (NSArray *)rowsFromDeviceStatus:(NSData *)data error:(NSString **)error {
     id json = data.length && data.length <= 256 * 1024 ? [NSJSONSerialization JSONObjectWithData:data options:0 error:NULL] : nil;
     NSDictionary *device = [json isKindOfClass:[NSDictionary class]] ? [json objectForKey:@"device"] : nil;

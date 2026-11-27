@@ -4,6 +4,54 @@ HCG UEM (Unified Endpoint Management) is a new HCG infrastructure project. As of
 registry row or published interface that Nexus can reach. **Nothing in Nexus depends on it.** HCG Nexus lists it as a
 *planned* product. The code below is prepared and tested, and nothing calls it with live data.
 
+## HCG UEM as it exists (coordination, 27 Nov 2026)
+
+Source: F1r3srp3nt/HCG-UEM, branch `claude/hcg-uem-infrastructure-ynngaz` @ `14d8ad7` (main holds only a README).
+
+- **The service:** Go, `0.1.0-dev`, plus a macOS client with Secure Enclave keys. No iOS client.
+- **Not deployed.** Production use is blocked by the founder decisions F1–F4. The proposed URL is
+  `https://uem.hakmicapitalgroup.com`.
+- **Device status:** `POST /v1/devices/self/status`. It needs an HCG Connect bearer token from a *trusted client*
+  (the production list is empty) plus a device proof for `uem.device.status`. The answer is
+  `DeviceStatus{summary, credentials, history, posture, classificationUnmet}`. The caller's own devices are at
+  `GET /v1/me/devices`. The admin view (`uem.admin.devices.read`) is not for Nexus.
+- **Classifications are governed data:**
+  - `Catalog{revision, classifications[{key, tier, name, …, allowJailbroken, …}]}`, readable through admin
+    governance only;
+  - the default keys are `sovereign, administrative, development, managed, personal, unregistered`;
+  - the tier number is display order only and never implies anything.
+- **Jailbroken iOS is development or research only.** A jailbreak flag is never cleared by a later self-report. This
+  matches Nexus's rule that a jailbroken device inherits no administrative privilege.
+- **The macOS client already shows *HCG Nexus: not wired yet*.**
+
+**Nexus's reader for the real shape:** `+[HCGUEM rowsFromUEMSelfStatus:catalog:error:]`, tested. It never connects.
+Its rules:
+
+- the device ID must match HCG UEM's format, or nothing else is shown;
+- a lifecycle state other than `active` or `enrolled` (for example `quarantined`, `suspended`, `revoked`) puts the
+  classification out of effect;
+- classification names come only from HCG UEM's catalogue; without it, only the key is shown;
+- Nexus never authorizes anything.
+
+The earlier proposal below is kept, with its tested fail-closed parser, as history. Where HCG UEM differs, HCG UEM's
+contract wins:
+
+- `deviceId` instead of `hcgDeviceId`;
+- `classification` key and catalogue instead of `tier` and policy;
+- 11 lifecycle `state` values instead of `enrollment` and `lifecycle`;
+- `credentials[]` statuses `pending | active | retired | revoked | expired`;
+- `compliance` values `compliant | noncompliant | stale | unknown`;
+- `connectivity` is added;
+- no `inventory`;
+- permissions appear only in the admin view.
+
+**What Nexus needs from HCG UEM** (none of it exists yet):
+
+1. A versioned schema ID on the self-status answer (for example under `hcg.uem.*`).
+2. A read-only way for a non-admin client to read the trust catalogue's public fields (key, name, revision).
+3. Nexus's future HCG Connect client on UEM's trusted-client list, decided by the founder, and an iOS enrollment
+   path. Until then Nexus shows HCG UEM as *planned*, and nothing in Nexus waits for it.
+
 ## Proposed contract `hcg.uem.device-status/1` (for the HCG UEM team)
 
 Delivered by HCG UEM over an authenticated channel: an HCG Connect bearer token, or a signed HCG Device Link

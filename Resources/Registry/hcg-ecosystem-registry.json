@@ -1112,7 +1112,7 @@
     {
      "id": "read-permission",
      "title": "Add a read-only Store permission",
-     "detail": "Today's keys (store.publish, store.release.approve, store.release.publish) all grant write power and are granted to nobody; Nexus should only ever hold a read key (proposed: store.release.read).",
+     "detail": "Today's keys (store.publish, store.release.approve, store.release.publish) all grant write power and are granted to nobody; Nexus should only ever hold a read-only key; HCG Store would define it (none exists today).",
      "kind": "registration",
      "blocking": true
     },

@@ -132,12 +132,8 @@ deployed). Today's real path is the owner-only registration in ERP:
    `openid email profile`, audience `authenticated`, status `configured_untested`.
 3. **Give Nexus the client ID:** `App/Info.plist` `HCGConnectClientID` (a UUID). It is public configuration, not a
    secret; nothing else changes in the app.
-4. **Feature keys for Nexus (proposed; none exist).** On `hcg.nexus`:
-   - `nexus.ecosystem.read`: the signed-in registry view;
-   - `nexus.devices.read`: Device Link inventory.
-
-   On other products, Nexus asks only for **read** keys. For example HCG Store's publishing keys all grant write power,
-   so a `store.release.read` key is proposed instead (docs/CENTRAL-REGISTRY.md).
+4. **Feature keys for Nexus:** none exist, and Nexus proposes no names; the owner defines them. On other products
+   Nexus needs read-only access only (for example HCG Store, whose current keys all grant write power).
 
 **After that, what Nexus does** (all implemented, inactive until the client exists):
 

@@ -242,7 +242,7 @@ static const char kHCGRegistryJSON[] =
     "\"permission\":\"not-offered\",\"note\":\"Never offered by Nexus.\"}],\"requirements\":[{\"id\":\"client-id\","
     "\"title\":\"Issue an HCG Connect client for HCG Nexus\",\"detail\":\"Every Store publishing read needs an HCG Connect bearer token from an allow-listed client.\","
     "\"kind\":\"configuration\",\"blocking\":true},{\"id\":\"read-permission\",\"title\":\"Add a read-only Store permission\","
-    "\"detail\":\"Today's keys (store.publish, store.release.approve, store.release.publish) all grant write power and are granted to nobody; Nexus should only ever hold a read key (proposed: store.release.read).\","
+    "\"detail\":\"Today's keys (store.publish, store.release.approve, store.release.publish) all grant write power and are granted to nobody; Nexus should only ever hold a read-only key; HCG Store would define it (none exists today).\","
     "\"kind\":\"registration\",\"blocking\":true},{\"id\":\"client-allowlist\",\"title\":\"Add the HCG Nexus client to the Store's publishing allow-list\","
     "\"detail\":\"After HCG Connect issues Nexus's client (HCG_STORE_PUBLISHING_CLIENT_IDS).\",\"kind\":\"configuration\","
     "\"blocking\":false}],\"lastVerified\":\"2026-11-27\",\"verifiedFrom\":\"F1r3srp3nt/store@1e93880; live GET publishing manager 401 sign_in_required,"

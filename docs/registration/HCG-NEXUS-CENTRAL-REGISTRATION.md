@@ -28,8 +28,8 @@ central ID). Use the existing proposal's ID so all documents agree.
 | `required_dependencies` | `{hcg.connect}` | sign-in, once a client exists |
 | `integration_status` | `not_configured` | no client yet |
 
-**Features: none yet.** Proposed for the owner to decide (not created by Nexus): `nexus.ecosystem.read` and
-`nexus.devices.read`. Nexus asks other products only for read keys.
+**Features: none yet.** The owner defines HCG Nexus's feature keys. Nexus proposes no key names, and asks other
+products only for read-only access.
 
 ## 3. Then the native client
 

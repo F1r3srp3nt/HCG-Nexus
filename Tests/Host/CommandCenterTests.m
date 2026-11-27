@@ -590,6 +590,24 @@ static void testStoreProgressAndUEM(void) {
     all = [[HCGUEM rowsFromDeviceStatus:[suspended dataUsingEncoding:NSUTF8StringEncoding] error:&error] description];
     HCG_CHECK([all rangeOfString:@"not in effect while suspended"].location != NSNotFound && [all rangeOfString:@"link.devices.read"].location == NSNotFound, "suspension wins");
     HCG_CHECK([HCGUEM rowsFromDeviceStatus:[@"{\"schema\":\"other\"}" dataUsingEncoding:NSUTF8StringEncoding] error:&error] == nil, "other schema");
+    // HCG UEM's real v1 self status (shape from HCG-UEM@14d8ad7), with and without its trust catalogue.
+    NSString *self1 = @"{\"summary\":{\"deviceId\":\"hcgd_abcdefghijklmnopqrstuvwxyz\",\"classification\":\"development\",\"state\":\"active\",\"connectivity\":\"online\","
+        "\"compliance\":\"compliant\",\"keyAssurance\":\"hardware_attested\",\"jailbroken\":true},\"credentials\":[{\"status\":\"active\"},{\"status\":\"revoked\"}],"
+        "\"history\":[{},{}],\"posture\":[],\"classificationUnmet\":[]}";
+    NSString *catalogJSON = @"{\"revision\":7,\"classifications\":[{\"key\":\"development\",\"tier\":3,\"name\":\"Development Device\"}]}";
+    all = [[HCGUEM rowsFromUEMSelfStatus:[self1 dataUsingEncoding:NSUTF8StringEncoding] catalog:nil error:&error] description];
+    HCG_CHECK([all rangeOfString:@"development (name from HCG UEM's catalogue not available)"].location != NSNotFound, "no catalogue: key only");
+    HCG_CHECK([all rangeOfString:@"Development Device"].location == NSNotFound, "no built-in tier names");
+    all = [[HCGUEM rowsFromUEMSelfStatus:[self1 dataUsingEncoding:NSUTF8StringEncoding] catalog:[catalogJSON dataUsingEncoding:NSUTF8StringEncoding] error:&error] description];
+    HCG_CHECK([all rangeOfString:@"Development Device (catalogue revision 7)"].location != NSNotFound, "name from the catalogue");
+    HCG_CHECK([all rangeOfString:@"development or research only"].location != NSNotFound, "jailbroken: no privileges");
+    NSString *quarantined = [self1 stringByReplacingOccurrencesOfString:@"\"state\":\"active\"" withString:@"\"state\":\"quarantined\""];
+    all = [[HCGUEM rowsFromUEMSelfStatus:[quarantined dataUsingEncoding:NSUTF8StringEncoding] catalog:[catalogJSON dataUsingEncoding:NSUTF8StringEncoding] error:&error] description];
+    HCG_CHECK([all rangeOfString:@"not in effect while quarantined"].location != NSNotFound, "quarantine wins");
+    NSString *badID = [self1 stringByReplacingOccurrencesOfString:@"hcgd_abcdefghijklmnopqrstuvwxyz" withString:@"x"];
+    all = [[HCGUEM rowsFromUEMSelfStatus:[badID dataUsingEncoding:NSUTF8StringEncoding] catalog:nil error:&error] description];
+    HCG_CHECK([all rangeOfString:@"Invalid device ID"].location != NSNotFound && [all rangeOfString:@"Trust classification"].location == NSNotFound, "fail closed on a bad ID");
+    HCG_CHECK([HCGUEM rowsFromUEMSelfStatus:[@"{}" dataUsingEncoding:NSUTF8StringEncoding] catalog:nil error:&error] == nil, "not a status");
     // Reusable qualification record (hcg.integration-qualification/1).
     NSMutableArray *items = [NSMutableArray array];
     for (HCGRegistryEntry *e in r.entries) {
