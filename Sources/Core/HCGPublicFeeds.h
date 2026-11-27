@@ -33,6 +33,11 @@ NS_ASSUME_NONNULL_BEGIN
                                                        error:(NSString *_Nullable *_Nullable)error;
 // (title, value) rows that describe the identity service, or nil. Client identifiers are never shown.
 + (nullable NSArray<NSArray<NSString *> *> *)identityDiscoveryRowsFromData:(nullable NSData *)data error:(NSString *_Nullable *_Nullable)error;
+// HCG Store's public release resolution (hcg.store.release-resolution/1, GET
+// https://store.hakmicapitalgroup.com/api/public/v1/release-resolution/<product>): the product's Store status, its current
+// published release(s) and download options with their access (free testing window, free with account, licence
+// required, not available yet). It contains no download URLs and grants nothing. (title, value) rows, or nil.
++ (nullable NSArray<NSArray<NSString *> *> *)storeReleaseRowsFromData:(nullable NSData *)data error:(NSString *_Nullable *_Nullable)error;
 // HCG Store's public health (GET https://store.hakmicapitalgroup.com/api/v1/health): (title, value) rows, or nil.
 + (nullable NSArray<NSArray<NSString *> *> *)storeHealthRowsFromData:(nullable NSData *)data error:(NSString *_Nullable *_Nullable)error;
 @end

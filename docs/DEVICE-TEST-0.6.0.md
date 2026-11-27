@@ -292,6 +292,35 @@ From least to most invasive (docs/INSTALL-AND-RECOVERY.md):
 
 None of these touch other HCG products, Sileo, Zebra or APT sources.
 
+## 16. If something fails: runtime evidence to send
+
+Send the evidence, not a description, so the cause can be found from what actually happened:
+
+**Quickest:** copy `scripts/device/hcg-nexus-collect-evidence.sh` to the phone and run
+`sh hcg-nexus-collect-evidence.sh --copy-logs`. It is read-only, makes no network connection and writes one folder in
+`/var/mobile/Documents/`. It collects:
+
+- device and iOS;
+- installed package versions;
+- HCG Nexus's kill switch and preference keys (names only);
+- SpringBoard's memory and CPU;
+- the newest SpringBoard, HCG Nexus and JetsamEvent reports.
+
+Then add the diagnostics text from item 3 below. Or collect the same evidence by hand:
+
+
+1. **Crash or respring:**
+   - Settings › Privacy & Security › Analytics & Improvements › Analytics Data: the newest `SpringBoard-*.ips` (and
+     `HCGNexus*` if any), shared from that screen.
+   - Over SSH or in HCG Terminal Unleashed: `ls -t /var/mobile/Library/Logs/CrashReporter/ | head`.
+2. **Freeze or high memory:** `JetsamEvent-*.ips` from the same screen (memory kills), plus section 13's `ps` values
+   before and after.
+3. **Nexus's own state:** Settings › HCG Nexus › Diagnostics (copy all), and the `Status` row text.
+4. **Installed versions:** `dpkg -l | grep -E 'hcgnexus|ellekit|preferenceloader'` and `uname -a`.
+5. **Steps:** the step number, what you tapped, and the time (to match the logs).
+
+Crash logs contain the device model and iOS build; they are only read for diagnosis and are never published.
+
 ## Results (fill in and send back)
 
 | # | Device A (13 Pro, 16.5) | Device B (11 Pro Max, 17.4) | Notes |

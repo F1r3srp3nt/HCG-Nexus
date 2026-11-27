@@ -48,16 +48,13 @@ The live check on 26 Nov 2026 returned 200, `Cache-Control: public, max-age=30`,
 Products it adds are marked *not registered* with an unverified name. The central source URL is fixed in code.
 
 **Permission filtering.** Nexus shows private registry entries only with their central entitlement
-(`product/feature`). Without an HCG Connect client (none is issued), private entries stay hidden. The signed-in
-`GET /api/public/app-catalog` is **not** a permission filter: it lists every non-archived product to any signed-in user.
-Per-account access must come from `/access` and `/check` (docs/HCG-CONNECT-REGISTRATION.md).
+(`product/feature`). Without an HCG Connect client (none is issued), private entries stay hidden. What an account may
+see is decided only by `/access` and `/check` (docs/HCG-CONNECT-REGISTRATION.md), never by a catalogue listing.
 
-**What the platform should add (proposal for the main-site team).** The public catalogue also lists products that are
-not publicly listed. Its SQL function filters only on lifecycle, not on `public_listing`. That conflicts with "only
-public metadata" (AGENTS.md:15). The proposal is `GET /api/public/ecosystem/v1/directory`, returning
-`hcg.ecosystem.directory/1`, which:
+**What the platform could add (proposal for the main-site team).** A signed directory,
+`GET /api/public/ecosystem/v1/directory` returning `hcg.ecosystem.directory/1`, which:
 
-- lists only `public_listing` products, with ID, name, category, release status and lifecycle;
+- lists only publicly listed products, with ID, name, category, release status and lifecycle;
 - carries a monotonically increasing `version` and `issued_at`;
 - carries a detached signature by a platform key, published at a fixed path and pinned in Nexus (like HCG Repo's key
   pinning);
@@ -126,6 +123,28 @@ is *Partially integrated* (HCG Connect: discovery reachable, no client).
   - the Nexus client on the allow-list.
 - Nexus will never upload, approve or publish.
 - Today Nexus reads the public Store health (*Check now*).
+
+**HCG Store v3 (update 27 Nov 2026).**
+
+- **Publishing API:** now deployed. Without an HCG Connect token, `publishing/manager`, `publishing/capabilities` and
+  `repo/releases` answer 401 `sign_in_required`.
+- **Public release resolution:** now live (`hcg.store.release-resolution/1`, anonymous, CORS `*`, 60 s cache). HCG
+  Nexus is listed as `testing` with no published Store release; HCG ONE: UNLEASHED as `in-development`, also with
+  none.
+- **What Nexus reads today**, through HCG Store › Check now (public, read-only):
+  - Store availability (health);
+  - current published versions and download access, including temporary free testing windows with their end date.
+- **Still needing HCG Connect and a read-only Store permission:**
+  - private release drafts;
+  - upload progress;
+  - release validation;
+  - superseded and disabled versions;
+  - Store-side Release Passports;
+  - pending approvals.
+- **Product catalogue:** the Store has no public product-catalogue route (`/api/public/v1/catalog` and
+  `/api/public/v1/products` answer 404).
+
+Nexus never uploads, approves, publishes or disables releases.
 
 **HCG Trading.**
 

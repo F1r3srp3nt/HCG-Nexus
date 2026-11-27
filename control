@@ -1,6 +1,6 @@
 Package: com.hakmicapitalgroup.hcgnexus
 Name: HCG Nexus
-Version: 0.7.0~beta1
+Version: 0.7.1~dev1
 Architecture: iphoneos-arm
 Description: HCG Nexus, the HCG ecosystem command center: every HCG product by category with search, favorites, profiles with seven separate evidence layers (a public read is never shown as connected), product identities from the central HCG registry with rollback, a development roadmap with LifeOS export, HCG System Tester device inventory import and the Package Trust Center. Read-only by default; nothing connects or runs at startup. Off after installation; enable it in Settings > HCG Nexus. Candidate build, not yet verified on a physical device.
 Maintainer: Hakmi Capital Group

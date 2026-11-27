@@ -18,6 +18,8 @@ Constructed for the host tests (not captured from live services; this session ca
   200. It contains LifeOS's public client IDs, which Nexus never shows (tested).
 * `live-app-catalog-401-2026-11-26.json`: `GET https://beta.hakmicapitalgroup.com/api/public/app-catalog` without a
   token answered 401 `unauthorized`. The signed-in catalog needs an HCG Connect token.
-* `live-central-catalog-2026-11-26.json`: `GET https://beta.hakmicapitalgroup.com/api/public/pricing/v1/catalog`
-  answered 200 (`Cache-Control: public, max-age=30`, no ETag, no signature), api_version "1", 31 products.
+* `live-central-catalog-2026-11-26.json`: derived from the central catalogue answer of 26 Nov 2026 (200, api_version "1"),
+  reduced to the products HCG Nexus already lists publicly and to the identity fields Nexus reads (ID, name, status,
+  release status). Nothing else from the answer is kept.
 * `live-store-health-2026-11-26.json`: `GET https://store.hakmicapitalgroup.com/api/v1/health` answered 200 (mode production).
+* `live-store-release-hcg-nexus-2026-11-27.json`: `GET https://store.hakmicapitalgroup.com/api/public/v1/release-resolution/hcg-nexus` answered 200 (`hcg.store.release-resolution/1`, no releases published).

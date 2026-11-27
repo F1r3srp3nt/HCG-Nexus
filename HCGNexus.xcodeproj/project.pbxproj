@@ -251,6 +251,10 @@
 			isa = PBXBuildFile;
 			fileRef = 1C6ECC2F2765F041F6DBD785;
 		};
+		AEF6770729BDEBC0EA934E61 /* HCGUEM.m in Sources */ = {
+			isa = PBXBuildFile;
+			fileRef = 9FCC7ACCBDFCA838ACB61A02;
+		};
 		AFEC655F706AE470EF7019EF /* HCGLinkTypes.m in Sources */ = {
 			isa = PBXBuildFile;
 			fileRef = EE7EEF54CC2BC3BBBF11736F;
@@ -1068,6 +1072,13 @@
 			path = Sources/Core/HCGSettings.m;
 			sourceTree = SOURCE_ROOT;
 		};
+		9FCC7ACCBDFCA838ACB61A02 /* HCGUEM.m */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.objc;
+			name = HCGUEM.m;
+			path = Sources/Core/HCGUEM.m;
+			sourceTree = SOURCE_ROOT;
+		};
 		9FDCAB71903DC4D63E2F81B3 /* HCGNexusAppTests.m */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.objc;
@@ -1404,6 +1415,13 @@
 			path = Sources/Core/HCGTerminalHandoff.m;
 			sourceTree = SOURCE_ROOT;
 		};
+		E445E1D690F1C75DBFE3E008 /* HCGUEM.h */ = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = HCGUEM.h;
+			path = Sources/Core/HCGUEM.h;
+			sourceTree = SOURCE_ROOT;
+		};
 		E48C5D2CA52821992ECBF914 /* HCGRegistry.h */ = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.c.h;
@@ -1713,6 +1731,8 @@
 				3EA66240A171612E980737CF,
 				466CFC28FA2F140AB98E90F4,
 				654D2A33B7591CFCCAAB7EA4,
+				E445E1D690F1C75DBFE3E008,
+				9FCC7ACCBDFCA838ACB61A02,
 				3CDF01D2A25E4EE40B827538,
 				1DFF45AE3D3B9B02A39F2A74,
 				40149B2A094766AB4FC6E549,
@@ -1931,6 +1951,7 @@
 				0192CCF29037F66E3B28B4F3,
 				7155FA6EFCC85A2F92C0EAD5,
 				770B3ACCAE0565278CF75931,
+				AEF6770729BDEBC0EA934E61,
 				B42A7AF819B521C15C7A2334,
 				5C803444F8AB813ACD73B0E4,
 				DA0D996AFCA3DAA4CD864D09,
@@ -2113,7 +2134,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = App/Info.plist;
@@ -2122,7 +2143,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.7.0;
+				MARKETING_VERSION = 0.7.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -2142,7 +2163,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = App/Info.plist;
@@ -2151,7 +2172,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.7.0;
+				MARKETING_VERSION = 0.7.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -2170,11 +2191,11 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.7.0;
+				MARKETING_VERSION = 0.7.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -2188,11 +2209,11 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 10;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.7.0;
+				MARKETING_VERSION = 0.7.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.hakmicapitalgroup.hcgnexus.app.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

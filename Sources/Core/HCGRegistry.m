@@ -93,7 +93,7 @@ static NSDictionary *Dict(id value) {
             repoPackage = _repoPackage, websiteURL = _websiteURL, contractID = _contractID, contractStatus = _contractStatus,
             contractDetail = _contractDetail, endpoints = _endpoints, connections = _connections, capabilities = _capabilities,
             requirements = _requirements, validations = _validations, notes = _notes, lastVerified = _lastVerified,
-            verifiedFrom = _verifiedFrom, fromUpdate = _fromUpdate;
+            verifiedFrom = _verifiedFrom, fromUpdate = _fromUpdate, securityReview = _securityReview;
 
 - (BOOL)isPlanned {
     return [self.kind isEqualToString:@"planned"] || [self.developmentStatus isEqualToString:@"planned"] ||
@@ -110,7 +110,7 @@ static NSDictionary *Dict(id value) {
     e.repoPackage = self.repoPackage; e.websiteURL = self.websiteURL; e.contractID = self.contractID; e.contractStatus = self.contractStatus;
     e.contractDetail = self.contractDetail; e.endpoints = self.endpoints; e.connections = self.connections; e.capabilities = self.capabilities;
     e.requirements = self.requirements; e.validations = self.validations; e.notes = self.notes; e.lastVerified = self.lastVerified;
-    e.verifiedFrom = self.verifiedFrom; e.fromUpdate = self.fromUpdate;
+    e.verifiedFrom = self.verifiedFrom; e.fromUpdate = self.fromUpdate; e.securityReview = self.securityReview;
     return e;
 }
 
@@ -178,7 +178,7 @@ static HCGRegistryEntry *ParseEntry(NSDictionary *d, NSSet *categories, NSSet *m
     }
     NSString *hip = Text([d objectForKey:@"hip"], 40);
     if (hip) e.hipProductID = hip;
-    if (adapter && !OneOf(adapter, @"hip news.v1 connect.discovery system-tester.inventory lifeos.export trust-center store.health central.registry")) {
+    if (adapter && !OneOf(adapter, @"hip news.v1 connect.discovery system-tester.inventory lifeos.export trust-center store.health store.release central.registry")) {
         *problem = [NSString stringWithFormat:@"Entry %@: unknown adapter (ignored).", label];
         adapter = nil;
     }
@@ -315,6 +315,9 @@ static HCGRegistryEntry *ParseEntry(NSDictionary *d, NSSet *categories, NSSet *m
     e.notes = TextList([d objectForKey:@"notes"], 6, 300);
     e.lastVerified = Text([d objectForKey:@"lastVerified"], 10) ?: @"not verified";
     e.verifiedFrom = Text([d objectForKey:@"verifiedFrom"], 400) ?: @"";
+    NSDictionary *review = Dict([d objectForKey:@"securityReview"]);
+    NSString *rd = Text([review objectForKey:@"date"], 10), *rs = Text([review objectForKey:@"summary"], 300);
+    if (rd && rs) e.securityReview = [NSString stringWithFormat:@"%@: %@", rd, rs];
     return e;
 }
 
@@ -526,6 +529,7 @@ static HCGRegistryEntry *MergedEntry(HCGRegistryEntry *base, HCGRegistryEntry *u
     e.capabilities = capabilities;
     e.requirements = update.requirements;
     e.validations = base.validations; // evidence is never imported
+    e.securityReview = base.securityReview;
     e.notes = update.notes;
     e.lastVerified = update.lastVerified;
     e.verifiedFrom = update.verifiedFrom;
@@ -555,6 +559,7 @@ static HCGRegistryEntry *TextOnlyEntry(HCGRegistryEntry *update) {
     }
     update.capabilities = capabilities;
     update.validations = [NSArray array];
+    update.securityReview = nil;
     update.fromUpdate = YES;
     // An imported entry cannot claim central registration or a verified name: only the central registry can.
     update.centralRegistration = @"not-registered";

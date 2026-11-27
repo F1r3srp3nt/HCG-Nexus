@@ -1,7 +1,7 @@
 {
  "schema": "hcg.nexus.registry/1",
- "registryVersion": 3,
- "generatedAt": "2026-11-26",
+ "registryVersion": 4,
+ "generatedAt": "2026-11-27",
  "note": "HCG Nexus's versioned ecosystem registry. Names, identifiers, links and endpoints are copied from the central HCG product registry and the products' own repositories (each entry says where). Links and endpoints here are the only ones Nexus opens; an imported update can only narrow them.",
  "categories": [
   {
@@ -414,6 +414,98 @@
    "verifiedFrom": "HCG-Server ff08b00 contracts/v1/buildhost.go, internal/agent/buildhost_admin.go, docs/BUILD-HOST.md"
   },
   {
+   "id": "uem",
+   "officialName": "HCG UEM",
+   "category": "infrastructure",
+   "description": "HCG Unified Endpoint Management: machine identity, cryptographic device enrollment, trust classifications, endpoint security posture and device-specific authorization.",
+   "kind": "planned",
+   "platforms": [],
+   "developmentStatus": "planned",
+   "nameVerified": false,
+   "central": {
+    "productId": null,
+    "registration": "not-registered",
+    "note": "New HCG infrastructure project; no registry row, repository or published interface yet (27 Nov 2026)."
+   },
+   "contract": {
+    "status": "planned",
+    "id": "hcg.uem.device-status/1",
+    "detail": "Proposed by HCG Nexus (docs/HCG-UEM.md); not published by HCG UEM."
+   },
+   "connectionMethods": [
+    {
+     "method": "hcg-connect",
+     "state": "planned",
+     "detail": "Authenticated device status from HCG UEM (with HCG Connect / HCG Device Link)."
+    }
+   ],
+   "capabilities": [
+    {
+     "id": "device-id",
+     "title": "HCG Device ID, enrollment and verified device identity",
+     "state": "planned",
+     "permission": "none",
+     "note": "From HCG UEM only."
+    },
+    {
+     "id": "tier",
+     "title": "Device trust classification",
+     "state": "planned",
+     "permission": "none",
+     "note": "Tiers and their names come from HCG UEM's policy; Nexus never assigns or hard-codes them."
+    },
+    {
+     "id": "posture",
+     "title": "Credential status and security posture",
+     "state": "planned",
+     "permission": "none",
+     "note": "As HCG UEM reports them."
+    },
+    {
+     "id": "permissions",
+     "title": "Device-specific permissions, lifecycle, suspension and revocation",
+     "state": "planned",
+     "permission": "none",
+     "note": "Shown as HCG UEM states them; Nexus authorizes nothing from them."
+    },
+    {
+     "id": "inventory",
+     "title": "Authorized device inventory and connection history",
+     "state": "planned",
+     "permission": "none",
+     "note": "From HCG UEM."
+    },
+    {
+     "id": "grant",
+     "title": "Grant trust, assign a classification or authorize privileged operations",
+     "state": "unavailable",
+     "permission": "not-offered",
+     "note": "Never: HCG UEM and HCG Connect decide. Jailbroken devices gain nothing."
+    }
+   ],
+   "requirements": [
+    {
+     "id": "register-central",
+     "title": "Register HCG UEM in the central product registry",
+     "detail": "No registry row exists yet.",
+     "kind": "registration",
+     "blocking": true
+    },
+    {
+     "id": "contract",
+     "title": "Publish HCG UEM's device-status contract",
+     "detail": "Proposed: hcg.uem.device-status/1 (docs/HCG-UEM.md), delivered over an authenticated channel.",
+     "kind": "contract",
+     "blocking": true
+    }
+   ],
+   "notes": [
+    "Planned integration: nothing in Nexus depends on HCG UEM, and no current feature waits for it."
+   ],
+   "lastVerified": "2026-11-27",
+   "verifiedFrom": "Owner brief, 27 Nov 2026 (new project); no repository or registry row found"
+  },
+  {
    "id": "sentinel",
    "officialName": "HCG Sentinel",
    "category": "security",
@@ -570,7 +662,11 @@
     }
    ],
    "lastVerified": "2026-11-26",
-   "verifiedFrom": "docs/TRUST-CENTER.md"
+   "verifiedFrom": "docs/TRUST-CENTER.md",
+   "securityReview": {
+    "date": "2026-11-26",
+    "summary": "Independent review of the OpenPGP verifier: no forgery or memory-safety bug; 9 policy findings fixed with regression tests (docs/TRUST-CENTER.md)."
+   }
   },
   {
    "id": "system-tester",
@@ -874,7 +970,7 @@
     {
      "method": "https-api",
      "state": "implemented",
-     "detail": "Check now reads the Store's public health."
+     "detail": "Check now reads the Store's public health and HCG Nexus's public release resolution."
     },
     {
      "method": "website",
@@ -885,13 +981,13 @@
    "requirements": [
     {
      "id": "listing",
-     "title": "Publish the HCG Nexus Store listing",
-     "detail": "The Store's release-resolution route (hcg.store.release-resolution/1) is implemented but not deployed (404).",
+     "title": "Publish an HCG Nexus release through HCG Store",
+     "detail": "The release resolution for hcg-nexus answers 200 with no published release (27 Nov 2026).",
      "kind": "configuration",
      "blocking": false
     }
    ],
-   "lastVerified": "2026-11-26",
+   "lastVerified": "2026-11-27",
    "verifiedFrom": "Live GET store.hakmicapitalgroup.com (200) and https://store.hakmicapitalgroup.com/api/v1/health (200), 26 Nov 2026; F1r3srp3nt/store@1e93880",
    "links": {
     "website": "https://store.hakmicapitalgroup.com/"
@@ -905,6 +1001,37 @@
      "access": "read",
      "detail": "Public Store health: status, mode, HCG Connect, entitlement authority, payments, protected downloads.",
      "verified": "live 200, 26 Nov 2026 (mode production)"
+    },
+    {
+     "id": "store.release",
+     "url": "https://store.hakmicapitalgroup.com/api/public/v1/release-resolution/hcg-nexus",
+     "auth": "none",
+     "access": "read",
+     "detail": "HCG Nexus in HCG Store: Store status, current published release, download options and their access (no download URLs; grants nothing).",
+     "verified": "live 200, 27 Nov 2026 (hcg.store.release-resolution/1; developmentStatus testing, no releases published)"
+    }
+   ],
+   "capabilities": [
+    {
+     "id": "availability",
+     "title": "Store availability",
+     "state": "available",
+     "permission": "none",
+     "note": "Public Store health (HCG Store › Check now)."
+    },
+    {
+     "id": "published",
+     "title": "Current published versions and download access",
+     "state": "available",
+     "permission": "none",
+     "note": "Public release resolution: current release, options, free testing windows (HCG Store › Check now)."
+    },
+    {
+     "id": "offers",
+     "title": "Temporary testing offers",
+     "state": "available",
+     "permission": "none",
+     "note": "Shown when a free testing window is open (access free-testing with its end date, in the release resolution)."
     }
    ]
   },
@@ -928,7 +1055,7 @@
    "contract": {
     "status": "available",
     "id": "store publishing API",
-    "detail": "Implemented in the Store (manager, releases, capabilities, whoami) but disabled in production (404 publishing_disabled, 26 Nov 2026)."
+    "detail": "Implemented and deployed in HCG Store v3: the publishing routes answer 401 sign_in_required without an HCG Connect token (27 Nov 2026)."
    },
    "connectionMethods": [
     {
@@ -940,46 +1067,46 @@
    "capabilities": [
     {
      "id": "drafts",
-     "title": "Release drafts, pending approvals, published releases",
+     "title": "Private release drafts, pending approvals",
      "state": "planned",
      "permission": "none",
-     "note": "GET publishing/manager (stage: draft … published) once enabled and authorized."
+     "note": "Publishing manager: needs HCG Connect and a read-only Store permission."
     },
     {
      "id": "uploads",
-     "title": "Upload status and artifact verification",
+     "title": "Artifact upload progress and release validation",
      "state": "planned",
      "permission": "none",
-     "note": "GET publishing/releases/{id}: received bytes, SHA-256, validation."
+     "note": "Publishing release detail: received bytes, SHA-256, validation."
     },
     {
-     "id": "offers",
-     "title": "Temporary testing offers",
+     "id": "history",
+     "title": "Superseded and disabled versions",
      "state": "planned",
      "permission": "none",
-     "note": "Free testing windows exist only as an operator command; no read route."
+     "note": "Only in the authenticated publishing API (release stage superseded / withdrawn)."
     },
     {
-     "id": "sync",
-     "title": "Synchronization health",
+     "id": "passports",
+     "title": "Release Passports",
      "state": "planned",
      "permission": "none",
-     "note": "No sync API: only the manager's auditIntact and the public Store health."
+     "note": "Read by the Package Trust Center from HCG Repo; Store-side passports need the publishing API."
     },
     {
      "id": "act",
-     "title": "Upload, approve or publish releases",
+     "title": "Upload, approve, publish or disable releases",
      "state": "unavailable",
      "permission": "not-offered",
-     "note": "Never offered by Nexus: approval and publication stay in the Store's browser flow."
+     "note": "Never offered by Nexus."
     }
    ],
    "requirements": [
     {
-     "id": "enable-publishing",
-     "title": "Enable the Store publishing API in production",
-     "detail": "It answers 404 publishing_disabled today.",
-     "kind": "access",
+     "id": "client-id",
+     "title": "Issue an HCG Connect client for HCG Nexus",
+     "detail": "Every Store publishing read needs an HCG Connect bearer token from an allow-listed client.",
+     "kind": "configuration",
      "blocking": true
     },
     {
@@ -997,8 +1124,11 @@
      "blocking": false
     }
    ],
-   "lastVerified": "2026-11-26",
-   "verifiedFrom": "F1r3srp3nt/store@1e93880 server/publishing.ts, docs/PUBLISHING.md; live GET publishing/manager 404, 26 Nov 2026"
+   "lastVerified": "2026-11-27",
+   "verifiedFrom": "F1r3srp3nt/store@1e93880; live GET publishing manager 401 sign_in_required, 27 Nov 2026",
+   "notes": [
+    "Store availability, current published versions and temporary testing offers are public: see HCG Store › Check now. Everything else needs HCG Connect and a Store permission."
+   ]
   },
   {
    "id": "repo",
@@ -1219,7 +1349,7 @@
     {
      "id": "signed-directory",
      "title": "Publish a signed, versioned public directory",
-     "detail": "The catalogue has no signature, ETag or version and also lists non-public products; a signed directory limited to listed products is proposed (docs/CENTRAL-REGISTRY.md).",
+     "detail": "The catalogue has no signature, ETag or version; a signed, versioned public directory is proposed (docs/CENTRAL-REGISTRY.md).",
      "kind": "contract",
      "blocking": false
     }
@@ -1332,10 +1462,17 @@
     "registration": "registered",
     "name": "HCG ONE: UNLEASHED"
    },
-   "connectionMethods": [],
+   "connectionMethods": [
+    {
+     "method": "https-api",
+     "state": "implemented",
+     "detail": "Check now reads its public Store release resolution."
+    }
+   ],
    "contract": {
-    "status": "planned",
-    "detail": "Distributed through HCG Store; its release resolution is not deployed yet."
+    "status": "available",
+    "id": "hcg.store.release-resolution/1",
+    "detail": "Public, anonymous; grants nothing and contains no download URLs."
    },
    "requirements": [
     {
@@ -1349,8 +1486,19 @@
    "notes": [
     "Simulation only: no market data or trading through Nexus."
    ],
-   "lastVerified": "2026-11-26",
-   "verifiedFrom": "Central catalogue (live, 26 Nov 2026); store catalogue/products.json"
+   "lastVerified": "2026-11-27",
+   "verifiedFrom": "Central catalogue (live, 26 Nov 2026); store catalogue/products.json",
+   "adapter": "store.release",
+   "endpoints": [
+    {
+     "id": "store.release",
+     "url": "https://store.hakmicapitalgroup.com/api/public/v1/release-resolution/hcg-one-unleashed",
+     "auth": "none",
+     "access": "read",
+     "detail": "HCG ONE: UNLEASHED in HCG Store: status, approved simulator release and access.",
+     "verified": "live 200, 27 Nov 2026 (in-development, no releases published)"
+    }
+   ]
   },
   {
    "id": "payments",

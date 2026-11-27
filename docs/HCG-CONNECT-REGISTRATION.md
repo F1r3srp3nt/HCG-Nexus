@@ -150,6 +150,5 @@ deployed). Today's real path is the owner-only registration in ERP:
   or `/check` (at most 300 s), and an ended session is detected at the next refresh.
 
 What Nexus will **not** do: issue tokens, keep any identity of its own, reuse another product's client, or treat local
-development pairing as an HCG account. The signed-in `GET /api/public/app-catalog` (live 401 without a token) is not
-filtered per user: it lists every non-archived product to any signed-in user. Nexus therefore uses `/access` and
-`/check`, never the catalogue, to decide what an account may see.
+development pairing as an HCG account. What an account may see is decided only by `/access` and `/check`, never by a
+catalogue listing.

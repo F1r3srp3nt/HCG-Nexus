@@ -6,6 +6,20 @@ substituted for one another. Only section 4 can show that the tweak works.
 Reproduce sections 1 and 3 with
 `THEOS=… HCG_ENV=rootless scripts/check.sh` (and again with `HCG_ENV=rootful`).
 
+## 0.7.1~dev1 — development on main, not a release (recorded 2026-11-27)
+
+The approved 0.7.0~beta1 artifact (`004e6a9e…e611`) is unchanged and its Candidate import stays held. Main carries
+development work under the version `0.7.1~dev1`, so it can never be mistaken for the approved package. No package was
+built for publication.
+
+* Integration progress: nine checkpoints per product from evidence.
+* HCG Store v3: public release resolution in *Check now*; Store Manager's authenticated capabilities stay planned.
+* HCG UEM: a planned entry and a tested parser for the proposed `hcg.uem.device-status/1` (not connected).
+* A confidential security finding about the central platform was reported privately to the owner. It is not in this
+  repository until it has been remediated.
+* The `hcg.nexus` registration packet.
+* Runtime-evidence steps in the device test.
+
 ## 0.7.0~beta1 — central registry and live ecosystem connections (recorded 2026-11-26)
 
 **Status: built for review; not published** (a new package is never published without the owner's approval). It

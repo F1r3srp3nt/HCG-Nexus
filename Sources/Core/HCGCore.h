@@ -41,6 +41,7 @@
 #import "HCGTrustRecords.h"
 #import "HCGRegistry.h"
 #import "HCGCentralRegistry.h"
+#import "HCGUEM.h"
 #import "HCGCommandCenter.h"
 #import "HCGDeviceInventory.h"
 #import "HCGPublicFeeds.h"
