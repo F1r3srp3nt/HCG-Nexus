@@ -15,7 +15,8 @@ built for publication.
 * Integration progress: nine checkpoints per product from evidence.
 * HCG Store v3: public release resolution in *Check now*; Store Manager's authenticated capabilities stay planned.
 * HCG UEM: a planned entry and a tested parser for the proposed `hcg.uem.device-status/1` (not connected).
-* Security report on the public catalogue (`docs/security/PUBLIC-CATALOGUE-EXPOSURE.md`, sanitized).
+* A confidential security finding about the central platform was reported privately to the owner. It is not in this
+  repository until it has been remediated.
 * The `hcg.nexus` registration packet.
 * Runtime-evidence steps in the device test.
 

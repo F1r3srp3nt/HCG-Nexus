@@ -491,6 +491,35 @@ static NSArray *Step(NSString *dimension, NSString *state, NSString *evidence) {
     return rows;
 }
 
+NSArray *HCGQualificationCheckpointKeys(void) {
+    return [@"central-registration authentication api-contract adapter configuration communication capability-validation physical-testing security-review"
+            componentsSeparatedByString:@" "];
+}
+
++ (NSDictionary *)qualificationRecordForItems:(NSArray *)items registryVersion:(NSInteger)registryVersion now:(NSDate *)now {
+    NSArray *keys = HCGQualificationCheckpointKeys();
+    NSMutableArray *products = [NSMutableArray array];
+    for (NSArray *item in items) {
+        if (item.count < 3) continue;
+        HCGRegistryEntry *e = [item objectAtIndex:0];
+        HCGConnectionSummary *c = [item objectAtIndex:1];
+        id hip = [item objectAtIndex:2];
+        NSArray *steps = [self integrationProgressForEntry:e connection:c hipStatus:[hip isKindOfClass:[HCGHIPProductStatus class]] ? hip : nil];
+        NSMutableArray *checkpoints = [NSMutableArray array];
+        NSUInteger i;
+        for (i = 0; i < steps.count && i < keys.count; i++) {
+            NSString *state = [[[steps objectAtIndex:i] objectAtIndex:1] stringByReplacingOccurrencesOfString:@" " withString:@"-"];
+            [checkpoints addObject:[NSDictionary dictionaryWithObjectsAndKeys:[keys objectAtIndex:i], @"key", state, @"state",
+                                                                              [[steps objectAtIndex:i] objectAtIndex:2], @"evidence", nil]];
+        }
+        NSMutableDictionary *p = [NSMutableDictionary dictionaryWithObjectsAndKeys:e.identifier, @"id", e.officialName, @"name", checkpoints, @"checkpoints", nil];
+        if (e.centralProductID) [p setObject:e.centralProductID forKey:@"centralProductId"];
+        [products addObject:p];
+    }
+    return [NSDictionary dictionaryWithObjectsAndKeys:@"hcg.integration-qualification/1", @"schema", @"hcg-nexus", @"subject",
+                                                      When(now), @"generatedAt", [NSNumber numberWithInteger:registryVersion], @"registryVersion", products, @"products", nil];
+}
+
 #pragma mark Evidence layers
 
 static NSArray *Layer(NSString *title, NSString *value) {

@@ -1349,7 +1349,7 @@
     {
      "id": "signed-directory",
      "title": "Publish a signed, versioned public directory",
-     "detail": "The catalogue has no signature, ETag or version and also lists non-public products; a signed directory limited to listed products is proposed (docs/CENTRAL-REGISTRY.md).",
+     "detail": "The catalogue has no signature, ETag or version; a signed, versioned public directory is proposed (docs/CENTRAL-REGISTRY.md).",
      "kind": "contract",
      "blocking": false
     }

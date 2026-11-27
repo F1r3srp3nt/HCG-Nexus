@@ -293,7 +293,7 @@ static const char kHCGRegistryJSON[] =
     "\"connectionMethods\":[{\"method\":\"https-api\",\"state\":\"implemented\",\"detail\":\"Command Center \342\200\272 Registry \342\200\272 Update from central registry.\"},"
     "{\"method\":\"website\",\"state\":\"implemented\",\"detail\":\"Inside HCG ERP (sign-in required).\"}],"
     "\"requirements\":[{\"id\":\"signed-directory\",\"title\":\"Publish a signed, versioned public directory\","
-    "\"detail\":\"The catalogue has no signature, ETag or version and also lists non-public products; a signed directory limited to listed products is proposed (docs/CENTRAL-REGISTRY.md).\","
+    "\"detail\":\"The catalogue has no signature, ETag or version; a signed, versioned public directory is proposed (docs/CENTRAL-REGISTRY.md).\","
     "\"kind\":\"contract\",\"blocking\":false}],\"lastVerified\":\"2026-11-26\",\"verifiedFrom\":\"hakmicapitalgroup AGENTS.md:14; drizzle/migrations/0040_product_public_directory.sql\","
     "\"adapter\":\"central.registry\",\"endpoints\":[{\"id\":\"central.catalog\",\"url\":\"https://beta.hakmicapitalgroup.com/api/public/pricing/v1/catalog\","
     "\"auth\":\"none\",\"access\":\"read\",\"detail\":\"The central product catalogue Nexus takes product identities from.\","

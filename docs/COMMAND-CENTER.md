@@ -84,8 +84,8 @@ higher-version `hcg.nexus.registry/1` file of at most 256 KB. An update:
 - never imports validation history.
 
 Products it adds are text only. The central HCG registry publishes no public directory route yet:
-`app_public_directory()` exists only as a database function, and `GET /api/public/pricing/v1/catalog` also lists
-non-public products, so Nexus does not use it. That is recorded as the gap `nexus.central-app-access.public-directory`.
+`app_public_directory()` exists only as a database function; since 0.7.0 Nexus reads product identities from the central
+catalogue (docs/CENTRAL-REGISTRY.md). A signed directory is recorded as the gap `nexus.central-app-access.signed-directory`.
 
 ## Connection states
 

@@ -296,6 +296,19 @@ None of these touch other HCG products, Sileo, Zebra or APT sources.
 
 Send the evidence, not a description, so the cause can be found from what actually happened:
 
+**Quickest:** copy `scripts/device/hcg-nexus-collect-evidence.sh` to the phone and run
+`sh hcg-nexus-collect-evidence.sh --copy-logs`. It is read-only, makes no network connection and writes one folder in
+`/var/mobile/Documents/`. It collects:
+
+- device and iOS;
+- installed package versions;
+- HCG Nexus's kill switch and preference keys (names only);
+- SpringBoard's memory and CPU;
+- the newest SpringBoard, HCG Nexus and JetsamEvent reports.
+
+Then add the diagnostics text from item 3 below. Or collect the same evidence by hand:
+
+
 1. **Crash or respring:**
    - Settings › Privacy & Security › Analytics & Improvements › Analytics Data: the newest `SpringBoard-*.ips` (and
      `HCGNexus*` if any), shared from that screen.

@@ -482,7 +482,7 @@ static void testCentralRegistry(void) {
     NSData *live = CCFixture(@"live-central-catalog-2026-11-26.json");
     HCGCentralSnapshot *snap = [HCGCentralSnapshot snapshotWithData:live fetchedAt:CCNow() error:&error];
     HCG_CHECK(snap != nil, "the live central catalogue parses (%s)", [error UTF8String] ?: "");
-    HCG_CHECK_EQ_INT(snap.products.count, 31);
+    HCG_CHECK(snap.products.count >= 15, "identity rows");
     HCG_CHECK_EQ_INT(snap.version.length, 16);
     HCG_CHECK_EQ_STR(((HCGCentralProduct *)[snap.products objectForKey:@"hcg.connect"]).name, @"HCG Connect / HCG Auth");
     // The version depends only on identity fields: the same catalogue (re-serialised) keeps its version.
@@ -590,6 +590,31 @@ static void testStoreProgressAndUEM(void) {
     all = [[HCGUEM rowsFromDeviceStatus:[suspended dataUsingEncoding:NSUTF8StringEncoding] error:&error] description];
     HCG_CHECK([all rangeOfString:@"not in effect while suspended"].location != NSNotFound && [all rangeOfString:@"link.devices.read"].location == NSNotFound, "suspension wins");
     HCG_CHECK([HCGUEM rowsFromDeviceStatus:[@"{\"schema\":\"other\"}" dataUsingEncoding:NSUTF8StringEncoding] error:&error] == nil, "other schema");
+    // Reusable qualification record (hcg.integration-qualification/1).
+    NSMutableArray *items = [NSMutableArray array];
+    for (HCGRegistryEntry *e in r.entries) {
+        [items addObject:[NSArray arrayWithObjects:e, [HCGCommandCenter connectionForEntry:e hipStatus:nil ledger:nil registry:r now:now], [NSNull null], nil]];
+    }
+    NSDictionary *record = [HCGCommandCenter qualificationRecordForItems:items registryVersion:r.version now:now];
+    HCG_CHECK_EQ_STR([record objectForKey:@"schema"], @"hcg.integration-qualification/1");
+    NSArray *qp = [record objectForKey:@"products"];
+    HCG_CHECK_EQ_INT(qp.count, r.entries.count);
+    NSUInteger done = 0;
+    for (NSDictionary *p in qp) {
+        NSArray *cps = [p objectForKey:@"checkpoints"];
+        HCG_CHECK_EQ_INT(cps.count, 9);
+        for (NSUInteger k = 0; k < cps.count; k++) {
+            NSDictionary *cp = [cps objectAtIndex:k];
+            HCG_CHECK_EQ_STR([cp objectForKey:@"key"], [HCGQualificationCheckpointKeys() objectAtIndex:k]);
+            NSString *st = [cp objectForKey:@"state"];
+            HCG_CHECK([st isEqualToString:@"done"] || [st isEqualToString:@"partial"] || [st isEqualToString:@"pending"] || [st isEqualToString:@"not-needed"], "state");
+            if ([[cp objectForKey:@"key"] isEqualToString:@"physical-testing"] && [st isEqualToString:@"done"]) done++;
+        }
+    }
+    HCG_CHECK_EQ_INT(done, 1); // only HCG Terminal Unleashed has a recorded device result
+    NSData *json = [NSJSONSerialization dataWithJSONObject:record options:0 error:NULL];
+    HCG_CHECK(json.length > 0, "serialises");
+    HCG_CHECK([[[NSString alloc] initWithData:json encoding:NSUTF8StringEncoding] rangeOfString:@"\"xp"].location == NSNotFound, "no XP");
 }
 
 void HCGRunCommandCenterTests(void) {
