@@ -119,7 +119,7 @@ is *Partially integrated* (HCG Connect: discovery reachable, no client).
   `auditIntact` and the public health exist.
 - **Needed for Nexus:**
   - enable publishing in production;
-  - a read-only key (`store.release.read`);
+  - a read-only key, to be defined by HCG Store;
   - the Nexus client on the allow-list.
 - Nexus will never upload, approve or publish.
 - Today Nexus reads the public Store health (*Check now*).

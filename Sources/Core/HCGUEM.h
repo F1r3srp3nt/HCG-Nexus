@@ -21,6 +21,13 @@ FOUNDATION_EXPORT BOOL HCGUEMNexusMayAuthorize(void);          // always NO
 @interface HCGUEM : NSObject
 // (title, value) rows describing the device, or nil when the document is not a valid hcg.uem.device-status/1.
 + (nullable NSArray<NSArray<NSString *> *> *)rowsFromDeviceStatus:(nullable NSData *)data error:(NSString *_Nullable *_Nullable)error;
+// HCG UEM's actual v1 self status (HCG-UEM branch claude/hcg-uem-infrastructure-ynngaz@14d8ad7,
+// POST /v1/devices/self/status → DeviceStatus{summary, credentials, history, posture, classificationUnmet}). Not deployed:
+// nothing calls this with live data. `catalog` is HCG UEM's trust catalogue {revision, classifications[{key, tier, name}]}
+// when Nexus has one from HCG UEM; without it only the classification key is shown. The tier number is display order
+// only, as in HCG UEM; it never implies anything.
++ (nullable NSArray<NSArray<NSString *> *> *)rowsFromUEMSelfStatus:(nullable NSData *)data catalog:(nullable NSData *)catalog
+                                                            error:(NSString *_Nullable *_Nullable)error;
 @end
 
 NS_ASSUME_NONNULL_END

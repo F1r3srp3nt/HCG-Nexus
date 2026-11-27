@@ -19,6 +19,13 @@ built for publication.
   repository until it has been remediated.
 * The `hcg.nexus` registration packet.
 * Runtime-evidence steps in the device test.
+* HCG UEM's real v1 self status: a reader for it, aligned with HCG-UEM @ `14d8ad7` (not deployed, not connected).
+  The earlier proposal and its fail-closed parser are kept.
+* `hcg.integration-qualification/1`: the reusable nine-checkpoint record, with LifeOS coordination notes.
+* HCG Store: the read-only access proposal (`docs/contracts/hcg-store-read-only-access.md`).
+* `scripts/device/hcg-nexus-collect-evidence.sh`: a read-only collector of runtime evidence.
+* **Confidential:** the public catalogue report was withdrawn from this repository until remediation. Test fixtures
+  hold only identity fields of products Nexus already lists, and no permission key names are proposed.
 
 ## 0.7.0~beta1 — central registry and live ecosystem connections (recorded 2026-11-26)
 
